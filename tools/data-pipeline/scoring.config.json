@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "populationMinClassement": 2000,
+  "ponderations": {
+    "securite": 1.5,
+    "sante": 1.2,
+    "commerces": 1.0,
+    "enseignement": 1.0,
+    "sports": 0.8,
+    "culture": 0.8,
+    "transports": 1.2,
+    "niveauVie": 1.0
+  }
+}

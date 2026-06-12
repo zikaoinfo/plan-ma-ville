@@ -1,0 +1,130 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+/* ── Header ───────────────────────────────── */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgb(250 246 239 / 0.85);
+  backdrop-filter: blur(8px);
+  border-bottom: 1.5px solid var(--ink);
+}
+
+.topbar__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 0.8rem;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  text-decoration: none;
+}
+
+.brand__mark {
+  display: grid;
+  place-items: center;
+  width: 2.3rem;
+  height: 2.3rem;
+  border: 2px solid var(--ink);
+  border-radius: 50% 50% 50% 6px;
+  background: var(--accent);
+  color: var(--paper);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  box-shadow: var(--shadow);
+  transform: rotate(-6deg);
+  transition: transform 0.25s ease;
+}
+
+.brand:hover .brand__mark {
+  transform: rotate(6deg) scale(1.05);
+}
+
+.brand__name {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 600;
+
+  em {
+    color: var(--accent);
+    font-style: italic;
+  }
+}
+
+/* ── Nav ──────────────────────────────────── */
+.nav {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.nav__link {
+  padding: 0.45rem 0.95rem;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+
+  &:hover {
+    background: var(--paper-soft);
+    color: var(--ink);
+  }
+}
+
+.nav__link--active {
+  background: var(--ink);
+  color: var(--paper);
+
+  &:hover {
+    background: var(--ink);
+    color: var(--paper);
+  }
+}
+
+/* ── Page & footer ────────────────────────── */
+.page {
+  flex: 1;
+}
+
+.footer {
+  border-top: 1.5px solid var(--line);
+  margin-top: 4rem;
+}
+
+.footer__inner {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-block: 1.2rem;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+
+  p {
+    margin: 0;
+  }
+}
+
+.footer__note {
+  font-style: italic;
+}
+
+@media (max-width: 640px) {
+  .topbar__inner {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
