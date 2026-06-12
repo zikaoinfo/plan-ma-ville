@@ -1,0 +1,38 @@
+<header class="topbar">
+  <div class="container topbar__inner">
+    <a routerLink="/" class="brand" aria-label="Ma ville, notée — accueil">
+      <span class="brand__mark" aria-hidden="true">10</span>
+      <span class="brand__name">ma ville, <em>notée.</em></span>
+    </a>
+
+    <nav class="nav" aria-label="Navigation principale">
+      <a
+        routerLink="/"
+        routerLinkActive="nav__link--active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="nav__link"
+        >Recherche</a
+      >
+      <a routerLink="/classement" routerLinkActive="nav__link--active" class="nav__link"
+        >Classement</a
+      >
+      <a routerLink="/methodologie" routerLinkActive="nav__link--active" class="nav__link"
+        >Méthodologie</a
+      >
+    </nav>
+  </div>
+</header>
+
+<main class="page">
+  <router-outlet />
+</main>
+
+<footer class="footer">
+  <div class="container footer__inner">
+    <p>
+      © {{ annee }} ma ville, notée — données open data
+      (<a href="https://geo.api.gouv.fr" rel="noopener" target="_blank">geo.api.gouv.fr</a>).
+    </p>
+    <p class="footer__note">Notes indicatives, calculées automatiquement.</p>
+  </div>
+</footer>

@@ -1,0 +1,43 @@
+{
+  "name": "ma-ville-notes",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build && node tools/copy-404.mjs",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test",
+    "lint": "ng lint",
+    "data:build": "tsx tools/data-pipeline/src/main.ts",
+    "data:sample": "tsx tools/data-pipeline/src/main.ts --departements 69,75",
+    "test:data": "npm run test --workspace tools/data-pipeline"
+  },
+  "private": true,
+  "workspaces": [
+    "tools/data-pipeline"
+  ],
+  "packageManager": "npm@11.12.1",
+  "dependencies": {
+    "@angular/common": "^22.0.0",
+    "@angular/compiler": "^22.0.0",
+    "@angular/core": "^22.0.0",
+    "@angular/forms": "^22.0.0",
+    "@angular/platform-browser": "^22.0.0",
+    "@angular/router": "^22.0.0",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^22.0.1",
+    "@angular/cli": "^22.0.1",
+    "@angular/compiler-cli": "^22.0.0",
+    "@eslint/js": "^10.0.1",
+    "angular-eslint": "22.0.0",
+    "eslint": "^10.3.0",
+    "jsdom": "^28.0.0",
+    "prettier": "^3.8.1",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "8.60.1",
+    "vitest": "^4.0.8"
+  }
+}

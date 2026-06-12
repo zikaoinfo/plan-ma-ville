@@ -1,0 +1,119 @@
+/* ════════════════════════════════════════════════════════════
+   ma-ville-notes — design system
+   Palette « encre & craie » : fond crème, encre bleu nuit,
+   accent corail, vert note. Typo : Fraunces (display) + Outfit.
+   ════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Couleurs */
+  --paper: #faf6ef;
+  --paper-soft: #f1ebe0;
+  --ink: #18203a;
+  --ink-soft: #4a5270;
+  --accent: #ff5a3c;
+  --accent-soft: #ffd9d0;
+  --good: #1d8a63;
+  --good-soft: #d2efe3;
+  --warn: #d9a514;
+  --bad: #c93a2e;
+  --line: #d9d2c3;
+
+  /* Typo */
+  --font-display: 'Fraunces', 'Georgia', serif;
+  --font-body: 'Outfit', system-ui, -apple-system, sans-serif;
+
+  /* Rythme */
+  --radius: 14px;
+  --radius-sm: 8px;
+  --shadow: 0 2px 0 var(--ink);
+  --shadow-lift: 0 6px 0 rgb(24 32 58 / 0.12);
+  --container: 1080px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background:
+    radial-gradient(1200px 500px at 85% -10%, rgb(255 90 60 / 0.07), transparent 60%),
+    radial-gradient(900px 500px at -10% 0%, rgb(29 138 99 / 0.06), transparent 55%),
+    var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin: 0 0 0.5em;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: var(--accent-soft);
+}
+
+.container {
+  width: min(var(--container), 100% - 2.5rem);
+  margin-inline: auto;
+}
+
+/* Étiquette « en chantier » réutilisée par les pages placeholder */
+.tag-chantier {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.3rem 0.85rem;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: var(--paper-soft);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.tag-chantier::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* Hero commun aux pages placeholder (Phase 0) */
+.page-hero {
+  padding-block: 4.5rem 2rem;
+  text-align: center;
+}
+
+.page-hero h1 {
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  margin-top: 0.8rem;
+}
+
+.page-hero .sous-titre {
+  max-width: 38rem;
+  margin-inline: auto;
+  color: var(--ink-soft);
+  font-size: 1.1rem;
+}
