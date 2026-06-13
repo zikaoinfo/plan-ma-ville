@@ -1,0 +1,255 @@
+.hero {
+  padding-block: clamp(2.5rem, 7vw, 5rem) 1rem;
+  text-align: center;
+}
+
+.hero h1 {
+  font-size: clamp(2.2rem, 6vw, 3.6rem);
+  margin-top: 0.9rem;
+}
+
+.ville {
+  color: var(--accent);
+  font-style: italic;
+}
+
+.sous-titre {
+  max-width: 40rem;
+  margin: 0 auto;
+  color: var(--ink-soft);
+  font-size: clamp(1rem, 2.5vw, 1.15rem);
+}
+
+/* ── Champ de recherche ───────────────────── */
+.search {
+  max-width: 38rem;
+  margin: 2.5rem auto 0;
+  text-align: left;
+}
+
+.search__label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+
+.search__field {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.2rem 1rem;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.search__field:focus-within {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 var(--ink);
+}
+
+.search__icon {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  fill: none;
+  stroke: var(--ink-soft);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.search__input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 0.85rem 0;
+  font: inherit;
+  font-size: 1.1rem;
+  color: var(--ink);
+}
+
+.search__input::placeholder {
+  color: color-mix(in srgb, var(--ink-soft) 70%, transparent);
+}
+
+.search__input:focus {
+  outline: none;
+}
+
+/* ── Résultats ────────────────────────────── */
+.results {
+  list-style: none;
+  margin: 0.8rem 0 0;
+  padding: 0.4rem;
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lift);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 11px;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.15s ease;
+}
+
+.result:hover,
+.result:focus-visible {
+  background: var(--paper-soft);
+  outline: none;
+}
+
+.result__main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.result__name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.result__meta {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+/* ── États (chargement / vide) ────────────── */
+.state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+.state--empty {
+  font-style: italic;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid var(--line);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2s;
+  }
+}
+
+/* ── Départements ─────────────────────────── */
+.departements {
+  margin-top: 3.5rem;
+}
+
+.departements h2 {
+  font-size: 1.6rem;
+  margin-bottom: 1.2rem;
+}
+
+.dep-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.75rem;
+}
+
+.dep {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  height: 100%;
+  padding: 0.85rem 1rem;
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  text-decoration: none;
+  color: inherit;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.dep:hover,
+.dep:focus-visible {
+  transform: translateY(-2px);
+  border-color: var(--ink);
+  box-shadow: var(--shadow);
+  outline: none;
+}
+
+.dep__code {
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  flex: none;
+  border-radius: 10px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.dep__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.dep__nom {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dep__nb {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 640px) {
+  .search,
+  .hero {
+    padding-inline: 0;
+  }
+}

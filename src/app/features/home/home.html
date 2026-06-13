@@ -1,0 +1,75 @@
+<section class="hero container">
+  <span class="tag-chantier">35&nbsp;000 communes · 8 critères</span>
+  <h1>Quelle note mérite <em class="ville">votre ville</em>&nbsp;?</h1>
+  <p class="sous-titre">
+    Tapez le nom d'une commune ou un code postal&nbsp;: on vous sort sa note sur 10,
+    de la sécurité au niveau de vie.
+  </p>
+
+  <div class="search">
+    <label class="search__label" for="q">Rechercher une commune</label>
+    <div class="search__field">
+      <svg class="search__icon" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="11" cy="11" r="7" />
+        <line x1="21" y1="21" x2="16.5" y2="16.5" />
+      </svg>
+      <input
+        id="q"
+        class="search__input"
+        type="search"
+        autocomplete="off"
+        placeholder="Lyon, Saint-Étienne, 69001…"
+        aria-label="Rechercher une commune par nom ou code postal"
+        [value]="query()"
+        (input)="query.set($any($event.target).value)"
+      />
+    </div>
+
+    @if (!ready()) {
+      <div class="state" role="status">
+        <span class="spinner" aria-hidden="true"></span>
+        Chargement de l'index des communes…
+      </div>
+    } @else if (results().length) {
+      <ul class="results" role="listbox" aria-label="Résultats de recherche">
+        @for (item of results(); track item.s) {
+          <li role="option" aria-selected="false" class="results__item">
+            <a class="result" [routerLink]="['/ville', item.s]">
+              <span class="result__main">
+                <span class="result__name">{{ item.n }}</span>
+                <span class="result__meta">
+                  {{ item.cp[0] }} · dép. {{ item.d }} · {{ item.p | number: '1.0-0' }} hab.
+                </span>
+              </span>
+              <app-score-badge [score]="item.g" />
+            </a>
+          </li>
+        }
+      </ul>
+    } @else if (noResult()) {
+      <p class="state state--empty">Aucune commune ne correspond à « {{ query() }} ».</p>
+    }
+  </div>
+</section>
+
+<section class="departements container">
+  <h2>Explorer par département</h2>
+  @if (departements().length) {
+    <ul class="dep-grid">
+      @for (dep of departements(); track dep.code) {
+        <li>
+          <a class="dep" [routerLink]="['/departement', dep.code]">
+            <span class="dep__code">{{ dep.code }}</span>
+            <span class="dep__body">
+              <span class="dep__nom">{{ dep.nom }}</span>
+              <span class="dep__nb">{{ dep.nbCommunes | number: '1.0-0' }} communes</span>
+            </span>
+            <app-score-badge [score]="dep.noteMoyenne" />
+          </a>
+        </li>
+      }
+    </ul>
+  } @else {
+    <p class="state">Chargement des départements…</p>
+  }
+</section>
