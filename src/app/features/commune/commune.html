@@ -1,0 +1,58 @@
+<article class="fiche container">
+  <a routerLink="/" class="back">← Retour à la recherche</a>
+
+  @switch (status()) {
+    @case ('loading') {
+      <div class="card skeleton" aria-busy="true" aria-label="Chargement de la fiche">
+        <div class="sk sk--title"></div>
+        <div class="sk sk--meta"></div>
+        <div class="sk-bars">
+          @for (c of criteres; track c) {
+            <div class="sk sk--bar"></div>
+          }
+        </div>
+      </div>
+    }
+
+    @case ('not-found') {
+      <div class="card empty">
+        <h1>Commune introuvable</h1>
+        <p>Le lien que vous avez suivi ne correspond à aucune commune connue.</p>
+        <a routerLink="/" class="btn">Revenir à l'accueil</a>
+      </div>
+    }
+
+    @default {
+      @let c = commune()!;
+      <div class="card">
+        <header class="fiche__head">
+          <div>
+            <h1>{{ c.nom }}</h1>
+            <p class="fiche__meta">
+              <a [routerLink]="['/departement', depCode()]" class="fiche__dep">{{ depNom() }}</a>
+              · {{ c.population | number: '1.0-0' }} habitants
+            </p>
+          </div>
+          <app-score-badge [score]="c.score.global" />
+        </header>
+
+        <section class="fiche__notes" aria-label="Notes par critère">
+          @for (critere of criteres; track critere) {
+            <app-note-bar [label]="labels[critere]" [score]="c.score.criteres[critere]" />
+          }
+        </section>
+
+        <footer class="fiche__foot">
+          <span class="fiche__source">
+            Notes calculées automatiquement ·
+            <a routerLink="/methodologie">méthodologie</a>
+          </span>
+          <nav class="fiche__nav">
+            <a [routerLink]="['/departement', depCode()]">‹ {{ depNom() }}</a>
+            <a routerLink="/classement">Classement national ›</a>
+          </nav>
+        </footer>
+      </div>
+    }
+  }
+</article>

@@ -1,0 +1,162 @@
+.fiche {
+  max-width: 680px;
+  padding-block: 2rem 1rem;
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 1.2rem;
+  color: var(--ink-soft);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.back:hover {
+  color: var(--ink);
+}
+
+.card {
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  padding: clamp(1.2rem, 4vw, 2rem);
+}
+
+/* ── En-tête ──────────────────────────────── */
+.fiche__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1.2rem;
+  border-bottom: 1.5px solid var(--line);
+}
+
+.fiche__head h1 {
+  font-size: clamp(1.8rem, 5vw, 2.6rem);
+  margin: 0;
+}
+
+.fiche__meta {
+  margin: 0.3rem 0 0;
+  color: var(--ink-soft);
+}
+
+.fiche__dep {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.fiche__dep:hover {
+  text-decoration: underline;
+}
+
+/* ── Notes ────────────────────────────────── */
+.fiche__notes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding-block: 1.4rem;
+}
+
+/* ── Pied ─────────────────────────────────── */
+.fiche__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding-top: 1.2rem;
+  border-top: 1.5px solid var(--line);
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.fiche__foot a {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.fiche__nav {
+  display: flex;
+  gap: 1rem;
+}
+
+/* ── État « introuvable » ─────────────────── */
+.empty {
+  text-align: center;
+}
+
+.empty h1 {
+  margin-top: 0;
+}
+
+.btn {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.6rem 1.3rem;
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.btn:hover {
+  background: var(--accent);
+}
+
+/* ── Skeleton de chargement ───────────────── */
+.skeleton {
+  pointer-events: none;
+}
+
+.sk {
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--paper-soft) 25%, var(--line) 50%, var(--paper-soft) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.3s ease infinite;
+}
+
+.sk--title {
+  height: 2.4rem;
+  width: 60%;
+}
+
+.sk--meta {
+  height: 1rem;
+  width: 40%;
+  margin-top: 0.8rem;
+}
+
+.sk-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin-top: 1.6rem;
+}
+
+.sk--bar {
+  height: 1rem;
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk {
+    animation-duration: 3s;
+  }
+}
+
+@media (max-width: 520px) {
+  .fiche__head {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+  }
+}

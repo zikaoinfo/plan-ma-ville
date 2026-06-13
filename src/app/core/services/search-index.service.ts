@@ -64,8 +64,26 @@ export class SearchIndexService {
   /** État brut de la ressource d'index (idle | loading | resolved | error). */
   readonly indexStatus = this.#index.status;
 
+  /** Items de l'index ; `[]` tant que non résolu. */
+  readonly items = computed(() => this.#index.value()?.items ?? []);
+
   search(query: string): SearchIndexItem[] {
-    return searchItems(this.#index.value()?.items ?? [], query);
+    return searchItems(this.items(), query);
+  }
+
+  /** Retrouve un item d'index par son slug (`undefined` si absent/non chargé). */
+  findBySlug(slug: string): SearchIndexItem | undefined {
+    return this.items().find((it) => it.s === slug);
+  }
+
+  /** Nom d'un département depuis departements.json (`undefined` si non chargé). */
+  departementName(code: string): string | undefined {
+    return this.#departements.value()?.items.find((d) => d.code === code)?.nom;
+  }
+
+  /** Résumé d'un département (nb communes, note moyenne…). */
+  departementSummary(code: string): DepartementSummary | undefined {
+    return this.#departements.value()?.items.find((d) => d.code === code);
   }
 
   /** Départements triés par code croissant ; `[]` tant que non résolu. */
