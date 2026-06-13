@@ -10,6 +10,8 @@ interface GeoCommuneRaw {
   codeDepartement?: string;
   population?: number;
   type?: string;
+  /** GeoJSON Point du centre : coordinates = [lon, lat]. */
+  centre?: { type: 'Point'; coordinates: [number, number] };
 }
 
 /** Commune nettoyée, prête pour le scoring. */
@@ -19,6 +21,10 @@ export interface CommuneSource {
   codesPostaux: string[];
   codeDepartement: string;
   population: number;
+  /** Latitude du centre (si fournie par l'API). */
+  lat?: number;
+  /** Longitude du centre (si fournie par l'API). */
+  lon?: number;
 }
 
 /**
@@ -46,11 +52,22 @@ export async function fetchCommunes(url: string, cacheDir: string): Promise<Comm
   return raw
     .filter((c) => c.type !== 'arrondissement-municipal')
     .filter((c) => c.codeDepartement !== undefined)
-    .map((c) => ({
-      nom: c.nom,
-      codeInsee: c.code,
-      codesPostaux: c.codesPostaux ?? [],
-      codeDepartement: c.codeDepartement as string,
-      population: c.population && c.population > 0 ? c.population : 1,
-    }));
+    .map((c) => {
+      const [lon, lat] = c.centre?.coordinates ?? [];
+      return {
+        nom: c.nom,
+        codeInsee: c.code,
+        codesPostaux: c.codesPostaux ?? [],
+        codeDepartement: c.codeDepartement as string,
+        population: c.population && c.population > 0 ? c.population : 1,
+        ...(lat !== undefined && lon !== undefined
+          ? { lat: round5(lat), lon: round5(lon) }
+          : {}),
+      };
+    });
+}
+
+/** Arrondi à 5 décimales (~1 m) pour limiter la taille des JSON. */
+function round5(x: number): number {
+  return Math.round(x * 1e5) / 1e5;
 }

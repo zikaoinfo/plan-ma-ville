@@ -87,6 +87,10 @@ export interface CommuneDetail {
   codeInsee: string;
   codesPostaux: string[];
   population: number;
+  /** Latitude du centre (absente si l'open data ne la fournit pas). */
+  lat?: number;
+  /** Longitude du centre. */
+  lon?: number;
   score: CommuneScore;
 }
 

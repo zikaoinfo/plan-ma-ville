@@ -1,5 +1,5 @@
 .fiche {
-  max-width: 680px;
+  max-width: 980px;
   padding-block: 2rem 1rem;
 }
 
@@ -15,71 +15,266 @@
   color: var(--ink);
 }
 
-.card {
-  background: var(--paper);
-  border: 2px solid var(--ink);
-  border-radius: 20px;
-  box-shadow: var(--shadow);
-  padding: clamp(1.2rem, 4vw, 2rem);
-}
-
 /* ── En-tête ──────────────────────────────── */
-.fiche__head {
+.head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  padding-bottom: 1.2rem;
-  border-bottom: 1.5px solid var(--line);
+  margin-bottom: 1.4rem;
 }
 
-.fiche__head h1 {
-  font-size: clamp(1.8rem, 5vw, 2.6rem);
+.head__id h1 {
+  font-size: clamp(1.9rem, 5vw, 3rem);
   margin: 0;
 }
 
-.fiche__meta {
+.head__meta {
   margin: 0.3rem 0 0;
   color: var(--ink-soft);
 }
 
-.fiche__dep {
+.head__dep {
   color: var(--accent);
   font-weight: 600;
   text-decoration: none;
 }
 
-.fiche__dep:hover {
+.head__dep:hover {
   text-decoration: underline;
 }
 
-/* ── Notes ────────────────────────────────── */
-.fiche__notes {
+.head__score {
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
-  padding-block: 1.4rem;
+  align-items: flex-end;
+  gap: 0.25rem;
+  flex: none;
+}
+
+.head__score-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-soft);
+}
+
+/* ── Grille dashboard ─────────────────────── */
+.dash {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.card {
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: 18px;
+  padding: 1.2rem;
+  box-shadow: var(--shadow-lift);
+}
+
+.card__title {
+  font-size: 1.05rem;
+  margin: 0 0 0.9rem;
+}
+
+/* le bloc thématique occupe toute la largeur */
+.card--themes {
+  grid-column: 1 / -1;
+}
+
+/* ── Carte ────────────────────────────────── */
+.card--map {
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+  min-height: 240px;
+}
+
+.map {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 240px;
+  border: 0;
+}
+
+.map__link {
+  position: absolute;
+  right: 0.6rem;
+  bottom: 0.6rem;
+  padding: 0.3rem 0.7rem;
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--ink);
+}
+
+/* ── Prix ─────────────────────────────────── */
+.card--price {
+  display: flex;
+  flex-direction: column;
+}
+
+.price {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 6vw, 2.8rem);
+  font-weight: 700;
+  margin: 0;
+  line-height: 1;
+}
+
+.price__unit {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+
+.price__trend {
+  margin: 0.5rem 0 0;
+  font-weight: 600;
+}
+
+.price__trend--up {
+  color: var(--good);
+}
+
+.price__trend--down {
+  color: var(--bad);
+}
+
+/* ── Historique ───────────────────────────── */
+.spark {
+  width: 100%;
+  height: 64px;
+}
+
+.spark__line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.histo__legend {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.histo__delta {
+  font-weight: 700;
+}
+
+.histo__delta.up {
+  color: var(--good);
+}
+
+.histo__delta.down {
+  color: var(--bad);
+}
+
+.estimate-note {
+  margin: 0.6rem 0 0;
+  font-size: 0.74rem;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+/* ── Thématiques ──────────────────────────── */
+.themes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.9rem 1.6rem;
+}
+
+.theme {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.theme__icon {
+  font-size: 1.2rem;
+  flex: none;
+}
+
+.theme app-note-bar {
+  display: block;
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Alentours ────────────────────────────── */
+.near {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.near__item {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 10px;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.15s ease;
+}
+
+.near__item:hover {
+  background: var(--paper-soft);
+}
+
+.near__name {
+  font-weight: 600;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.near__dist {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ── Pied ─────────────────────────────────── */
-.fiche__foot {
+.foot {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 0.6rem;
+  margin-top: 1.4rem;
   padding-top: 1.2rem;
   border-top: 1.5px solid var(--line);
   font-size: 0.9rem;
   color: var(--ink-soft);
 }
 
-.fiche__foot a {
+.foot a {
   color: var(--ink);
   font-weight: 500;
 }
 
-.fiche__nav {
+.foot__nav {
   display: flex;
   gap: 1rem;
 }
@@ -108,7 +303,7 @@
   background: var(--accent);
 }
 
-/* ── Skeleton de chargement ───────────────── */
+/* ── Skeleton ─────────────────────────────── */
 .skeleton {
   pointer-events: none;
 }
@@ -122,24 +317,24 @@
 
 .sk--title {
   height: 2.4rem;
-  width: 60%;
+  width: 55%;
 }
 
 .sk--meta {
   height: 1rem;
-  width: 40%;
+  width: 35%;
   margin-top: 0.8rem;
 }
 
-.sk-bars {
-  display: flex;
-  flex-direction: column;
-  gap: 0.9rem;
-  margin-top: 1.6rem;
+.sk-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-top: 1.5rem;
 }
 
-.sk--bar {
-  height: 1rem;
+.sk--block {
+  height: 130px;
 }
 
 @keyframes shimmer {
@@ -148,15 +343,25 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .sk {
-    animation-duration: 3s;
+/* ── Responsive ───────────────────────────── */
+@media (max-width: 720px) {
+  .dash,
+  .sk-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .head {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+  }
+
+  .head__score {
+    align-items: flex-start;
   }
 }
 
-@media (max-width: 520px) {
-  .fiche__head {
-    flex-direction: column-reverse;
-    align-items: flex-start;
+@media (prefers-reduced-motion: reduce) {
+  .sk {
+    animation-duration: 3s;
   }
 }

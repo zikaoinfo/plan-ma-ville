@@ -165,6 +165,7 @@ async function main(): Promise<void> {
       codeInsee: c.codeInsee,
       codesPostaux: c.codesPostaux,
       population: c.population,
+      ...(c.lat !== undefined && c.lon !== undefined ? { lat: c.lat, lon: c.lon } : {}),
       codeDepartement: c.codeDepartement,
       score: {
         source: 'computed',

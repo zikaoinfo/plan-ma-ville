@@ -115,6 +115,7 @@ export async function emitAll(
         codeInsee: c.codeInsee,
         codesPostaux: c.codesPostaux,
         population: c.population,
+        ...(c.lat !== undefined && c.lon !== undefined ? { lat: c.lat, lon: c.lon } : {}),
         score: c.score,
       })),
     };

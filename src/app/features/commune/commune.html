@@ -6,9 +6,9 @@
       <div class="card skeleton" aria-busy="true" aria-label="Chargement de la fiche">
         <div class="sk sk--title"></div>
         <div class="sk sk--meta"></div>
-        <div class="sk-bars">
-          @for (c of criteres; track c) {
-            <div class="sk sk--bar"></div>
+        <div class="sk-grid">
+          @for (n of [1, 2, 3, 4]; track n) {
+            <div class="sk sk--block"></div>
           }
         </div>
       </div>
@@ -24,35 +24,113 @@
 
     @default {
       @let c = commune()!;
-      <div class="card">
-        <header class="fiche__head">
-          <div>
-            <h1>{{ c.nom }}</h1>
-            <p class="fiche__meta">
-              <a [routerLink]="['/departement', depCode()]" class="fiche__dep">{{ depNom() }}</a>
-              · {{ c.population | number: '1.0-0' }} habitants
-            </p>
-          </div>
-          <app-score-badge [score]="c.score.global" />
-        </header>
 
-        <section class="fiche__notes" aria-label="Notes par critère">
-          @for (critere of criteres; track critere) {
-            <app-note-bar [label]="labels[critere]" [score]="c.score.criteres[critere]" />
-          }
+      <header class="head">
+        <div class="head__id">
+          <h1>{{ c.nom }}</h1>
+          <p class="head__meta">
+            <a [routerLink]="['/departement', depCode()]" class="head__dep">{{ depNom() }}</a>
+            · {{ c.population | number: '1.0-0' }} habitants
+            @if (c.codesPostaux.length) {
+              · {{ c.codesPostaux[0] }}
+            }
+          </p>
+        </div>
+        <div class="head__score">
+          <span class="head__score-label">Note globale</span>
+          <app-score-badge [score]="c.score.global" />
+        </div>
+      </header>
+
+      <div class="dash">
+        <!-- Carte -->
+        @if (mapUrl(); as src) {
+          <section class="card card--map" aria-label="Localisation">
+            <iframe
+              class="map"
+              [src]="src"
+              title="Carte de {{ c.nom }}"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+            ></iframe>
+            @if (mapLink(); as link) {
+              <a class="map__link" [href]="link" target="_blank" rel="noopener">Voir en grand ↗</a>
+            }
+          </section>
+        }
+
+        <!-- Prix immobilier estimé -->
+        <section class="card card--price" aria-label="Prix immobilier estimé">
+          <h2 class="card__title">Prix au m² estimé</h2>
+          <p class="price">
+            {{ prixM2() | number: '1.0-0' }} <span class="price__unit">€/m²</span>
+          </p>
+          <p class="price__trend" [class.price__trend--up]="prixTrend() >= 0" [class.price__trend--down]="prixTrend() < 0">
+            {{ prixTrend() >= 0 ? '▲' : '▼' }} {{ prixTrend() }} % sur un an
+          </p>
+          <p class="estimate-note">Estimation indicative · non contractuelle</p>
         </section>
 
-        <footer class="fiche__foot">
-          <span class="fiche__source">
-            Notes calculées automatiquement ·
-            <a routerLink="/methodologie">méthodologie</a>
-          </span>
-          <nav class="fiche__nav">
-            <a [routerLink]="['/departement', depCode()]">‹ {{ depNom() }}</a>
-            <a routerLink="/classement">Classement national ›</a>
-          </nav>
-        </footer>
+        <!-- Historique de la note -->
+        <section class="card card--histo" aria-label="Historique de la note">
+          <h2 class="card__title">Historique de la note</h2>
+          @if (spark(); as s) {
+            <svg class="spark" viewBox="0 0 100 32" preserveAspectRatio="none" role="img"
+              [attr.aria-label]="'Évolution de ' + s.first.note + ' à ' + s.last.note">
+              <polyline class="spark__line" [attr.points]="s.points" />
+            </svg>
+            <div class="histo__legend">
+              <span>{{ s.first.year }} · {{ s.first.note.toFixed(1) }}</span>
+              <span class="histo__delta" [class.up]="s.delta >= 0" [class.down]="s.delta < 0">
+                {{ s.delta >= 0 ? '+' : '' }}{{ s.delta.toFixed(1) }} pt
+              </span>
+              <span>{{ s.last.year }} · {{ s.last.note.toFixed(1) }}</span>
+            </div>
+          }
+          <p class="estimate-note">Trajectoire estimée</p>
+        </section>
+
+        <!-- Notes par thématique -->
+        <section class="card card--themes" aria-label="Notes par thématique">
+          <h2 class="card__title">Notes par thématique</h2>
+          <div class="themes">
+            @for (critere of criteres; track critere) {
+              <div class="theme">
+                <span class="theme__icon" aria-hidden="true">{{ icons[critere] }}</span>
+                <app-note-bar [label]="labels[critere]" [score]="c.score.criteres[critere]" />
+              </div>
+            }
+          </div>
+        </section>
+
+        <!-- Villes aux alentours -->
+        @if (voisins().length) {
+          <section class="card card--near" aria-label="Communes aux alentours">
+            <h2 class="card__title">Aux alentours</h2>
+            <ul class="near">
+              @for (v of voisins(); track v.commune.slug) {
+                <li>
+                  <a class="near__item" [routerLink]="['/ville', v.commune.slug]">
+                    <span class="near__name">{{ v.commune.nom }}</span>
+                    <span class="near__dist">{{ v.distanceKm | number: '1.0-0' }} km</span>
+                    <app-score-badge [score]="v.commune.score.global" />
+                  </a>
+                </li>
+              }
+            </ul>
+          </section>
+        }
       </div>
+
+      <footer class="foot">
+        <span class="foot__source">
+          Notes calculées automatiquement · <a routerLink="/methodologie">méthodologie</a>
+        </span>
+        <nav class="foot__nav">
+          <a [routerLink]="['/departement', depCode()]">‹ {{ depNom() }}</a>
+          <a routerLink="/classement">Classement national ›</a>
+        </nav>
+      </footer>
     }
   }
 </article>

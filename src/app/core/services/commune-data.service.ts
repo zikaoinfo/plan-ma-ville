@@ -53,7 +53,10 @@ export class CommuneDataService {
    * composant) : la ressource et l'effet créés sont alors liés au cycle de vie
    * de l'appelant.
    */
-  getCommuneBySlug(slug: Signal<string>): Signal<CommuneState> {
+  getCommuneBySlug(slug: Signal<string>): {
+    state: Signal<CommuneState>;
+    depFile: Signal<DepartementDetailFile | undefined>;
+  } {
     const depCode = computed(() => {
       if (this.#search.indexStatus() !== 'resolved') return undefined;
       return this.#search.findBySlug(slug())?.d;
@@ -71,17 +74,24 @@ export class CommuneDataService {
       if (file) this.#fileCache.set(file.code, file);
     });
 
-    return computed(() => {
+    // Fichier du département (cache ou ressource) — partagé pour les voisins,
+    // afin de n'émettre qu'une seule requête par département.
+    const depFile = computed(() => {
       const code = depCode();
-      const cached = code ? this.#fileCache.get(code) : undefined;
-      return resolveCommuneState({
+      return code ? (this.#fileCache.get(code) ?? depRes.value()) : undefined;
+    });
+
+    const state = computed(() =>
+      resolveCommuneState({
         indexResolved: this.#search.indexStatus() === 'resolved',
         item: this.#search.findBySlug(slug()),
-        depFile: cached ?? depRes.value(),
+        depFile: depFile(),
         depError: depRes.status() === 'error',
         slug: slug(),
-      });
-    });
+      }),
+    );
+
+    return { state, depFile };
   }
 
   /**
