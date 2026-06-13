@@ -1,9 +1,9 @@
 import { DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
-import { Title } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
 import { CRITERE_LABELS, CRITERES } from '../../core/models/data.models';
 import { CommuneDataService } from '../../core/services/commune-data.service';
+import { MetaService } from '../../core/services/meta.service';
 import { SearchIndexService } from '../../core/services/search-index.service';
 import { ScoreBadge } from '../../shared/score-badge/score-badge';
 import { filterAndSortCommunes, type SortField, type SortOrder } from './sort-communes';
@@ -18,7 +18,7 @@ import { filterAndSortCommunes, type SortField, type SortOrder } from './sort-co
 export class Departement {
   readonly #data = inject(CommuneDataService);
   readonly #search = inject(SearchIndexService);
-  readonly #title = inject(Title);
+  readonly #meta = inject(MetaService);
 
   readonly code = input.required<string>();
 
@@ -52,7 +52,13 @@ export class Departement {
   constructor() {
     effect(() => {
       const nom = this.nom();
-      this.#title.setTitle(this.#file() ? `${nom} (${this.code()}) — ma ville, notée` : 'Chargement… — ma ville, notée');
+      this.#meta.setPage({
+        title: this.#file()
+          ? `${nom} (${this.code()}) — ma ville, notée`
+          : 'Chargement… — ma ville, notée',
+        description: `Les communes du département ${nom} (${this.code()}) notées sur 10, classables par critère.`,
+        canonicalPath: `/departement/${this.code()}`,
+      });
     });
   }
 

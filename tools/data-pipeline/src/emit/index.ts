@@ -46,11 +46,26 @@ function parNn(a: { nn: string; i: string }, b: { nn: string; i: string }): numb
   return a.nn < b.nn ? -1 : a.nn > b.nn ? 1 : a.i < b.i ? -1 : 1;
 }
 
+async function emitSitemap(
+  file: string,
+  base: string,
+  codes: string[],
+  gen: string,
+): Promise<void> {
+  const root = base.replace(/\/$/, '');
+  const paths = ['/', '/classement', '/methodologie', ...codes.map((c) => `/departement/${c}`)];
+  const urls = paths
+    .map((p) => `  <url><loc>${root}${p}</loc><lastmod>${gen}</lastmod></url>`)
+    .join('\n');
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
+  await writeFile(file, xml, 'utf8');
+}
+
 export async function emitAll(
   communes: CommuneScoree[],
-  options: { outDir: string; gen: string; populationMin: number },
+  options: { outDir: string; gen: string; populationMin: number; siteBaseUrl: string },
 ): Promise<EmitResult> {
-  const { outDir, gen, populationMin } = options;
+  const { outDir, gen, populationMin, siteBaseUrl } = options;
 
   // Repart d'un répertoire propre pour éviter les fichiers dep/ orphelins
   // d'un run précédent (le README est préservé : il vit dans outDir et
@@ -155,6 +170,11 @@ export async function emitAll(
     flop: asc.slice(0, 50),
   };
   await writeFile(path.join(outDir, 'classement.json'), JSON.stringify(classementFile), 'utf8');
+
+  // ── sitemap.xml (à la racine publique, pas dans data/) ──
+  // Pages statiques + 1 URL par département. PAS d'URL par commune (35k =
+  // inutile pour GitHub Pages).
+  await emitSitemap(path.join(outDir, '..', 'sitemap.xml'), siteBaseUrl, codes, gen);
 
   const indexGzipBytes = Number(
     execSync(`gzip -c ${JSON.stringify(indexPath)} | wc -c`).toString().trim(),

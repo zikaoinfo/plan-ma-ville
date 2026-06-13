@@ -26,10 +26,17 @@
     </div>
 
     @if (!ready()) {
-      <div class="state" role="status">
-        <span class="spinner" aria-hidden="true"></span>
-        Chargement de l'index des communes…
-      </div>
+      @if (indexStatus() === 'error') {
+        <app-error-message
+          message="Impossible de charger l'index des communes."
+          [retry]="reload"
+        />
+      } @else {
+        <div class="state" role="status">
+          <span class="spinner" aria-hidden="true"></span>
+          Chargement de l'index des communes…
+        </div>
+      }
     } @else if (results().length) {
       <ul class="results" role="listbox" aria-label="Résultats de recherche">
         @for (item of results(); track item.s) {

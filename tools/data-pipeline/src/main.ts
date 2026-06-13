@@ -180,6 +180,7 @@ async function main(): Promise<void> {
     outDir: OUT_DIR,
     gen,
     populationMin: scoring.populationMinClassement,
+    siteBaseUrl: 'https://zikaoinfo.github.io/plan-ma-ville',
   });
 
   console.log('▸ Validation des invariants…');

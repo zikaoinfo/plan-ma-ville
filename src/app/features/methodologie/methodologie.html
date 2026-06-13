@@ -1,0 +1,83 @@
+<article class="methodo container">
+  <a routerLink="/" class="back">← Retour à la recherche</a>
+
+  <h1>Méthodologie</h1>
+
+  <section>
+    <h2>Comment sont calculées les notes&nbsp;?</h2>
+    <p>
+      Chaque commune reçoit une note sur 10 pour huit critères de qualité de vie.
+      La <strong>note globale</strong> est leur moyenne pondérée&nbsp;: chaque critère
+      pèse plus ou moins selon son importance perçue (voir le tableau ci-dessous),
+      puis on arrondit à une décimale.
+    </p>
+    <p class="callout">
+      <strong>État actuel (v1).</strong> Les notes par critère sont pour l'instant
+      <strong>générées de façon déterministe</strong> à partir du code INSEE de la
+      commune&nbsp;: une même commune obtient toujours les mêmes notes, mais
+      celles-ci ne reflètent pas encore de données réelles. Le branchement des
+      sources open data (équipements, sécurité, revenus) est la prochaine étape.
+    </p>
+  </section>
+
+  <section>
+    <h2>Pondérations</h2>
+    <table class="ponder">
+      <thead>
+        <tr>
+          <th scope="col">Critère</th>
+          <th scope="col">Poids</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (critere of criteres; track critere) {
+          <tr>
+            <td>{{ labels[critere] }}</td>
+            <td class="num">{{ ponderations[critere].toFixed(1) }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Sources de données prévues</h2>
+    <table class="sources">
+      <thead>
+        <tr>
+          <th scope="col">Domaine</th>
+          <th scope="col">Source</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Périmètre des communes, population</td>
+          <td>API Géo (geo.api.gouv.fr)</td>
+        </tr>
+        <tr>
+          <td>Santé, commerces, enseignement, sports, culture, transports</td>
+          <td>Base permanente des équipements (BPE, INSEE)</td>
+        </tr>
+        <tr>
+          <td>Sécurité</td>
+          <td>Bases statistiques de la délinquance (SSMSI)</td>
+        </tr>
+        <tr>
+          <td>Niveau de vie</td>
+          <td>Revenus localisés (Filosofi, INSEE)</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Limites</h2>
+    <p>
+      Ces notes sont <strong>indicatives</strong>. Elles ne reflètent pas les avis
+      des habitants, ne capturent pas tout ce qui fait la qualité d'un lieu, et
+      dépendent de la disponibilité et de la fraîcheur des données ouvertes. Une
+      note basse sur un critère ne signifie pas qu'une commune est « mauvaise »&nbsp;:
+      une commune rurale sans cinéma reste agréable à vivre pour d'autres raisons.
+    </p>
+  </section>
+</article>

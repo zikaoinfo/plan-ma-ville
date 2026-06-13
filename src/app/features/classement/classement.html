@@ -50,10 +50,7 @@
       <div class="loading" role="status"><span class="spinner" aria-hidden="true"></span> Chargement du classement…</div>
     }
     @case ('error') {
-      <div class="error">
-        <p>Impossible de charger le classement.</p>
-        <button type="button" class="btn" (click)="reload()">Réessayer</button>
-      </div>
+      <app-error-message message="Impossible de charger le classement." [retry]="reload" />
     }
     @default {
       <div class="table-wrap">

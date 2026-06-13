@@ -1,0 +1,83 @@
+.methodo {
+  max-width: 760px;
+  padding-block: 2rem 1rem;
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 1.2rem;
+  color: var(--ink-soft);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.back:hover {
+  color: var(--ink);
+}
+
+.methodo h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+}
+
+.methodo section {
+  margin-top: 2.2rem;
+}
+
+.methodo h2 {
+  font-size: 1.4rem;
+  margin-bottom: 0.6rem;
+}
+
+.methodo p {
+  color: var(--ink-soft);
+}
+
+.methodo strong {
+  color: var(--ink);
+}
+
+.callout {
+  padding: 1rem 1.2rem;
+  background: var(--accent-soft);
+  border-left: 4px solid var(--accent);
+  border-radius: 0 12px 12px 0;
+}
+
+.callout strong {
+  color: var(--ink);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+th,
+td {
+  padding: 0.6rem 0.9rem;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+
+th {
+  background: var(--paper-soft);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ink-soft);
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}

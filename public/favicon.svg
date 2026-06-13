@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="ma ville notée">
+  <rect width="64" height="64" rx="14" fill="#18203a" />
+  <path d="M14 12 h36 a4 4 0 0 1 4 4 v32 a4 4 0 0 1 -4 4 h-36 a4 4 0 0 1 -4 -4 v-32 a4 4 0 0 1 4 -4 z" fill="#ff5a3c" transform="rotate(-6 32 32)" />
+  <text x="32" y="40" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="26" font-weight="700" fill="#faf6ef" transform="rotate(-6 32 32)">10</text>
+</svg>
