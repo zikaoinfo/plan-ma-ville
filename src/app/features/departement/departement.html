@@ -1,0 +1,102 @@
+<section class="dep container">
+  <a routerLink="/" class="back">← Retour à la recherche</a>
+
+  <header class="dep__head">
+    <div>
+      <span class="dep__code">{{ code() }}</span>
+      <h1>{{ nom() }}</h1>
+    </div>
+    @if (noteMoyenne(); as moy) {
+      <div class="dep__moy">
+        <span class="dep__moy-label">Note moyenne</span>
+        <app-score-badge [score]="moy" />
+      </div>
+    }
+  </header>
+
+  @if (communes(); as list) {
+    <div class="dep__tools">
+      <label class="filtre">
+        <span class="sr-only">Filtrer les communes</span>
+        <input
+          type="search"
+          class="filtre__input"
+          placeholder="Filtrer une commune…"
+          autocomplete="off"
+          [value]="filterText()"
+          (input)="filterText.set($any($event.target).value)"
+        />
+      </label>
+      <span class="dep__count">{{ list.length | number: '1.0-0' }} communes</span>
+    </div>
+
+    <!-- TODO pagination : pas de pagination en v1 (max ~800 communes,
+         le filtre texte suffit). À revoir si perf insuffisante. -->
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th
+              scope="col"
+              class="th th--sortable"
+              [attr.aria-sort]="ariaSort('nom')"
+              (click)="sortBy('nom')"
+            >
+              Commune <span class="arrow">{{ sortField() === 'nom' ? (sortOrder() === 1 ? '↑' : '↓') : '' }}</span>
+            </th>
+            <th
+              scope="col"
+              class="th th--sortable th--num"
+              [attr.aria-sort]="ariaSort('population')"
+              (click)="sortBy('population')"
+            >
+              Population <span class="arrow">{{ sortField() === 'population' ? (sortOrder() === 1 ? '↑' : '↓') : '' }}</span>
+            </th>
+            <th
+              scope="col"
+              class="th th--sortable th--num"
+              [attr.aria-sort]="ariaSort('global')"
+              (click)="sortBy('global')"
+            >
+              Note <span class="arrow">{{ sortField() === 'global' ? (sortOrder() === 1 ? '↑' : '↓') : '' }}</span>
+            </th>
+            @for (critere of criteres; track critere) {
+              <th
+                scope="col"
+                class="th th--sortable th--num th--critere"
+                [attr.aria-sort]="ariaSort(critere)"
+                (click)="sortBy(critere)"
+              >
+                {{ labels[critere] }} <span class="arrow">{{ sortField() === critere ? (sortOrder() === 1 ? '↑' : '↓') : '' }}</span>
+              </th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of list; track c.slug) {
+            <tr>
+              <td class="td td--nom">
+                <a [routerLink]="['/ville', c.slug]">{{ c.nom }}</a>
+              </td>
+              <td class="td td--num">{{ c.population | number: '1.0-0' }}</td>
+              <td class="td td--num td--note">{{ c.score.global.toFixed(1) }}</td>
+              @for (critere of criteres; track critere) {
+                <td class="td td--num td--critere">{{ c.score.criteres[critere].toFixed(1) }}</td>
+              }
+            </tr>
+          } @empty {
+            <tr>
+              <td [attr.colspan]="3 + criteres.length" class="td td--empty">
+                Aucune commune ne correspond à « {{ filterText() }} ».
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <div class="loading" role="status">
+      <span class="spinner" aria-hidden="true"></span> Chargement du département…
+    </div>
+  }
+</section>

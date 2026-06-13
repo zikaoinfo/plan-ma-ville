@@ -1,0 +1,233 @@
+.classement {
+  padding-block: 2rem 1rem;
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 1.2rem;
+  color: var(--ink-soft);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.back:hover {
+  color: var(--ink);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.classement__head h1 {
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+  margin: 0;
+}
+
+.classement__note {
+  margin: 0.3rem 0 0;
+  color: var(--ink-soft);
+}
+
+/* ── Contrôles ────────────────────────────── */
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin: 1.6rem 0 1rem;
+}
+
+.tabs {
+  display: inline-flex;
+  padding: 0.25rem;
+  background: var(--paper-soft);
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+}
+
+.tab {
+  border: none;
+  background: transparent;
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.tab--active {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.dep-filter__select {
+  padding: 0.55rem 0.9rem;
+  border: 1.5px solid var(--ink);
+  border-radius: 12px;
+  background: var(--paper);
+  font: inherit;
+  cursor: pointer;
+}
+
+.dep-filter__select:focus {
+  outline: none;
+  box-shadow: var(--shadow);
+}
+
+/* ── Tableau ──────────────────────────────── */
+.table-wrap {
+  overflow-x: auto;
+  border: 1.5px solid var(--line);
+  border-radius: 16px;
+  background: var(--paper);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.th {
+  background: var(--paper-soft);
+  padding: 0.7rem 0.9rem;
+  text-align: left;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  border-bottom: 1.5px solid var(--line);
+}
+
+.th--num {
+  text-align: right;
+}
+
+.th--rang {
+  width: 3rem;
+  text-align: center;
+}
+
+.td {
+  padding: 0.55rem 0.9rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.table tbody tr:last-child .td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background: var(--paper-soft);
+}
+
+.td--num {
+  text-align: right;
+}
+
+.td--rang {
+  text-align: center;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.td--nom a {
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.td--nom a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.td--dep a {
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+
+.td--dep a:hover {
+  color: var(--accent);
+}
+
+.td--empty {
+  text-align: center;
+  color: var(--ink-soft);
+  font-style: italic;
+  padding-block: 1.5rem;
+}
+
+/* ── États ────────────────────────────────── */
+.loading,
+.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  padding: 2.5rem;
+  color: var(--ink-soft);
+}
+
+.loading {
+  flex-direction: row;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid var(--line);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.btn {
+  padding: 0.55rem 1.2rem;
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: var(--accent);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 767px) {
+  .td--dep,
+  .th--dep {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2s;
+  }
+}

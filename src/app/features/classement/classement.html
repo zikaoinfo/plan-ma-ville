@@ -1,0 +1,91 @@
+<section class="classement container">
+  <a routerLink="/" class="back">← Retour à la recherche</a>
+
+  <header class="classement__head">
+    <h1>Classement national</h1>
+    @if (populationMin(); as min) {
+      <p class="classement__note">
+        Communes de plus de {{ min | number: '1.0-0' }} habitants.
+      </p>
+    }
+  </header>
+
+  <div class="controls">
+    <div class="tabs" role="tablist" aria-label="Sens du classement">
+      <button
+        type="button"
+        role="tab"
+        class="tab"
+        [class.tab--active]="tab() === 'top'"
+        [attr.aria-selected]="tab() === 'top'"
+        (click)="setTab('top')"
+      >
+        Meilleures communes
+      </button>
+      <button
+        type="button"
+        role="tab"
+        class="tab"
+        [class.tab--active]="tab() === 'flop'"
+        [attr.aria-selected]="tab() === 'flop'"
+        (click)="setTab('flop')"
+      >
+        Pires communes
+      </button>
+    </div>
+
+    <label class="dep-filter">
+      <span class="sr-only">Filtrer par département</span>
+      <select class="dep-filter__select" [value]="filterDep()" (change)="filterDep.set($any($event.target).value)">
+        <option value="">Tous les départements</option>
+        @for (dep of departements(); track dep.code) {
+          <option [value]="dep.code">{{ dep.code }} — {{ dep.nom }}</option>
+        }
+      </select>
+    </label>
+  </div>
+
+  @switch (status()) {
+    @case ('loading') {
+      <div class="loading" role="status"><span class="spinner" aria-hidden="true"></span> Chargement du classement…</div>
+    }
+    @case ('error') {
+      <div class="error">
+        <p>Impossible de charger le classement.</p>
+        <button type="button" class="btn" (click)="reload()">Réessayer</button>
+      </div>
+    }
+    @default {
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col" class="th th--rang">#</th>
+              <th scope="col" class="th">Commune</th>
+              <th scope="col" class="th th--dep">Dép.</th>
+              <th scope="col" class="th th--num">Population</th>
+              <th scope="col" class="th th--num">Note</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (e of entries(); track e.slug; let i = $index) {
+              <tr>
+                <td class="td td--rang">{{ i + 1 }}</td>
+                <td class="td td--nom"><a [routerLink]="['/ville', e.slug]">{{ e.nom }}</a></td>
+                <td class="td td--dep">
+                  <a [routerLink]="['/departement', e.departement]">{{ e.departement }}</a>
+                </td>
+                <td class="td td--num">{{ e.population | number: '1.0-0' }}</td>
+                <td class="td td--num"><app-score-badge [score]="e.global" /></td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="td td--empty">Aucune commune pour ce filtre.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</section>
