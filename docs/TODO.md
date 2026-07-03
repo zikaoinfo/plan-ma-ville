@@ -19,7 +19,7 @@
 | 7 | Avis communautaires (Supabase) | ⛔ Bloqué infra |
 | 9 | Résumé IA (Cloudflare Worker) | ⛔ Bloqué infra |
 | 10 | Quiz matching IA | ⛔ Bloqué infra |
-| 11 | Comparateur de villes | ⏳ À faire (autonome) |
+| 11 | Comparateur de villes | ✅ Fait (note habitants en attente Supabase) |
 | 12 | Profil & villes suivies | ⛔ Bloqué infra |
 
 Tests : 37 verts (Vitest). Lint clean. Build OK. Pipeline déterministe.
@@ -127,10 +127,11 @@ Tests : 37 verts (Vitest). Lint clean. Build OK. Pipeline déterministe.
 - [ ] `features/quiz/` (5 étapes signal-driven) + `CommuneCard` (shared).
 - [ ] Fallback « IA indisponible » si `workerUrl` vide.
 
-### Phase 11 — Comparateur (autonome, faisable sans infra)
-- [ ] `features/comparateur/` : jusqu'à 3 villes, URL partageable
-      (`?villes=slug1,slug2`), tableau comparatif, meilleure note surlignée.
-      Note habitants en dégradé (null si Supabase absent).
+### Phase 11 — Comparateur ✅ Fait
+- [x] `features/comparateur/` : jusqu'à 3 villes, URL partageable
+      (`?villes=slug1,slug2`), tableau comparatif, meilleure note surlignée,
+      autocomplete réutilisant SearchIndexService, responsive.
+- [ ] Brancher la ligne « Note habitants » sur `communes_stats` (Phase 7).
 
 ### Phase 12 — Profil & villes suivies
 - [ ] `features/profil/` (guard auth), villes suivies, mes avis.
