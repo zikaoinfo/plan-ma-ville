@@ -18,6 +18,11 @@ export const routes: Routes = [
     title: 'Département — Ma ville, notée',
   },
   {
+    path: 'carte',
+    loadComponent: () => import('./features/carte/carte').then((m) => m.Carte),
+    title: 'Carte — Ma ville, notée',
+  },
+  {
     path: 'classement',
     loadComponent: () =>
       import('./features/classement/classement').then((m) => m.Classement),

@@ -121,3 +121,28 @@ export interface ClassementEntry {
   population: number;
   global: number;
 }
+
+// ─────────────────────────────────────────────
+// geo-light.json — points allégés pour la carte
+// (champs courts : ~25 000 communes ≥ 500 hab avec coordonnées)
+// ─────────────────────────────────────────────
+export interface GeoLightFile {
+  v: 1;
+  gen: string;
+  items: GeoLightItem[];
+}
+
+export interface GeoLightItem {
+  /** Code INSEE */
+  i: string;
+  /** Nom officiel */
+  n: string;
+  /** Slug (lien fiche) */
+  s: string;
+  lat: number;
+  lng: number;
+  /** Note globale /10 */
+  g: number;
+  /** Population (dimensionne le marker) */
+  p: number;
+}
