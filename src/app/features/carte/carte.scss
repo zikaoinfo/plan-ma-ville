@@ -1,0 +1,73 @@
+.carte {
+  display: flex;
+  flex-direction: column;
+}
+
+.carte__bar {
+  padding-block: 1.2rem 1rem;
+}
+
+.carte__head {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.back {
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 1.5px solid var(--ink);
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.back:hover {
+  background: var(--paper-soft);
+}
+
+.carte__head h1 {
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  margin: 0;
+}
+
+.carte__filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem 1.2rem;
+  margin-top: 1rem;
+}
+
+.carte__filter label {
+  color: var(--ink-soft);
+}
+
+.carte__filter input[type='range'] {
+  flex: 1;
+  min-width: 180px;
+  max-width: 360px;
+  accent-color: var(--accent);
+}
+
+.carte__count {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.carte__error {
+  color: var(--bad);
+  text-align: center;
+  padding: 1rem;
+}
+
+.carte__map {
+  width: 100%;
+  height: 72vh;
+  min-height: 420px;
+  border-top: 1.5px solid var(--ink);
+  z-index: 0;
+}

@@ -1,7 +1,7 @@
 # TODO — ma ville, notée
 
-> État au 2026-06-14. Suivi de ce qui reste après les phases 0→6 + dashboard commune.
-> Specs de référence : `docs/SPEC-DATA.md`, `docs/SPEC-PHASES-2-6.md`.
+> État au 2026-07-03. Suivi de ce qui reste après les phases 0→6 + dashboard + carte.
+> Specs : `docs/SPEC-DATA.md`, `docs/SPEC-PHASES-2-6.md`, `docs/SPEC-PHASES-7-12.md`.
 
 ## État d'avancement
 
@@ -12,11 +12,23 @@
 | 2 | Recherche & page Home | ✅ Fait |
 | 3 | Fiche commune | ✅ Fait |
 | 4 | Page département & classement | ✅ Fait |
-| 5 | **Vraies données open data** | ⏳ À faire |
+| 5 | **Vraies données open data** | ⏳ À faire (réseau) |
 | 6 | Finitions (SEO, états, méthodologie, assets) | ✅ Fait |
 | + | Dashboard commune (carte, thématiques, historique, prix m², voisins) | ✅ Fait (estimations factices) |
+| 8 | **Carte interactive Leaflet** | ✅ Fait |
+| 7 | Avis communautaires (Supabase) | ⛔ Bloqué infra |
+| 9 | Résumé IA (Cloudflare Worker) | ⛔ Bloqué infra |
+| 10 | Quiz matching IA | ⛔ Bloqué infra |
+| 11 | Comparateur de villes | ⏳ À faire (autonome) |
+| 12 | Profil & villes suivies | ⛔ Bloqué infra |
 
-Tests : 35 verts (Vitest). Lint clean. Build OK. Pipeline déterministe.
+Tests : 37 verts (Vitest). Lint clean. Build OK. Pipeline déterministe.
+
+> **⛔ Bloqué infra** = nécessite des ressources externes que la sandbox n'a pas :
+> projet **Supabase** (URL + anon key), **Cloudflare Worker** déployé + **clé API
+> Claude**, secrets GitHub Actions. Le code peut être écrit mais pas exécuté/validé ici.
+> **Piège transverse** : la spec 7-12 suppose **PrimeNG** (Tabs, Slider) — indisponible
+> sur Angular 22 → composants maison, comme pour le reste du projet.
 
 ---
 
@@ -86,7 +98,48 @@ Tests : 35 verts (Vitest). Lint clean. Build OK. Pipeline déterministe.
 - [ ] Accessibilité : audit clavier complet (listbox recherche, tableaux triables).
 - [ ] Éventuel partage social : image OpenGraph dédiée (actuellement pas d'`og:image`).
 
-## 5. Dette technique / notes
+## 5. Phases 7→12 — features communautaires & IA (spec `SPEC-PHASES-7-12.md`)
+
+### Prérequis infra (à fournir par le proprio du repo)
+- [ ] Projet **Supabase** : exécuter le SQL de la spec §2 (tables `avis`,
+      `communes_stats`, `signalements`, `profiles` + triggers + RLS).
+- [ ] Secrets GitHub Actions : `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `WORKER_URL`.
+- [ ] Étape « Inject env » dans `deploy.yml` (sed sur `environment.ts`) — §11.
+- [ ] **Cloudflare Worker** (`workers/summarize/`) déployé + secret `CLAUDE_API_KEY`
+      + namespace KV (rate-limit). CORS pour `zikaoinfo.github.io`.
+
+### Phase 7 — Avis communautaires
+- [ ] `npm i @supabase/supabase-js` ; services `supabase`, `auth`, `avis` (§3).
+- [ ] Fiche commune : onglets « Données officielles » / « Avis habitants »
+      (composant d'onglets **maison**, pas PrimeNG).
+- [ ] `commune-avis-list` (stats + liste paginée) et `commune-avis-form`
+      (8 sliders maison + textareas + upsert, 1 avis/user/commune).
+- [ ] `auth-gate` (Google + magic-link) et `critere-slider` (shared).
+- [ ] Dégradation gracieuse si `supabaseUrl` vide (features masquées, pas de crash).
+
+### Phase 9 — Résumé IA
+- [ ] `workers/summarize/` (endpoints `/summarize` + `/quiz-match`, rate-limit KV).
+- [ ] `claude-proxy.service.ts` + `commune-ia-summary` (affiché si ≥ 3 avis).
+- [ ] Modèle Claude à jour (la spec cite `claude-sonnet-4-6` → utiliser le dernier
+      Sonnet disponible au moment du déploiement).
+
+### Phase 10 — Quiz matching
+- [ ] `features/quiz/` (5 étapes signal-driven) + `CommuneCard` (shared).
+- [ ] Fallback « IA indisponible » si `workerUrl` vide.
+
+### Phase 11 — Comparateur (autonome, faisable sans infra)
+- [ ] `features/comparateur/` : jusqu'à 3 villes, URL partageable
+      (`?villes=slug1,slug2`), tableau comparatif, meilleure note surlignée.
+      Note habitants en dégradé (null si Supabase absent).
+
+### Phase 12 — Profil & villes suivies
+- [ ] `features/profil/` (guard auth), villes suivies, mes avis.
+- [ ] Bouton cœur « suivre » sur la fiche commune (state optimiste).
+
+### Enrichissement classement (§12 de la spec)
+- [ ] Colonnes « Note habitants » / « Avis » dans le classement (via `communes_stats`).
+
+## 6. Dette technique / notes
 
 - **PrimeNG non installé** : dernière version (21.x) peer-requiert Angular 21, pas
   de build Angular 22. Atomes UI faits maison. À réévaluer quand PrimeNG 22 sort.

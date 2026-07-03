@@ -1,0 +1,32 @@
+<section class="carte">
+  <div class="carte__bar container">
+    <div class="carte__head">
+      <a routerLink="/" class="back">←</a>
+      <h1>Carte des communes</h1>
+    </div>
+
+    <div class="carte__filter">
+      <label for="noteMin">
+        Note minimum : <strong>{{ noteMin().toFixed(1) }}</strong>
+      </label>
+      <input
+        id="noteMin"
+        type="range"
+        min="0"
+        max="10"
+        step="0.5"
+        [value]="noteMin()"
+        (input)="noteMin.set(+$any($event.target).value)"
+      />
+      <span class="carte__count">
+        {{ nbVisibles() | number: '1.0-0' }} / {{ nbTotal() | number: '1.0-0' }} communes
+      </span>
+    </div>
+  </div>
+
+  @if (status() === 'error') {
+    <p class="carte__error">Impossible de charger les données de la carte.</p>
+  }
+
+  <div #map class="carte__map" role="application" aria-label="Carte interactive des communes"></div>
+</section>

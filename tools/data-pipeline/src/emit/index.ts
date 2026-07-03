@@ -7,6 +7,7 @@ import type {
   CommuneDetail,
   DepartementDetailFile,
   DepartementsFile,
+  GeoLightFile,
   SearchIndexFile,
   SearchIndexItem,
 } from '../models.js';
@@ -171,6 +172,25 @@ export async function emitAll(
     flop: asc.slice(0, 50),
   };
   await writeFile(path.join(outDir, 'classement.json'), JSON.stringify(classementFile), 'utf8');
+
+  // ── geo-light.json — points carte (communes ≥ 500 hab avec coordonnées) ──
+  const GEO_LIGHT_POP_MIN = 500;
+  const geoLight: GeoLightFile = {
+    v: 1,
+    gen,
+    items: communes
+      .filter((c) => c.population >= GEO_LIGHT_POP_MIN && c.lat !== undefined && c.lon !== undefined)
+      .map((c) => ({
+        i: c.codeInsee,
+        n: c.nom,
+        s: c.slug,
+        lat: c.lat as number,
+        lng: c.lon as number,
+        g: c.score.global,
+        p: c.population,
+      })),
+  };
+  await writeFile(path.join(outDir, 'geo-light.json'), JSON.stringify(geoLight), 'utf8');
 
   // ── sitemap.xml (à la racine publique, pas dans data/) ──
   // Pages statiques + 1 URL par département. PAS d'URL par commune (35k =
