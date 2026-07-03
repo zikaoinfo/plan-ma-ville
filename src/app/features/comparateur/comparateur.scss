@@ -1,0 +1,247 @@
+.comparateur {
+  padding-block: 2rem 1rem;
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 1.2rem;
+  color: var(--ink-soft);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.back:hover {
+  color: var(--ink);
+}
+
+h1 {
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+  margin: 0;
+}
+
+.intro {
+  color: var(--ink-soft);
+  margin: 0.3rem 0 1.4rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+/* ── Ajout d'une ville ────────────────────── */
+.add {
+  position: relative;
+  max-width: 420px;
+  margin-bottom: 1.5rem;
+}
+
+.add__input {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  background: var(--paper);
+  font: inherit;
+  box-shadow: var(--shadow);
+}
+
+.add__input:focus {
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.add__list {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 0.4rem);
+  left: 0;
+  right: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0.3rem;
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lift);
+}
+
+.add__opt {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.add__opt:hover {
+  background: var(--paper-soft);
+}
+
+.add__dep {
+  font-weight: 400;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+
+.empty {
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+/* ── Tableau ──────────────────────────────── */
+.table-wrap {
+  overflow-x: auto;
+  border: 1.5px solid var(--line);
+  border-radius: 16px;
+  background: var(--paper);
+}
+
+.cmp {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+  min-width: 360px;
+}
+
+.cmp th,
+.cmp td {
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+
+.cmp thead th {
+  background: var(--paper-soft);
+  vertical-align: bottom;
+}
+
+.cmp__crit {
+  width: 11rem;
+}
+
+.cmp__ville {
+  position: relative;
+  min-width: 8rem;
+}
+
+.cmp__nom {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.cmp__nom:hover {
+  color: var(--accent);
+}
+
+.cmp__nom--ko {
+  color: var(--bad);
+  font-style: italic;
+  font-size: 0.85rem;
+}
+
+.cmp__remove {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.3rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--paper);
+  color: var(--ink-soft);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.cmp__remove:hover {
+  background: var(--bad);
+  color: #fff;
+  border-color: var(--bad);
+}
+
+.cmp__row th[scope='row'] {
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+
+.cmp__row--global th[scope='row'],
+.cmp__row--global td {
+  font-weight: 700;
+}
+
+.cmp tbody tr:last-child th,
+.cmp tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.cell__val {
+  font-weight: 600;
+}
+
+.cell__bar {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--paper-soft);
+  overflow: hidden;
+}
+
+.cell__bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+
+.cell--na {
+  color: var(--ink-soft);
+}
+
+.best {
+  background: var(--good-soft);
+}
+
+.cmp__row--info th[scope='row'] {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.soon {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+}
+
+.note-habitants {
+  margin-top: 0.8rem;
+  font-size: 0.82rem;
+  font-style: italic;
+  color: var(--ink-soft);
+}

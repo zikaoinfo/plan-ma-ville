@@ -1,0 +1,131 @@
+<section class="comparateur container">
+  <a routerLink="/" class="back">← Retour à la recherche</a>
+  <h1>Comparateur de communes</h1>
+  <p class="intro">Ajoutez jusqu'à {{ max }} communes et comparez-les critère par critère.</p>
+
+  @if (!full()) {
+    <div class="add">
+      <label class="sr-only" for="cmp-q">Ajouter une commune</label>
+      <input
+        id="cmp-q"
+        class="add__input"
+        type="search"
+        autocomplete="off"
+        placeholder="Ajouter une commune…"
+        [value]="query()"
+        (input)="query.set($any($event.target).value)"
+      />
+      @if (suggestions().length) {
+        <ul class="add__list" role="listbox" aria-label="Suggestions">
+          @for (item of suggestions(); track item.s) {
+            <li role="option" aria-selected="false">
+              <button type="button" class="add__opt" (click)="addVille(item.s)">
+                <span>{{ item.n }}</span>
+                <span class="add__dep">dép. {{ item.d }}</span>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
+
+  @if (nbVilles() === 0) {
+    <p class="empty">Aucune commune sélectionnée pour l'instant.</p>
+  } @else {
+    <div class="table-wrap">
+      <table class="cmp">
+        <thead>
+          <tr>
+            <th scope="col" class="cmp__crit">Critère</th>
+            @for (col of colonnes(); track col.slug) {
+              <th scope="col" class="cmp__ville">
+                <button
+                  type="button"
+                  class="cmp__remove"
+                  (click)="removeVille(col.index)"
+                  [attr.aria-label]="'Retirer ' + col.slug"
+                >
+                  ×
+                </button>
+                @if (communeAt($index); as c) {
+                  <a [routerLink]="['/ville', c.slug]" class="cmp__nom">{{ c.nom }}</a>
+                } @else if (col.state === 'loading') {
+                  <span class="cmp__nom">…</span>
+                } @else {
+                  <span class="cmp__nom cmp__nom--ko">introuvable</span>
+                }
+              </th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="cmp__row cmp__row--global">
+            <th scope="row">Note globale</th>
+            @for (col of colonnes(); track col.slug) {
+              @if (communeAt($index); as c) {
+                <td [class.best]="c.score.global === meilleureGlobale()">
+                  <span class="cell">
+                    <b class="cell__val">{{ c.score.global.toFixed(1) }}</b>
+                    <span class="cell__bar">
+                      <span [style.width.%]="c.score.global * 10" [style.background]="couleur(c.score.global)"></span>
+                    </span>
+                  </span>
+                </td>
+              } @else {
+                <td class="cell--na">—</td>
+              }
+            }
+          </tr>
+
+          @for (critere of criteres; track critere) {
+            <tr class="cmp__row">
+              <th scope="row">{{ labels[critere] }}</th>
+              @for (col of colonnes(); track col.slug) {
+                @if (communeAt($index); as c) {
+                  <td [class.best]="c.score.criteres[critere] === meilleureCritere(critere)">
+                    <span class="cell">
+                      <span class="cell__val">{{ c.score.criteres[critere].toFixed(1) }}</span>
+                      <span class="cell__bar">
+                        <span
+                          [style.width.%]="c.score.criteres[critere] * 10"
+                          [style.background]="couleur(c.score.criteres[critere])"
+                        ></span>
+                      </span>
+                    </span>
+                  </td>
+                } @else {
+                  <td class="cell--na">—</td>
+                }
+              }
+            </tr>
+          }
+
+          <tr class="cmp__row cmp__row--info">
+            <th scope="row">Population</th>
+            @for (col of colonnes(); track col.slug) {
+              @if (communeAt($index); as c) {
+                <td>{{ c.population | number: '1.0-0' }}</td>
+              } @else {
+                <td class="cell--na">—</td>
+              }
+            }
+          </tr>
+
+          <tr class="cmp__row cmp__row--info">
+            <th scope="row">
+              Note habitants
+              <span class="soon">bientôt</span>
+            </th>
+            @for (col of colonnes(); track col.slug) {
+              <td class="cell--na">—</td>
+            }
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note-habitants">
+      Les notes des habitants (avis communautaires) arriveront avec l'espace connecté.
+    </p>
+  }
+</section>

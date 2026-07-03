@@ -29,6 +29,12 @@ export const routes: Routes = [
     title: 'Classement — Ma ville, notée',
   },
   {
+    path: 'comparer',
+    loadComponent: () =>
+      import('./features/comparateur/comparateur').then((m) => m.Comparateur),
+    title: 'Comparateur — Ma ville, notée',
+  },
+  {
     path: 'methodologie',
     loadComponent: () =>
       import('./features/methodologie/methodologie').then((m) => m.Methodologie),
