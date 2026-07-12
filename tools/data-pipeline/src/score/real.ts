@@ -2,7 +2,7 @@ import { CRITERES, type Critere } from '../models.js';
 import { BPE_CRITERES, type BpeMap } from '../fetch/bpe.js';
 import type { FilosofiMap } from '../fetch/filosofi.js';
 import type { SecuriteMap } from '../fetch/securite.js';
-import { median, sortedValues, toPercentileNote } from './percentile.js';
+import { linearNote, robustBounds, sortedValues, type Bounds } from './scale.js';
 
 /** Jeux de données réels agrégés par commune (issus des fetchers). */
 export interface DataMaps {
@@ -38,10 +38,11 @@ function rawMetrics(commune: CommuneRef, maps: DataMaps): Record<Critere, number
 }
 
 /**
- * Note chaque commune sur les 8 critères par rang percentile national
- * (relatif au jeu de communes fourni). Deux passes : (1) métriques brutes +
- * distributions triées, (2) conversion en notes /10. Les communes sans donnée
- * pour un critère reçoivent la note de la médiane nationale (jamais 0).
+ * Note chaque commune sur les 8 critères par normalisation min–max robuste
+ * (bornes 2ᵉ/98ᵉ centiles), relative au jeu de communes fourni. Deux passes :
+ * (1) métriques brutes + bornes par critère, (2) conversion linéaire en notes
+ * /10 (la moins dotée → 0, la mieux dotée → 10). Une commune sans donnée pour
+ * un critère reçoit la note neutre 5 (jamais 0).
  */
 export function computeRealScores(
   communes: readonly CommuneRef[],
@@ -50,23 +51,22 @@ export function computeRealScores(
   // Passe 1 — métriques brutes.
   const metriques = communes.map((c) => ({ code: c.codeInsee, m: rawMetrics(c, maps) }));
 
-  // Distributions triées (valeurs définies uniquement) + note de repli par critère.
-  const dist = {} as Record<Critere, number[]>;
-  const fallback = {} as Record<Critere, number>;
+  // Bornes robustes par critère (valeurs définies uniquement).
+  const bounds = {} as Record<Critere, Bounds>;
   for (const c of CRITERES) {
-    dist[c] = sortedValues(
+    const vals = sortedValues(
       metriques.map((x) => x.m[c]).filter((v): v is number => v !== undefined),
     );
-    fallback[c] = dist[c].length ? toPercentileNote(median(dist[c]), dist[c], INVERSE[c]) : 5;
+    bounds[c] = robustBounds(vals);
   }
 
-  // Passe 2 — notes percentile.
+  // Passe 2 — normalisation min–max.
   const out = new Map<string, Record<Critere, number>>();
   for (const { code, m } of metriques) {
     const notes = {} as Record<Critere, number>;
     for (const c of CRITERES) {
       const v = m[c];
-      notes[c] = v === undefined ? fallback[c] : toPercentileNote(v, dist[c], INVERSE[c]);
+      notes[c] = v === undefined ? 5 : linearNote(v, bounds[c], INVERSE[c]);
     }
     out.set(code, notes);
   }
