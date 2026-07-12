@@ -91,6 +91,9 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
 - **Déterministe à données constantes** : même cache → fichiers identiques.
 - Refresh mensuel : `.github/workflows/data-refresh.yml` (cron + `workflow_dispatch`,
   force la régénération hors cache de `deploy.yml`).
+- Validation URLs en CI : `data-validate.yml` tourne **sur la PR** (si le pipeline
+  change) et lance `npm run data:validate` = `data:build --strict` (échoue si une
+  source a 0 % de couverture). Ne déploie pas. `deploy.yml` reste gracieux.
 - URL des données runtime = `new URL('data/x.json', document.baseURI)` (relatif,
   correct en dev comme en prod — jamais coder `/plan-ma-ville/` en dur).
 

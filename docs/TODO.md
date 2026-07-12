@@ -67,10 +67,13 @@ Tests : 37 verts (Vitest). Lint clean. Build OK. Pipeline déterministe.
 - [x] Tests : percentile, repli médiane, parsing BPE/SSMSI/Filosofi, arrondissements.
 - [x] `.github/workflows/data-refresh.yml` (cron mensuel + `workflow_dispatch`).
 - [x] `/methodologie` : encart « rang percentile » + sources.
-- [ ] **CI À FAIRE** : confirmer/corriger les URLs BPE/SSMSI/Filosofi de
-      `sources.config.json` (best-effort). Les ⚠ du run indiquent statut HTTP +
-      entrées zip dispo. Vérifier ensuite : Lyon transports > 7 ; commune rurale
-      ≠ 0 ; histogramme ~ étalé ; couverture SSMSI/Filosofi élevée.
+- [x] `data-validate.yml` (sur PR, sans déploiement) + `data:build --strict`
+      (échoue si une source a 0 % de couverture) → boucle d'itération des URLs.
+- [ ] **CI À FAIRE** : le job « Validate open data » de la PR confirme/pointe les
+      URLs BPE/SSMSI/Filosofi à corriger dans `sources.config.json` (best-effort).
+      Les ⚠ du run indiquent statut HTTP + entrées zip dispo. Vérifier ensuite :
+      Lyon transports > 7 ; commune rurale ≠ 0 ; histogramme ~ étalé ; couverture
+      SSMSI/Filosofi élevée.
 
 ## 3. Dashboard commune — remplacer les estimations factices
 
