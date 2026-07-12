@@ -12,7 +12,7 @@
 | 2 | Recherche & page Home | ✅ Fait |
 | 3 | Fiche commune | ✅ Fait |
 | 4 | Page département & classement | ✅ Fait |
-| 5 | **Vraies données open data** | 🟡 Codé + testé — valider URLs en CI |
+| 5 | **Vraies données open data** | ✅ Validé en CI (BPE 86 % · SSMSI 100 % · Filosofi 89 %) |
 | 6 | Finitions (SEO, états, méthodologie, assets) | ✅ Fait |
 | + | Dashboard commune (carte, thématiques, historique, prix m², voisins) | ✅ Fait (estimations factices) |
 | 8 | **Carte interactive Leaflet** | ✅ Fait |
@@ -69,11 +69,14 @@ Tests : 37 verts (Vitest). Lint clean. Build OK. Pipeline déterministe.
 - [x] `/methodologie` : encart « rang percentile » + sources.
 - [x] `data-validate.yml` (sur PR, sans déploiement) + `data:build --strict`
       (échoue si une source a 0 % de couverture) → boucle d'itération des URLs.
-- [ ] **CI À FAIRE** : le job « Validate open data » de la PR confirme/pointe les
-      URLs BPE/SSMSI/Filosofi à corriger dans `sources.config.json` (best-effort).
-      Les ⚠ du run indiquent statut HTTP + entrées zip dispo. Vérifier ensuite :
-      Lyon transports > 7 ; commune rurale ≠ 0 ; histogramme ~ étalé ; couverture
-      SSMSI/Filosofi élevée.
+- [x] **CI validée** (job « Validate open data » vert) : URLs résolues via l'API
+      data.gouv. Couverture BPE 86 % · SSMSI 100 % (2025) · Filosofi 89 % (2021).
+      Distribution étalée (4-6 : 17 %, 6-8 : 79 %, 8-10 : 5 %) ; aucune note 0/10 ;
+      top = Megève/Samoëns, flop = Fleury-Mérogis/Tourcoing/Argenteuil (cohérent).
+- [ ] **Upgrade BPE 2018 → millésime récent** : le seul CSV ensemble librement
+      téléchargeable est 2018. Trouver l'URL directe du dénombrement INSEE récent
+      (fichier large 1 colonne/TYPEQU, déjà géré par le parser) et l'ajouter dans
+      `sources.config.json`.
 
 ## 3. Dashboard commune — remplacer les estimations factices
 

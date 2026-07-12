@@ -77,11 +77,16 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
   ≤ valeur », test `toPercentileNote(5,[1,3,5,7,9])===6`). Commune sans donnée
   → **médiane nationale** (jamais 0). Arrondissements Paris/Lyon/Marseille
   repliés sur la mère (`fetch/insee-code.ts`). Note globale = Σ(note×poids)/Σ(poids).
-- **URLs BPE/SSMSI/Filosofi = best-effort** (réseau bloqué en sandbox, jamais
-  testées ici) → à **confirmer/corriger au 1er run CI**. Fetchers en **dégradation
-  gracieuse** (`fetchOrWarn`) : une source KO logge un ⚠ et bascule le critère sur
-  la médiane (le déploiement n'est pas bloqué). Rapport de run = couverture par
-  source + histogramme des notes.
+- **URLs résolues et validées en CI** (job « Validate open data » vert, PR #11) :
+  BPE via dataset data.gouv `base-permanente-des-equipements` (CSV ensemble
+  **2018**, en-têtes FR), SSMSI `bases-statistiques-…-delinquance` (COM csv.gz,
+  millésime **2025**), Filosofi `revenu-des-francais-a-la-commune` (**2021**,
+  colonne `[DISP] Médiane (€)`). Couverture obtenue : BPE 86 % · SSMSI 100 % ·
+  Filosofi 89 %. Réseau bloqué en sandbox → **jamais exécutable en local**, valider
+  en CI. Fetchers en **dégradation gracieuse** (`fetchOrWarn`) : une source KO logge
+  un ⚠ et bascule le critère sur la médiane (déploiement non bloqué). Rapport de run
+  = couverture par source + histogramme des notes. **BPE 2018 = limite v1** (dernier
+  ensemble librement téléchargeable ; upgrade vers dénombrement INSEE récent = TODO).
 - Cache `.cache/{name}.csv` (< 30 j, gitignoré), décompression zip/gz + parsing
   CSV streaming (`fetch/download.ts`, deps `adm-zip`+`csv-parse`).
 - Émet dans `public/data/` (gitignoré, régénéré en CI) : `index.json` (trié nn),
