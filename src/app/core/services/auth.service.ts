@@ -41,11 +41,15 @@ export class AuthService {
     });
   }
 
-  loginWithEmail(email: string) {
-    return this.#sb.client?.auth.signInWithOtp({
+  /** Envoie un lien magique. Renvoie l'erreur Supabase réelle si l'envoi échoue. */
+  async loginWithEmail(email: string): Promise<{ ok: boolean; error?: string }> {
+    const client = this.#sb.client;
+    if (!client) return { ok: false, error: 'Authentification indisponible (Supabase non configuré).' };
+    const { error } = await client.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: this.#doc.location.href },
     });
+    return error ? { ok: false, error: error.message } : { ok: true };
   }
 
   logout() {
