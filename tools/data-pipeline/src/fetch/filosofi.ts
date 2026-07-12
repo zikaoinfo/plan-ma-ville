@@ -4,7 +4,7 @@ import { communeParent } from './insee-code.js';
 /** codeInsee (commune mère) → revenu médian disponible par UC (Filosofi, INSEE). */
 export type FilosofiMap = Map<string, number>;
 
-const CODE_COLS = ['CODGEO', 'codgeo', 'COM', 'DEPCOM'];
+const CODE_COLS = ['CODGEO', 'codgeo', 'COM', 'DEPCOM', 'Code géographique', 'Code geographique'];
 // Médiane du niveau de vie, suffixée par le millésime (MED21, Q221, NIVVIE_MED…).
 const VALUE_REGEX = /^(MED|Q2|NIVVIE_?MED|DISP_?MED|MEDIANE)/i;
 
