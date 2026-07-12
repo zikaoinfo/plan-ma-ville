@@ -80,7 +80,10 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
   Le **midrank** leur donne le MILIEU de leur plage (≈4-5), distribution saine.
   **Sécurité classée PAR strate de population** (`stratePopulation`, seuils
   500/2k/5k/20k/50k/100k) : sinon les >50 % de communes rurales sans délinquance
-  écrasent toutes les villes vers 0. Commune sans donnée → **note neutre 5**
+  écrasent toutes les villes vers 0. **Boost gamma par critère**
+  (`scoring.config.json` `boost`, appliqué dans `rankNotes`) : `gamma < 1` relève
+  et homogénéise les notes vers le haut pour les services de base très répandus
+  (enseignement, sports = 0.5). Commune sans donnée → **note neutre 5**
   (jamais 0). Arrondissements
   Paris/Lyon/Marseille repliés sur la mère (`fetch/insee-code.ts`). Note globale =
   Σ(note×poids)/Σ(poids).
