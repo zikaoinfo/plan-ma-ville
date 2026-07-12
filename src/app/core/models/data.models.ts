@@ -146,3 +146,47 @@ export interface GeoLightItem {
   /** Population (dimensionne le marker) */
   p: number;
 }
+
+// ─────────────────────────────────────────────
+// Avis habitant (Supabase) — spec SPEC-PHASES-7-12 §1
+// ─────────────────────────────────────────────
+export interface Avis {
+  id: string;
+  commune_insee: string; // code INSEE (= SearchIndexItem.i)
+  user_id: string;
+  created_at: string; // ISO
+  note_securite: number;
+  note_sante: number;
+  note_commerces: number;
+  note_enseignement: number;
+  note_sports: number;
+  note_culture: number;
+  note_transports: number;
+  note_niveau_vie: number;
+  note_globale: number; // calculé côté Supabase (GENERATED STORED)
+  positifs: string;
+  negatifs: string | null;
+  pseudo: string;
+  resume_ia?: string;
+}
+
+export type AvisInsert = Omit<Avis, 'id' | 'created_at' | 'note_globale' | 'resume_ia'>;
+
+/** Stats communautaires agrégées d'une commune (table communes_stats). */
+export interface CommuneStats {
+  note_habitants: number | null;
+  nb_avis: number;
+  resume_ia: string | null;
+}
+
+/** Correspondance clé de critère (Critere) → colonne note_* de la table avis. */
+export const AVIS_NOTE_COLS: Record<Critere, keyof AvisInsert> = {
+  securite: 'note_securite',
+  sante: 'note_sante',
+  commerces: 'note_commerces',
+  enseignement: 'note_enseignement',
+  sports: 'note_sports',
+  culture: 'note_culture',
+  transports: 'note_transports',
+  niveauVie: 'note_niveau_vie',
+};

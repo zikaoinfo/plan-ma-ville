@@ -1,0 +1,100 @@
+.avis-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.stats {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1.5px solid var(--line);
+}
+
+.stats__txt {
+  color: var(--ink-soft);
+}
+
+.items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.item {
+  padding: 0.9rem 1rem;
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  background: var(--paper);
+}
+
+.item__head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.4rem;
+}
+
+.item__pseudo {
+  font-family: var(--font-display);
+}
+
+.item__date {
+  flex: 1;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+
+.item__pos,
+.item__neg {
+  margin: 0.2rem 0 0;
+}
+
+.item__pos span {
+  color: var(--good);
+  font-weight: 700;
+}
+
+.item__neg span {
+  color: var(--bad);
+  font-weight: 700;
+}
+
+.sk {
+  height: 4.5rem;
+  border-radius: 14px;
+  background: linear-gradient(90deg, var(--paper-soft) 25%, var(--line) 50%, var(--paper-soft) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.3s ease infinite;
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.more {
+  align-self: center;
+  padding: 0.55rem 1.4rem;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: var(--paper);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.more:hover:not(:disabled) {
+  background: var(--paper-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk {
+    animation-duration: 3s;
+  }
+}

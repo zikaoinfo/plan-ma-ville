@@ -39,6 +39,17 @@ jobs:
         if: steps.data-cache.outputs.cache-hit != 'true'
         run: npm run data:build
 
+      - name: Inject environment secrets
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          WORKER_URL: ${{ secrets.WORKER_URL }}
+        run: |
+          ENV=src/environments/environment.ts
+          sed -i "s|__SUPABASE_URL__|${SUPABASE_URL}|g" "$ENV"
+          sed -i "s|__SUPABASE_ANON_KEY__|${SUPABASE_ANON_KEY}|g" "$ENV"
+          sed -i "s|__WORKER_URL__|${WORKER_URL}|g" "$ENV"
+
       - name: Build app
         run: npm run build
 

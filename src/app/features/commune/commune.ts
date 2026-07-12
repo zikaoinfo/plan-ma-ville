@@ -1,13 +1,18 @@
 import { DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { DomSanitizer, type SafeResourceUrl } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
 import { CRITERE_LABELS, CRITERES, type Critere } from '../../core/models/data.models';
+import { AuthService } from '../../core/services/auth.service';
+import { AvisService } from '../../core/services/avis.service';
 import { CommuneDataService } from '../../core/services/commune-data.service';
 import { MetaService } from '../../core/services/meta.service';
 import { SearchIndexService } from '../../core/services/search-index.service';
+import { AuthGate } from '../../shared/auth-gate/auth-gate';
 import { NoteBar } from '../../shared/note-bar/note-bar';
 import { ScoreBadge } from '../../shared/score-badge/score-badge';
+import { CommuneAvisForm } from './commune-avis/commune-avis-form';
+import { CommuneAvisList } from './commune-avis/commune-avis-list';
 import {
   estimatePriceM2,
   nearestCommunes,
@@ -28,7 +33,15 @@ const ICONS: Record<Critere, string> = {
 
 @Component({
   selector: 'app-commune',
-  imports: [RouterLink, NoteBar, ScoreBadge, DecimalPipe],
+  imports: [
+    RouterLink,
+    NoteBar,
+    ScoreBadge,
+    DecimalPipe,
+    AuthGate,
+    CommuneAvisList,
+    CommuneAvisForm,
+  ],
   templateUrl: './commune.html',
   styleUrl: './commune.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -38,6 +51,17 @@ export class Commune {
   readonly #search = inject(SearchIndexService);
   readonly #meta = inject(MetaService);
   readonly #sanitizer = inject(DomSanitizer);
+  protected readonly auth = inject(AuthService);
+  protected readonly avisDisponible = inject(AvisService).disponible;
+
+  /** Onglet actif de la fiche. */
+  protected readonly onglet = signal<'officiel' | 'avis'>('officiel');
+  /** Bump après soumission d'un avis → recharge la liste. */
+  protected readonly avisVersion = signal(0);
+
+  protected onAvisSubmitted(): void {
+    this.avisVersion.update((v) => v + 1);
+  }
 
   readonly slug = input.required<string>();
 

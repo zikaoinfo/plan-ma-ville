@@ -16,11 +16,11 @@
 | 6 | Finitions (SEO, états, méthodologie, assets) | ✅ Fait |
 | + | Dashboard commune (carte, thématiques, historique, prix m², voisins) | ✅ Fait (estimations factices) |
 | 8 | **Carte interactive Leaflet** | ✅ Fait |
-| 7 | Avis communautaires (Supabase) | ⛔ Bloqué infra |
-| 9 | Résumé IA (Cloudflare Worker) | ⛔ Bloqué infra |
-| 10 | Quiz matching IA | ⛔ Bloqué infra |
-| 11 | Comparateur de villes | ✅ Fait (note habitants en attente Supabase) |
-| 12 | Profil & villes suivies | ⛔ Bloqué infra |
+| 7 | Avis communautaires (Supabase) | ✅ Codé — à activer (secrets + SQL) |
+| 9 | Résumé IA (Cloudflare Worker) | ⛔ Bloqué infra (option : sauté) |
+| 10 | Quiz matching IA | ⏳ Faisable sans IA (matcher déterministe) |
+| 11 | Comparateur de villes | ✅ Fait (note habitants via Supabase à brancher) |
+| 12 | Profil & villes suivies | ⏳ À faire (Supabase, sans IA) |
 
 Tests : 37 verts (Vitest). Lint clean. Build OK. Pipeline déterministe.
 
@@ -108,14 +108,20 @@ Tests : 37 verts (Vitest). Lint clean. Build OK. Pipeline déterministe.
 - [ ] **Cloudflare Worker** (`workers/summarize/`) déployé + secret `CLAUDE_API_KEY`
       + namespace KV (rate-limit). CORS pour `zikaoinfo.github.io`.
 
-### Phase 7 — Avis communautaires
-- [ ] `npm i @supabase/supabase-js` ; services `supabase`, `auth`, `avis` (§3).
-- [ ] Fiche commune : onglets « Données officielles » / « Avis habitants »
-      (composant d'onglets **maison**, pas PrimeNG).
-- [ ] `commune-avis-list` (stats + liste paginée) et `commune-avis-form`
-      (8 sliders maison + textareas + upsert, 1 avis/user/commune).
-- [ ] `auth-gate` (Google + magic-link) et `critere-slider` (shared).
-- [ ] Dégradation gracieuse si `supabaseUrl` vide (features masquées, pas de crash).
+### Phase 7 — Avis communautaires ✅ codé (Supabase-only)
+- [x] `@supabase/supabase-js` ; services `supabase`, `auth`, `avis`.
+- [x] Fiche commune : onglets « Données officielles » / « Avis habitants » (maison).
+- [x] `commune-avis-list` (stats + liste paginée) et `commune-avis-form`
+      (8 sliders maison + textareas + upsert, 1 avis/user/commune, pré-remplissage).
+- [x] `auth-gate` (Google + magic-link) et `critere-slider` (shared).
+- [x] Dégradation gracieuse si Supabase non configuré (onglet « bientôt », pas de crash).
+- **Pour activer (côté proprio)** :
+  1. Coller `docs/supabase-schema.sql` dans Supabase (SQL Editor).
+  2. Activer le provider Google dans Supabase (magic-link email marche sans config).
+  3. Ajouter les secrets GitHub `SUPABASE_URL` + `SUPABASE_ANON_KEY`
+     (le job `deploy.yml` les injecte dans `environment.ts` au build).
+  4. Dans Supabase → Auth → URL Configuration, autoriser
+     `https://zikaoinfo.github.io/plan-ma-ville/` en redirect.
 
 ### Phase 9 — Résumé IA
 - [ ] `workers/summarize/` (endpoints `/summarize` + `/quiz-match`, rate-limit KV).
