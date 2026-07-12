@@ -9,6 +9,7 @@
     "test": "ng test",
     "lint": "ng lint",
     "data:build": "tsx tools/data-pipeline/src/main.ts",
+    "data:validate": "tsx tools/data-pipeline/src/main.ts --strict",
     "data:sample": "tsx tools/data-pipeline/src/main.ts --departements 69,75",
     "test:data": "npm run test --workspace tools/data-pipeline"
   },

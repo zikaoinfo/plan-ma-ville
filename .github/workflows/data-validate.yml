@@ -1,0 +1,33 @@
+name: Validate open data
+
+# Exécute le vrai pipeline (fetch BPE/SSMSI/Filosofi + parsing + 6 invariants)
+# SANS déployer, pour valider les URLs de sources.config.json sur la PR.
+# `--strict` échoue si une source a 0 % de couverture (URL/format à corriger).
+# Ne tourne que si le pipeline change (téléchargements volumineux).
+on:
+  pull_request:
+    paths:
+      - 'tools/data-pipeline/**'
+      - '.github/workflows/data-validate.yml'
+      - 'package.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build data (strict — échoue si une source est vide)
+        run: npm run data:validate

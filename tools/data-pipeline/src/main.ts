@@ -160,7 +160,11 @@ async function validerInvariants(): Promise<string[]> {
 
 async function main(): Promise<void> {
   const debut = Date.now();
-  const filtreDeps = parseDepartementsArg(process.argv.slice(2));
+  const argv = process.argv.slice(2);
+  const filtreDeps = parseDepartementsArg(argv);
+  // --strict : échoue si une source open data a 0 % de couverture (gate de CI
+  // de validation des URLs ; le déploiement normal reste en dégradation gracieuse).
+  const strict = argv.includes('--strict');
 
   const cacheDir = path.join(PIPELINE_DIR, '.cache');
   const sources = JSON.parse(
@@ -264,6 +268,26 @@ async function main(): Promise<void> {
   console.log(`Flop 3        : ${rapport.flop3.map(fmt).join(' · ')}`);
   console.log(`Durée         : ${((Date.now() - debut) / 1000).toFixed(1)} s`);
   console.log('Invariants    : 6/6 OK');
+
+  if (strict) {
+    const vides = (
+      [
+        ['BPE', couverture.bpe],
+        ['SSMSI', couverture.securite],
+        ['Filosofi', couverture.filosofi],
+      ] as const
+    )
+      .filter(([, n]) => n === 0)
+      .map(([nom]) => nom);
+    if (vides.length > 0) {
+      console.error(
+        `\n✗ --strict : couverture nulle pour ${vides.join(', ')} — vérifier les URLs ` +
+          `dans sources.config.json (voir les ⚠ ci-dessus : statut HTTP / entrées zip).`,
+      );
+      process.exit(1);
+    }
+    console.log('Couverture    : toutes les sources > 0 (strict OK)');
+  }
 }
 
 main().catch((err) => {
