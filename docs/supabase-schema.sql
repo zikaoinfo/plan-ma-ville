@@ -75,20 +75,71 @@ CREATE TABLE IF NOT EXISTS profiles (
   villes_suivies TEXT[] DEFAULT '{}'
 );
 
-CREATE OR REPLACE FUNCTION create_profile() RETURNS TRIGGER
-LANGUAGE plpgsql SECURITY DEFINER AS $$
+-- Création de profil à l'inscription.
+-- IMPORTANT : ce trigger s'exécute DANS la transaction d'insertion de
+-- auth.users. S'il lève une erreur, tout le signup est annulé
+-- (« Database error saving new user ») — ce qui casse Google ET le magic-link.
+-- Il doit donc : (1) toujours fournir un pseudo non-null et unique, même quand
+-- l'IdP (Google) n'en renvoie pas ; (2) ne JAMAIS bloquer la création du compte.
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  base_pseudo TEXT;
+  final_pseudo TEXT;
+  n INT := 0;
 BEGIN
-  INSERT INTO profiles (user_id, pseudo)
-  VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)))
-  ON CONFLICT (user_id) DO NOTHING;
+  -- Base : full_name / name renvoyés par l'IdP, sinon partie locale de l'email.
+  base_pseudo := COALESCE(
+    NULLIF(NEW.raw_user_meta_data->>'full_name', ''),
+    NULLIF(NEW.raw_user_meta_data->>'name', ''),
+    NULLIF(split_part(COALESCE(NEW.email, ''), '@', 1), ''),
+    'citoyen'
+  );
+  -- Normalisation : minuscules, alphanumérique + tirets.
+  base_pseudo := lower(regexp_replace(base_pseudo, '[^a-zA-Z0-9]+', '-', 'g'));
+  base_pseudo := NULLIF(trim(BOTH '-' FROM base_pseudo), '');
+  base_pseudo := COALESCE(base_pseudo, 'citoyen');
+
+  -- Insertion avec suffixe anti-collision (gère aussi la course entre 2 signups
+  -- grâce au retry sur unique_violation).
+  final_pseudo := base_pseudo;
+  LOOP
+    BEGIN
+      INSERT INTO public.profiles (user_id, pseudo)
+      VALUES (NEW.id, final_pseudo);
+      EXIT; -- succès
+    EXCEPTION
+      WHEN unique_violation THEN
+        -- profil déjà créé pour cet utilisateur → on s'arrête
+        IF EXISTS (SELECT 1 FROM public.profiles WHERE user_id = NEW.id) THEN
+          EXIT;
+        END IF;
+        -- sinon c'est le pseudo qui est pris → on suffixe et on réessaie
+        n := n + 1;
+        final_pseudo := base_pseudo || '-' || n::text;
+    END;
+  END LOOP;
+
   RETURN NEW;
+EXCEPTION
+  -- Garde-fou ultime : aucune erreur ici ne doit empêcher l'inscription.
+  WHEN OTHERS THEN
+    RETURN NEW;
 END;
 $$;
 
+-- Remplace l'ancien trigger/fonction (versions antérieures de ce schéma).
 DROP TRIGGER IF EXISTS trg_new_user ON auth.users;
-CREATE TRIGGER trg_new_user
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+DROP FUNCTION IF EXISTS public.create_profile();
+
+CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION create_profile();
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ── Row Level Security ──
 ALTER TABLE avis ENABLE ROW LEVEL SECURITY;
