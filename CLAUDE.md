@@ -78,7 +78,10 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
   « count ≤ valeur » mettait les ex æquo à zéro EN HAUT (commune sans culture =
   9.6/10) ; le min–max les mettait à 0 (effondrement, meilleure note globale 6.1).
   Le **midrank** leur donne le MILIEU de leur plage (≈4-5), distribution saine.
-  Commune sans donnée → **note neutre 5** (jamais 0). Arrondissements
+  **Sécurité classée PAR strate de population** (`stratePopulation`, seuils
+  500/2k/5k/20k/50k/100k) : sinon les >50 % de communes rurales sans délinquance
+  écrasent toutes les villes vers 0. Commune sans donnée → **note neutre 5**
+  (jamais 0). Arrondissements
   Paris/Lyon/Marseille repliés sur la mère (`fetch/insee-code.ts`). Note globale =
   Σ(note×poids)/Σ(poids).
 - **URLs résolues et validées en CI** (job « Validate open data » vert, PR #11) :
