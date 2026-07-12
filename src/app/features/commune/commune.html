@@ -42,6 +42,28 @@
         </div>
       </header>
 
+      <nav class="tabs" aria-label="Sections de la fiche">
+        <button
+          type="button"
+          class="tab"
+          [class.tab--active]="onglet() === 'officiel'"
+          [attr.aria-selected]="onglet() === 'officiel'"
+          (click)="onglet.set('officiel')"
+        >
+          Données officielles
+        </button>
+        <button
+          type="button"
+          class="tab"
+          [class.tab--active]="onglet() === 'avis'"
+          [attr.aria-selected]="onglet() === 'avis'"
+          (click)="onglet.set('avis')"
+        >
+          Avis habitants
+        </button>
+      </nav>
+
+      @if (onglet() === 'officiel') {
       <div class="dash">
         <!-- Carte -->
         @if (mapUrl(); as src) {
@@ -121,6 +143,25 @@
           </section>
         }
       </div>
+      } @else {
+        <section class="avis-panel">
+          @if (!avisDisponible) {
+            <p class="avis-soon">
+              Les avis des habitants arrivent très bientôt — connexion et notation
+              communautaire seront bientôt activées.
+            </p>
+          } @else {
+            <app-commune-avis-list [codeInsee]="c.codeInsee" [version]="avisVersion()" />
+            @if (auth.connecte()) {
+              <app-commune-avis-form [codeInsee]="c.codeInsee" (submitted)="onAvisSubmitted()" />
+            } @else {
+              <app-auth-gate
+                message="Connectez-vous pour partager votre avis sur {{ c.nom }}."
+              />
+            }
+          }
+        </section>
+      }
 
       <footer class="foot">
         <span class="foot__source">
