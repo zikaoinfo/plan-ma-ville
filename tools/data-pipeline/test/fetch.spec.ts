@@ -50,6 +50,17 @@ describe('makeBpeAccumulator', () => {
     acc.add({ DEPCOM: '69123', TYPEQU: 'E107' });
     expect(acc.result().get('69123')!.transports).toBe(2);
   });
+
+  it('gère le format large (1 colonne par TYPEQU = dénombrement communal)', () => {
+    const acc = makeBpeAccumulator();
+    acc.add({ DEPCOM: '01001', B201: '3', D201: '2', F303: '1', A101: '5' });
+    const c = acc.result().get('01001')!;
+    expect(c.commerces).toBe(3);
+    expect(c.sante).toBe(2);
+    expect(c.culture).toBe(1);
+    // A101 (services) hors critères → non compté.
+    expect(c.transports).toBe(0);
+  });
 });
 
 describe('makeSecuriteAccumulator', () => {

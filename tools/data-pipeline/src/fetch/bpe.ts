@@ -56,36 +56,77 @@ function pick(keys: string[], candidats: string[]): string | undefined {
   return candidats.find((c) => keys.includes(c));
 }
 
+/** Une colonne d'effectif (format large) : nom de colonne → critère cible. */
+interface WideCol {
+  col: string;
+  critere: BpeCritere;
+}
+
 /**
- * Accumulateur streaming : détecte les colonnes sur la 1re ligne puis agrège
- * les effectifs par (commune mère, critère). Exporté pour testabilité.
+ * Accumulateur streaming, robuste aux deux formats de la BPE :
+ *  - **long** : une colonne TYPEQU + (option) une colonne d'effectif NB
+ *    (fichier détaillé/géolocalisé : 1 ligne = 1 équipement, pas de NB).
+ *  - **large** : une colonne par type d'équipement (A101, B201…) contenant
+ *    l'effectif (fichier de dénombrement communal INSEE).
+ * Exporté pour testabilité.
  */
 export function makeBpeAccumulator() {
   const map: BpeMap = new Map();
+  let mode: 'long' | 'wide' | undefined;
   let codeCol: string | undefined;
   let typeCol: string | undefined;
-  let nbCol: string | null | undefined; // undefined = pas encore détecté, null = absent
+  let nbCol: string | null = null;
+  let wideCols: WideCol[] = [];
 
   return {
     add(row: Record<string, string>): void {
-      if (codeCol === undefined) {
+      if (mode === undefined) {
         const keys = Object.keys(row);
         codeCol = pick(keys, CODE_COLS);
+        if (!codeCol) {
+          throw new Error(`BPE : colonne code introuvable (en-têtes : ${keys.join(', ')})`);
+        }
         typeCol = pick(keys, TYPE_COLS);
-        nbCol = pick(keys, NB_COLS) ?? null;
-        if (!codeCol || !typeCol) {
-          throw new Error(`BPE : colonnes code/type introuvables (en-têtes : ${keys.join(', ')})`);
+        if (typeCol) {
+          mode = 'long';
+          nbCol = pick(keys, NB_COLS) ?? null;
+        } else {
+          // Format large : colonnes dont le nom est un code TYPEQU (ex. A101, F303).
+          mode = 'wide';
+          wideCols = keys
+            .filter((k) => /^[A-G]\d{2,3}$/i.test(k))
+            .map((col) => ({ col, critere: typequToCritere(col) }))
+            .filter((c): c is WideCol => c.critere !== undefined);
+          if (wideCols.length === 0) {
+            throw new Error(`BPE : ni colonne TYPEQU ni colonnes d'effectif (en-têtes : ${keys.join(', ')})`);
+          }
         }
       }
-      const brut = row[codeCol];
-      const critere = typequToCritere(row[typeCol as string] ?? '');
-      if (!brut || !critere) return;
-      const nb = nbCol ? (parseNumber(row[nbCol]) ?? 0) : 1;
-      if (nb <= 0) return;
+
+      const brut = row[codeCol as string];
+      if (!brut) return;
       const code = communeParent(brut);
-      const cur = map.get(code) ?? emptyCounts();
-      cur[critere] += nb;
-      map.set(code, cur);
+
+      if (mode === 'long') {
+        const critere = typequToCritere(row[typeCol as string] ?? '');
+        if (!critere) return;
+        const nb = nbCol ? (parseNumber(row[nbCol]) ?? 0) : 1;
+        if (nb <= 0) return;
+        const cur = map.get(code) ?? emptyCounts();
+        cur[critere] += nb;
+        map.set(code, cur);
+        return;
+      }
+
+      // wide
+      let cur: BpeCounts | undefined;
+      for (const { col, critere } of wideCols) {
+        const nb = parseNumber(row[col]) ?? 0;
+        if (nb <= 0) continue;
+        cur ??= map.get(code) ?? emptyCounts();
+        cur[critere] += nb;
+      }
+      if (cur) map.set(code, cur);
     },
     result(): BpeMap {
       return map;

@@ -29,7 +29,9 @@ export function makeSecuriteAccumulator() {
     add(row: Record<string, string>): void {
       if (codeCol === undefined) {
         const keys = Object.keys(row);
-        codeCol = pick(keys, CODE_COLS);
+        // Le suffixe de CODGEO change selon le millésime géographique
+        // (CODGEO_2024/2025/2026…) → détection par préfixe en dernier recours.
+        codeCol = pick(keys, CODE_COLS) ?? keys.find((k) => /^CODGEO/i.test(k));
         yearCol = pick(keys, YEAR_COLS) ?? null;
         faitsCol = pick(keys, FAITS_COLS);
         if (!codeCol || !faitsCol) {
