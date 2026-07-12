@@ -34,6 +34,25 @@ export class AuthService {
     return meta?.full_name ?? meta?.name ?? u.email?.split('@')[0] ?? 'Habitant';
   }
 
+  /** Email de l'utilisateur courant. */
+  email(): string {
+    return this.user()?.email ?? '';
+  }
+
+  /** Photo de profil (Google), si disponible. */
+  avatarUrl(): string | null {
+    const meta = this.user()?.user_metadata as
+      | { avatar_url?: string; picture?: string }
+      | undefined;
+    return meta?.avatar_url ?? meta?.picture ?? null;
+  }
+
+  /** Initiales de repli pour l'avatar. */
+  initiales(): string {
+    const p = this.pseudo().trim();
+    return p ? p.slice(0, 2).toUpperCase() : '?';
+  }
+
   loginWithGoogle() {
     return this.#sb.client?.auth.signInWithOAuth({
       provider: 'google',

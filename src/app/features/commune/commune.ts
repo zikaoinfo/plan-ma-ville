@@ -1,7 +1,7 @@
 import { DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { DomSanitizer, type SafeResourceUrl } from '@angular/platform-browser';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CRITERE_LABELS, CRITERES, type Critere } from '../../core/models/data.models';
 import { AuthService } from '../../core/services/auth.service';
 import { AvisService } from '../../core/services/avis.service';
@@ -53,9 +53,14 @@ export class Commune {
   readonly #sanitizer = inject(DomSanitizer);
   protected readonly auth = inject(AuthService);
   protected readonly avisDisponible = inject(AvisService).disponible;
+  readonly #route = inject(ActivatedRoute);
+  readonly #router = inject(Router);
 
-  /** Onglet actif de la fiche. */
-  protected readonly onglet = signal<'officiel' | 'avis'>('officiel');
+  /** Onglet actif de la fiche (synchronisé avec ?onglet= pour survivre au
+   *  rechargement après redirection OAuth). */
+  protected readonly onglet = signal<'officiel' | 'avis'>(
+    inject(ActivatedRoute).snapshot.queryParamMap.get('onglet') === 'avis' ? 'avis' : 'officiel',
+  );
   /** Bump après soumission d'un avis → recharge la liste. */
   protected readonly avisVersion = signal(0);
 
@@ -148,6 +153,18 @@ export class Commune {
   });
 
   constructor() {
+    // Reflète l'onglet dans l'URL (?onglet=avis) : la redirection OAuth revient
+    // sur cette URL, donc on retrouve l'onglet « Avis habitants » après login.
+    effect(() => {
+      const o = this.onglet();
+      void this.#router.navigate([], {
+        relativeTo: this.#route,
+        queryParams: { onglet: o === 'avis' ? 'avis' : null },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
+    });
+
     effect(() => {
       const s = this.#state();
       if (s === 'loading') {
