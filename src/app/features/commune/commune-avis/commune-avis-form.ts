@@ -59,6 +59,12 @@ function notesParDefaut(): Record<Critere, number> {
         <p class="form__msg form__msg--err">Une erreur est survenue. Réessayez.</p>
       }
 
+      @if (!valide()) {
+        <p class="form__hint">
+          Écrivez au moins {{ min }} caractères dans « points positifs » pour publier
+          ({{ positifs().trim().length }}/{{ min }}).
+        </p>
+      }
       <button type="submit" class="form__submit" [disabled]="!valide() || submitting()">
         {{ submitting() ? 'Envoi…' : existing() ? 'Mettre à jour' : 'Publier mon avis' }}
       </button>

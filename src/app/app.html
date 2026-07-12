@@ -24,6 +24,42 @@
         >Méthodologie</a
       >
     </nav>
+
+    @if (auth.disponible) {
+      <div class="account">
+        @if (auth.connecte()) {
+          <button
+            type="button"
+            class="account__btn"
+            (click)="toggleMenu()"
+            [attr.aria-expanded]="menuOpen()"
+            aria-haspopup="menu"
+          >
+            @if (auth.avatarUrl(); as photo) {
+              <img class="account__avatar" [src]="photo" alt="" referrerpolicy="no-referrer" />
+            } @else {
+              <span class="account__avatar account__avatar--initiales">{{ auth.initiales() }}</span>
+            }
+            <span class="account__pseudo">{{ auth.pseudo() }}</span>
+          </button>
+
+          @if (menuOpen()) {
+            <button type="button" class="account__backdrop" aria-label="Fermer" (click)="toggleMenu()"></button>
+            <div class="account__menu" role="menu">
+              <div class="account__id">
+                <strong>{{ auth.pseudo() }}</strong>
+                <span>{{ auth.email() }}</span>
+              </div>
+              <button type="button" role="menuitem" class="account__item account__logout" (click)="logout()">
+                Se déconnecter
+              </button>
+            </div>
+          }
+        } @else {
+          <button type="button" class="account__login" (click)="loginGoogle()">Se connecter</button>
+        }
+      </div>
+    }
   </div>
 </header>
 

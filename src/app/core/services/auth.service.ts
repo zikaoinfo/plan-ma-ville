@@ -34,6 +34,25 @@ export class AuthService {
     return meta?.full_name ?? meta?.name ?? u.email?.split('@')[0] ?? 'Habitant';
   }
 
+  /** Email de l'utilisateur courant. */
+  email(): string {
+    return this.user()?.email ?? '';
+  }
+
+  /** Photo de profil (Google), si disponible. */
+  avatarUrl(): string | null {
+    const meta = this.user()?.user_metadata as
+      | { avatar_url?: string; picture?: string }
+      | undefined;
+    return meta?.avatar_url ?? meta?.picture ?? null;
+  }
+
+  /** Initiales de repli pour l'avatar. */
+  initiales(): string {
+    const p = this.pseudo().trim();
+    return p ? p.slice(0, 2).toUpperCase() : '?';
+  }
+
   loginWithGoogle() {
     return this.#sb.client?.auth.signInWithOAuth({
       provider: 'google',
@@ -41,11 +60,15 @@ export class AuthService {
     });
   }
 
-  loginWithEmail(email: string) {
-    return this.#sb.client?.auth.signInWithOtp({
+  /** Envoie un lien magique. Renvoie l'erreur Supabase réelle si l'envoi échoue. */
+  async loginWithEmail(email: string): Promise<{ ok: boolean; error?: string }> {
+    const client = this.#sb.client;
+    if (!client) return { ok: false, error: 'Authentification indisponible (Supabase non configuré).' };
+    const { error } = await client.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: this.#doc.location.href },
     });
+    return error ? { ok: false, error: error.message } : { ok: true };
   }
 
   logout() {

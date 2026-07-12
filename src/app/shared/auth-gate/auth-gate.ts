@@ -27,8 +27,13 @@ import { AuthService } from '../../core/services/auth.service';
             (input)="email.set($any($event.target).value)"
             required
           />
-          <button type="submit" class="gate__send">Recevoir un lien</button>
+          <button type="submit" class="gate__send" [disabled]="envoi()">
+            {{ envoi() ? '…' : 'Recevoir un lien' }}
+          </button>
         </form>
+        @if (erreur()) {
+          <p class="gate__err">{{ erreur() }}</p>
+        }
       }
     </div>
   `,
@@ -103,6 +108,11 @@ import { AuthService } from '../../core/services/auth.service';
       margin: 0;
       color: var(--good);
     }
+    .gate__err {
+      margin: 0.6rem 0 0;
+      color: var(--bad);
+      font-size: 0.88rem;
+    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -113,6 +123,8 @@ export class AuthGate {
 
   protected readonly email = signal('');
   protected readonly sent = signal(false);
+  protected readonly envoi = signal(false);
+  protected readonly erreur = signal('');
 
   protected loginGoogle(): void {
     void this.#auth.loginWithGoogle();
@@ -121,7 +133,13 @@ export class AuthGate {
   protected async sendMagic(event: Event): Promise<void> {
     event.preventDefault();
     if (!this.email().includes('@')) return;
-    await this.#auth.loginWithEmail(this.email());
-    this.sent.set(true);
+    this.erreur.set('');
+    this.envoi.set(true);
+    // N'affiche « envoyé » QUE si Supabase confirme l'envoi ; sinon montre
+    // l'erreur réelle (rate limit, SMTP, etc.) au lieu d'un faux succès.
+    const res = await this.#auth.loginWithEmail(this.email());
+    this.envoi.set(false);
+    if (res.ok) this.sent.set(true);
+    else this.erreur.set(res.error ?? "Échec de l'envoi du lien.");
   }
 }
