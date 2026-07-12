@@ -4,8 +4,7 @@
   "bpe": {
     "dataset": "base-permanente-des-equipements",
     "format": "csv",
-    "resource": "commune",
-    "resourceExclude": "iris",
+    "resource": "bpe-ensemble",
     "entry": "\\.csv$"
   },
   "securite": {
