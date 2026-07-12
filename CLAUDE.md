@@ -64,16 +64,33 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
 
 ## Données (pipeline `tsx`)
 
-- Source : `geo.api.gouv.fr` (champs nom,code,codesPostaux,codeDepartement,
-  population,**centre**). URLs dans `sources.config.json`.
-- **Notes factices déterministes** (Phase 1, pas encore réel) : PRNG
-  `cyrb53`+`mulberry32` seedé par code INSEE → `score/fake.ts`. Note globale =
-  Σ(note×poids)/Σ(poids), `scoring.config.json`.
+- Sources (toutes URLs dans `sources.config.json`) :
+  - `geo.api.gouv.fr` — périmètre communes, population, `centre` (lat/lng).
+  - **BPE** (INSEE) — équipements → santé, commerces, enseignement, sports,
+    culture, transports. `fetch/bpe.ts`, domaine = 1re lettre TYPEQU (F1/F2 sports,
+    F3 culture).
+  - **SSMSI** (data.gouv) — délinquance → sécurité (note inversée). `fetch/securite.ts`.
+  - **Filosofi** (INSEE) — revenu médian → niveau de vie. `fetch/filosofi.ts`.
+- **Scoring réel par rang percentile** (`score/real.ts`, plus de notes factices) :
+  densité /1000 hab (BPE), taux /1000 hab (SSMSI, inversé), revenu médian
+  (Filosofi) → `toPercentileNote` (`score/percentile.ts`, convention « fraction
+  ≤ valeur », test `toPercentileNote(5,[1,3,5,7,9])===6`). Commune sans donnée
+  → **médiane nationale** (jamais 0). Arrondissements Paris/Lyon/Marseille
+  repliés sur la mère (`fetch/insee-code.ts`). Note globale = Σ(note×poids)/Σ(poids).
+- **URLs BPE/SSMSI/Filosofi = best-effort** (réseau bloqué en sandbox, jamais
+  testées ici) → à **confirmer/corriger au 1er run CI**. Fetchers en **dégradation
+  gracieuse** (`fetchOrWarn`) : une source KO logge un ⚠ et bascule le critère sur
+  la médiane (le déploiement n'est pas bloqué). Rapport de run = couverture par
+  source + histogramme des notes.
+- Cache `.cache/{name}.csv` (< 30 j, gitignoré), décompression zip/gz + parsing
+  CSV streaming (`fetch/download.ts`, deps `adm-zip`+`csv-parse`).
 - Émet dans `public/data/` (gitignoré, régénéré en CI) : `index.json` (trié nn),
   `departements.json`, `dep/{code}.json`, `classement.json`, `geo-light.json`
   (carte, communes ≥500 hab avec lat/lng) + `public/sitemap.xml`.
 - 6 invariants validés en fin de run (notes ∈[0,10] 1 déc., slugs uniques, etc.).
-- **Déterministe** : deux runs → fichiers identiques. Ne pas casser ça.
+- **Déterministe à données constantes** : même cache → fichiers identiques.
+- Refresh mensuel : `.github/workflows/data-refresh.yml` (cron + `workflow_dispatch`,
+  force la régénération hors cache de `deploy.yml`).
 - URL des données runtime = `new URL('data/x.json', document.baseURI)` (relatif,
   correct en dev comme en prod — jamais coder `/plan-ma-ville/` en dur).
 
@@ -144,8 +161,9 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
 
 ## État des phases
 
-Faites : 0–4, 6, 8 (carte), 11 (comparateur), 7 (avis, en PR #5). Dashboard commune.
-Reste : **5** (vraies données open data — BPE/SSMSI/Filosofi/DVF, réseau requis),
-**12** (page profil/villes suivies, Supabase), **9/10** (IA — bloqué : nécessite
-un proxy serveur pour cacher la clé Claude ; option quiz déterministe sans IA).
-Détail vivant : `docs/TODO.md`.
+Faites : 0–4, 6, 8 (carte), 11 (comparateur), 7 (avis). Dashboard commune.
+**5** (vraies données open data — BPE/SSMSI/Filosofi via percentile) : **codée +
+testée** (29 tests pipeline), en attente de **validation CI** des URLs sources.
+Reste : DVF (prix m² réel), **12** (page profil/villes suivies, Supabase),
+**9/10** (IA — bloqué : nécessite un proxy serveur pour cacher la clé Claude ;
+option quiz déterministe sans IA). Détail vivant : `docs/TODO.md`.

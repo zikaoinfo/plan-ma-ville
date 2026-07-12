@@ -1,0 +1,64 @@
+name: Refresh open data
+
+# Régénère les données open data (BPE, SSMSI, Filosofi, géo) sans passer par le
+# cache de deploy.yml, puis redéploie le site. Mensuel + déclenchable à la main.
+on:
+  schedule:
+    - cron: '0 3 1 * *' # le 1er de chaque mois à 03:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build data files (sans cache — données fraîches)
+        run: npm run data:build
+
+      - name: Inject environment secrets
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          WORKER_URL: ${{ secrets.WORKER_URL }}
+        run: |
+          ENV=src/environments/environment.ts
+          sed -i "s|__SUPABASE_URL__|${SUPABASE_URL}|g" "$ENV"
+          sed -i "s|__SUPABASE_ANON_KEY__|${SUPABASE_ANON_KEY}|g" "$ENV"
+          sed -i "s|__WORKER_URL__|${WORKER_URL}|g" "$ENV"
+
+      - name: Build app
+        run: npm run build
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/ma-ville-notes/browser
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
