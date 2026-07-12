@@ -10,8 +10,21 @@ import { parse as parseSync } from 'csv-parse/sync';
 const MAX_CACHE_AGE_MS = 30 * 24 * 3600 * 1000;
 
 export interface SourceSpec {
-  /** URL du fichier (CSV, CSV.gz ou ZIP). */
-  url: string;
+  /** URL directe du fichier (CSV, CSV.gz ou ZIP). Prioritaire sur `dataset`. */
+  url?: string;
+  /**
+   * Slug d'un jeu de données data.gouv.fr : l'URL de la ressource est résolue
+   * dynamiquement via l'API publique (`/api/1/datasets/<slug>/`). Évite de coder
+   * en dur des UUID de ressources fragiles, et fonctionne depuis la CI.
+   */
+  dataset?: string;
+  /**
+   * Avec `dataset` : motif (regex) pour choisir la ressource (test sur son titre
+   * puis son URL). Ex. `commun` pour la base communale.
+   */
+  resource?: string;
+  /** Avec `dataset` : filtre de format de ressource (ex. `csv`). */
+  format?: string;
   /**
    * Pour une archive .zip : motif (regex, insensible à la casse) du nom de
    * l'entrée à extraire. Par défaut, la première entrée `.csv` de l'archive.
@@ -22,6 +35,51 @@ export interface SourceSpec {
    * du millésime (ex. Filosofi `MED21`). Auto-détection à défaut.
    */
   valueCol?: string;
+}
+
+const UA = 'ma-ville-notee/data-pipeline (open data)';
+
+interface DataGouvResource {
+  title?: string;
+  format?: string;
+  url: string;
+}
+
+/**
+ * Résout l'URL de téléchargement : `url` directe si fournie, sinon la ressource
+ * d'un jeu de données data.gouv.fr (filtrée par `format` puis `resource`). En
+ * l'absence de correspondance, logge les ressources disponibles pour affiner le
+ * motif — l'itération se fait alors simplement en lisant les logs CI.
+ */
+async function resolveUrl(name: string, spec: SourceSpec): Promise<string> {
+  if (spec.url) return spec.url;
+  if (!spec.dataset) throw new Error(`Source "${name}" : ni "url" ni "dataset" dans la config`);
+
+  const api = `https://www.data.gouv.fr/api/1/datasets/${spec.dataset}/`;
+  const res = await fetch(api, { headers: { 'User-Agent': UA } });
+  if (!res.ok) {
+    throw new Error(`Source "${name}" — API data.gouv ${res.status} (dataset ${spec.dataset})`);
+  }
+  const data = (await res.json()) as { resources: DataGouvResource[] };
+  const fmt = spec.format?.toLowerCase();
+  const motif = spec.resource ? new RegExp(spec.resource, 'i') : undefined;
+
+  const candidats = data.resources.filter((r) => {
+    if (fmt && (r.format ?? '').toLowerCase() !== fmt) return false;
+    if (motif && !(motif.test(r.title ?? '') || motif.test(r.url))) return false;
+    return true;
+  });
+  if (candidats.length === 0) {
+    const dispo = data.resources
+      .slice(0, 60)
+      .map((r) => `[${r.format}] ${r.title ?? r.url}`)
+      .join('\n    ');
+    throw new Error(
+      `Source "${name}" — aucune ressource ${fmt ?? '*'}/${spec.resource ?? '*'} dans ${spec.dataset}.\n` +
+        `  Ressources disponibles :\n    ${dispo}`,
+    );
+  }
+  return candidats[0].url;
 }
 
 export interface CsvOptions {
@@ -43,11 +101,10 @@ export async function ensureCsv(name: string, spec: SourceSpec, cacheDir: string
     if (age < MAX_CACHE_AGE_MS) return csvPath;
   }
 
-  const response = await fetch(spec.url, {
-    headers: { 'User-Agent': 'ma-ville-notee/data-pipeline (open data)' },
-  });
+  const url = await resolveUrl(name, spec);
+  const response = await fetch(url, { headers: { 'User-Agent': UA } });
   if (!response.ok) {
-    throw new Error(`Source "${name}" — ${spec.url} a répondu ${response.status} ${response.statusText}`);
+    throw new Error(`Source "${name}" — ${url} a répondu ${response.status} ${response.statusText}`);
   }
   const raw = Buffer.from(await response.arrayBuffer());
   const csv = decompress(raw, spec, name);
@@ -57,16 +114,20 @@ export async function ensureCsv(name: string, spec: SourceSpec, cacheDir: string
   return csvPath;
 }
 
+/**
+ * Décompresse selon les octets magiques (indépendant de l'extension d'URL :
+ * gère les permaliens data.gouv `/datasets/r/<uuid>` sans extension).
+ * gzip = 1F 8B ; zip = 50 4B ("PK").
+ */
 function decompress(raw: Buffer, spec: SourceSpec, name: string): Buffer {
-  const url = spec.url.toLowerCase();
-  if (url.endsWith('.gz')) return gunzipSync(raw);
-  if (url.endsWith('.zip')) {
+  if (raw.length >= 2 && raw[0] === 0x1f && raw[1] === 0x8b) return gunzipSync(raw);
+  if (raw.length >= 2 && raw[0] === 0x50 && raw[1] === 0x4b) {
     const zip = new AdmZip(raw);
     const motif = spec.entry ? new RegExp(spec.entry, 'i') : /\.csv$/i;
     const entree = zip.getEntries().find((e) => motif.test(e.entryName));
     if (!entree) {
       const dispo = zip.getEntries().map((e) => e.entryName).join(', ');
-      throw new Error(`Source "${name}" — aucune entrée ${motif} dans le zip (contient : ${dispo})`);
+      throw new Error(`Source "${name}" — aucune entrée /${motif.source}/ dans le zip (contient : ${dispo})`);
     }
     return entree.getData();
   }
