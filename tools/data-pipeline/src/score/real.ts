@@ -62,6 +62,7 @@ function rawMetrics(commune: CommuneRef, maps: DataMaps): Record<Critere, number
 export function computeRealScores(
   communes: readonly CommuneRef[],
   maps: DataMaps,
+  boost: Partial<Record<Critere, number>> = {},
 ): Map<string, Record<Critere, number>> {
   const metriques = communes.map((c) => ({
     code: c.codeInsee,
@@ -77,7 +78,7 @@ export function computeRealScores(
 
   // Affecte les notes d'un sous-ensemble de communes (mêmes indices).
   const affecter = (codes: string[], valeurs: number[], critere: Critere) => {
-    const notes = rankNotes(valeurs, INVERSE[critere]);
+    const notes = rankNotes(valeurs, INVERSE[critere], boost[critere] ?? 1);
     for (let i = 0; i < codes.length; i++) out.get(codes[i])![critere] = notes[i];
   };
 

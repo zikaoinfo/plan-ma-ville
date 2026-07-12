@@ -28,6 +28,8 @@ interface ScoringConfig {
   version: number;
   populationMinClassement: number;
   ponderations: Record<Critere, number>;
+  /** Gamma d'ajustement par critère (< 1 relève/homogénéise vers le haut). */
+  boost?: Partial<Record<Critere, number>>;
 }
 
 interface SourcesConfig {
@@ -208,6 +210,7 @@ async function main(): Promise<void> {
   const notesParCommune = computeRealScores(
     retenues.map((c) => ({ codeInsee: c.codeInsee, population: c.population })),
     maps,
+    scoring.boost,
   );
   const scorees: CommuneScoree[] = retenues.map((c) => {
     const criteres = notesParCommune.get(c.codeInsee)!;

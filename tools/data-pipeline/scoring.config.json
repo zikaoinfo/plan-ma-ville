@@ -10,5 +10,10 @@
     "culture": 0.8,
     "transports": 1.2,
     "niveauVie": 1.0
+  },
+  "_boost": "Gamma par critère (< 1 relève et homogénéise les notes vers le haut). Services de base très répandus (écoles, sports) → notes plus généreuses.",
+  "boost": {
+    "enseignement": 0.5,
+    "sports": 0.5
   }
 }

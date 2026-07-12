@@ -26,6 +26,14 @@ describe('rankNotes', () => {
   it('renvoie 10 pour une commune unique', () => {
     expect(rankNotes([42])).toEqual([10]);
   });
+
+  it('gamma < 1 relève et homogénéise les notes vers le haut (meilleure reste 10)', () => {
+    const base = rankNotes([1, 2, 3, 4, 5]);
+    const boosted = rankNotes([1, 2, 3, 4, 5], false, 0.5);
+    expect(boosted[4]).toBe(10); // meilleure commune inchangée
+    expect(boosted[2]).toBeGreaterThan(base[2]); // médiane relevée (7.1 > 5)
+    expect(boosted[1]).toBeGreaterThan(base[1]); // le bas remonte aussi
+  });
 });
 
 describe('sortedValues / median', () => {

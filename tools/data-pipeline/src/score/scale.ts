@@ -25,8 +25,12 @@ export function median(sorted: readonly number[]): number {
  * On remet ensuite à l'échelle pour que la meilleure commune du critère = 10
  * (division par la note max), sans forcer le minimum à 0 : les critères très
  * creux gardent ainsi une distribution réaliste au lieu de s'effondrer.
+ *
+ * `gamma` (défaut 1) courbe la distribution : `gamma < 1` relève et resserre les
+ * notes vers le haut (utile pour un critère « service de base » très répandu,
+ * ex. enseignement, sports) ; `gamma > 1` étale vers le bas.
  */
-export function rankNotes(values: readonly number[], invert = false): number[] {
+export function rankNotes(values: readonly number[], invert = false, gamma = 1): number[] {
   const m = values.length;
   if (m === 0) return [];
   if (m === 1) return [10];
@@ -45,7 +49,8 @@ export function rankNotes(values: readonly number[], invert = false): number[] {
 
   const brut = midrank.map((r) => {
     const frac = (r - 1) / (m - 1); // 0 (pire) → 1 (meilleur)
-    return (invert ? 1 - frac : frac) * 10;
+    const oriente = invert ? 1 - frac : frac;
+    return Math.pow(oriente, gamma) * 10;
   });
 
   const maxBrut = Math.max(...brut);
