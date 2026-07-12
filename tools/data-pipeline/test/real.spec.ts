@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CRITERES } from '../src/models.js';
-import { computeRealScores, type DataMaps } from '../src/score/real.js';
+import { computeRealScores, stratePopulation, type DataMaps } from '../src/score/real.js';
 import type { BpeCounts } from '../src/fetch/bpe.js';
 
 function counts(partial: Partial<BpeCounts>): BpeCounts {
@@ -79,5 +79,47 @@ describe('computeRealScores', () => {
     const a = computeRealScores(communes, maps);
     const b = computeRealScores(communes, maps);
     for (const c of communes) expect(b.get(c.codeInsee)).toEqual(a.get(c.codeInsee));
+  });
+});
+
+describe('stratePopulation', () => {
+  it('classe par tranche de population croissante', () => {
+    expect(stratePopulation(300)).toBe(0);
+    expect(stratePopulation(1000)).toBe(1);
+    expect(stratePopulation(200_000)).toBe(6);
+    expect(stratePopulation(300)).toBeLessThan(stratePopulation(200_000));
+  });
+});
+
+describe('sécurité classée par strate de population', () => {
+  const noBpe = (): BpeCounts => counts({});
+  const villesEtVillages = [
+    { codeInsee: 'V1', population: 300 }, // village sans délinquance
+    { codeInsee: 'V2', population: 300 },
+    { codeInsee: 'C1', population: 200_000 }, // grande ville très délinquante
+    { codeInsee: 'C2', population: 200_000 }, // grande ville moins délinquante
+  ];
+  const m: DataMaps = {
+    bpe: new Map([
+      ['V1', noBpe()],
+      ['V2', noBpe()],
+      ['C1', noBpe()],
+      ['C2', noBpe()],
+    ]),
+    securite: new Map([
+      ['V1', 0],
+      ['V2', 0],
+      ['C1', 2000],
+      ['C2', 1000],
+    ]),
+    filosofi: new Map(),
+  };
+
+  it('compare les villes entre elles → échelle 0-10 utilisée, pas écrasée par les villages', () => {
+    const s = computeRealScores(villesEtVillages, m);
+    // La ville la moins délinquante de sa strate atteint 10 (au lieu d'être ≈0
+    // en classement national à cause des milliers de villages sans délinquance).
+    expect(s.get('C2')!.securite).toBe(10);
+    expect(s.get('C2')!.securite).toBeGreaterThan(s.get('C1')!.securite);
   });
 });
