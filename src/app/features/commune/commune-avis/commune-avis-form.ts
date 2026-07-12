@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, output, signal } from '@angular/core';
 import { CRITERE_LABELS, CRITERES, type AvisInsert, type Critere } from '../../../core/models/data.models';
 import { AuthService } from '../../../core/services/auth.service';
 import { AvisService } from '../../../core/services/avis.service';
@@ -57,15 +57,16 @@ function notesParDefaut(): Record<Critere, number> {
         <p class="form__msg form__msg--ok">Merci ! Votre avis a été enregistré.</p>
       } @else if (message() === 'err') {
         <p class="form__msg form__msg--err">Une erreur est survenue. Réessayez.</p>
-      }
-
-      @if (!valide()) {
-        <p class="form__hint">
-          Écrivez au moins {{ min }} caractères dans « points positifs » pour publier
+      } @else if (message() === 'court') {
+        <p class="form__msg form__msg--err">
+          Les « points positifs » doivent faire au moins {{ min }} caractères
           ({{ positifs().trim().length }}/{{ min }}).
         </p>
       }
-      <button type="submit" class="form__submit" [disabled]="!valide() || submitting()">
+
+      <!-- Bouton toujours cliquable : la validation se fait au clic (pas de
+           bouton grisé mystérieux). -->
+      <button type="submit" class="form__submit" [disabled]="submitting()">
         {{ submitting() ? 'Envoi…' : existing() ? 'Mettre à jour' : 'Publier mon avis' }}
       </button>
     </form>
@@ -89,9 +90,7 @@ export class CommuneAvisForm {
   protected readonly negatifs = signal('');
   protected readonly existing = signal<boolean>(false);
   protected readonly submitting = signal(false);
-  protected readonly message = signal<'ok' | 'err' | null>(null);
-
-  protected readonly valide = computed(() => this.positifs().trim().length >= MIN_POSITIFS);
+  protected readonly message = signal<'ok' | 'err' | 'court' | null>(null);
 
   constructor() {
     // Pré-remplit avec l'avis existant de l'utilisateur, le cas échéant.
@@ -109,8 +108,14 @@ export class CommuneAvisForm {
 
   protected async submit(event: Event): Promise<void> {
     event.preventDefault();
+    // Validation au clic — lit la valeur fraîche du signal (aucune dépendance à
+    // l'état d'un bouton désactivé).
+    if (this.positifs().trim().length < MIN_POSITIFS) {
+      this.message.set('court');
+      return;
+    }
     const user = this.#auth.user();
-    if (!user || !this.valide()) return;
+    if (!user) return;
 
     this.submitting.set(true);
     this.message.set(null);
