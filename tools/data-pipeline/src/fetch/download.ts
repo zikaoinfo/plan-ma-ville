@@ -19,10 +19,12 @@ export interface SourceSpec {
    */
   dataset?: string;
   /**
-   * Avec `dataset` : motif (regex) pour choisir la ressource (test sur son titre
-   * puis son URL). Ex. `commun` pour la base communale.
+   * Avec `dataset` : motif (regex) pour choisir la ressource (test sur
+   * « titre + url »). Ex. `commun` pour la base communale.
    */
   resource?: string;
+  /** Avec `dataset` : motif d'exclusion (ex. écarter les fichiers régionaux). */
+  resourceExclude?: string;
   /** Avec `dataset` : filtre de format de ressource (ex. `csv`). */
   format?: string;
   /**
@@ -61,24 +63,30 @@ async function resolveUrl(name: string, spec: SourceSpec): Promise<string> {
     throw new Error(`Source "${name}" — API data.gouv ${res.status} (dataset ${spec.dataset})`);
   }
   const data = (await res.json()) as { resources: DataGouvResource[] };
+  // Inventaire (aide au choix du motif `resource` en lisant les logs CI).
+  const inventaire = data.resources
+    .slice(0, 40)
+    .map((r) => `      [${r.format}] ${r.title ?? ''} — ${r.url}`)
+    .join('\n');
+  console.log(`  · ${name} : ${data.resources.length} ressources data.gouv\n${inventaire}`);
+
   const fmt = spec.format?.toLowerCase();
   const motif = spec.resource ? new RegExp(spec.resource, 'i') : undefined;
+  const exclu = spec.resourceExclude ? new RegExp(spec.resourceExclude, 'i') : undefined;
 
   const candidats = data.resources.filter((r) => {
+    const cible = `${r.title ?? ''} ${r.url}`;
     if (fmt && (r.format ?? '').toLowerCase() !== fmt) return false;
-    if (motif && !(motif.test(r.title ?? '') || motif.test(r.url))) return false;
+    if (motif && !motif.test(cible)) return false;
+    if (exclu && exclu.test(cible)) return false;
     return true;
   });
   if (candidats.length === 0) {
-    const dispo = data.resources
-      .slice(0, 60)
-      .map((r) => `[${r.format}] ${r.title ?? r.url}`)
-      .join('\n    ');
     throw new Error(
-      `Source "${name}" — aucune ressource ${fmt ?? '*'}/${spec.resource ?? '*'} dans ${spec.dataset}.\n` +
-        `  Ressources disponibles :\n    ${dispo}`,
+      `Source "${name}" — aucune ressource ${fmt ?? '*'}/${spec.resource ?? '*'} dans ${spec.dataset} (voir inventaire ci-dessus).`,
     );
   }
+  console.log(`  · ${name} → ressource choisie : ${candidats[0].title ?? candidats[0].url}`);
   return candidats[0].url;
 }
 
@@ -154,8 +162,16 @@ export function forEachCsvRow(
       trim: true,
     });
     parser.on('readable', () => {
-      let row: Record<string, string> | null;
-      while ((row = parser.read() as Record<string, string> | null) !== null) onRow(row);
+      // Une exception de onRow dans un handler d'event s'échapperait en « uncaught »
+      // (crash) : on la convertit en rejet de la promesse pour laisser fetchOrWarn
+      // dégrader gracieusement.
+      try {
+        let row: Record<string, string> | null;
+        while ((row = parser.read() as Record<string, string> | null) !== null) onRow(row);
+      } catch (err) {
+        parser.destroy();
+        reject(err);
+      }
     });
     parser.on('error', reject);
     parser.on('end', resolve);
