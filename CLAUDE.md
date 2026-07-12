@@ -71,12 +71,13 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
     F3 culture).
   - **SSMSI** (data.gouv) — délinquance → sécurité (note inversée). `fetch/securite.ts`.
   - **Filosofi** (INSEE) — revenu médian → niveau de vie. `fetch/filosofi.ts`.
-- **Scoring réel par normalisation min–max robuste** (`score/real.ts`, plus de
-  notes factices) : densité /1000 hab (BPE), taux /1000 hab (SSMSI, inversé),
-  revenu médian (Filosofi) → `linearNote` (`score/scale.ts`) sur bornes 2ᵉ/98ᵉ
-  centiles (`robustBounds`, écrête les valeurs aberrantes) : moins dotée → 0,
-  mieux dotée → 10. **NB** : l'ancien rang percentile (`count ≤ valeur`) donnait
-  une note ÉLEVÉE aux ex æquo à zéro (commune sans culture = 9.6/10) → abandonné.
+- **Scoring réel par rang percentile moyen** (`score/real.ts`, plus de notes
+  factices) : densité /1000 hab (BPE), taux /1000 hab (SSMSI, inversé), revenu
+  médian (Filosofi) → `rankNotes` (`score/scale.ts`) = midrank puis remise à
+  l'échelle (meilleure commune du critère → 10). **NB scaling** : la 1re version
+  « count ≤ valeur » mettait les ex æquo à zéro EN HAUT (commune sans culture =
+  9.6/10) ; le min–max les mettait à 0 (effondrement, meilleure note globale 6.1).
+  Le **midrank** leur donne le MILIEU de leur plage (≈4-5), distribution saine.
   Commune sans donnée → **note neutre 5** (jamais 0). Arrondissements
   Paris/Lyon/Marseille repliés sur la mère (`fetch/insee-code.ts`). Note globale =
   Σ(note×poids)/Σ(poids).

@@ -2,7 +2,7 @@ import { CRITERES, type Critere } from '../models.js';
 import { BPE_CRITERES, type BpeMap } from '../fetch/bpe.js';
 import type { FilosofiMap } from '../fetch/filosofi.js';
 import type { SecuriteMap } from '../fetch/securite.js';
-import { linearNote, robustBounds, sortedValues, type Bounds } from './scale.js';
+import { rankNotes } from './scale.js';
 
 /** Jeux de données réels agrégés par commune (issus des fetchers). */
 export interface DataMaps {
@@ -38,37 +38,38 @@ function rawMetrics(commune: CommuneRef, maps: DataMaps): Record<Critere, number
 }
 
 /**
- * Note chaque commune sur les 8 critères par normalisation min–max robuste
- * (bornes 2ᵉ/98ᵉ centiles), relative au jeu de communes fourni. Deux passes :
- * (1) métriques brutes + bornes par critère, (2) conversion linéaire en notes
- * /10 (la moins dotée → 0, la mieux dotée → 10). Une commune sans donnée pour
+ * Note chaque commune sur les 8 critères par rang percentile moyen (midrank),
+ * relatif au jeu de communes fourni, puis remise à l'échelle pour que la
+ * meilleure commune de chaque critère obtienne 10. Une commune sans donnée pour
  * un critère reçoit la note neutre 5 (jamais 0).
  */
 export function computeRealScores(
   communes: readonly CommuneRef[],
   maps: DataMaps,
 ): Map<string, Record<Critere, number>> {
-  // Passe 1 — métriques brutes.
   const metriques = communes.map((c) => ({ code: c.codeInsee, m: rawMetrics(c, maps) }));
 
-  // Bornes robustes par critère (valeurs définies uniquement).
-  const bounds = {} as Record<Critere, Bounds>;
-  for (const c of CRITERES) {
-    const vals = sortedValues(
-      metriques.map((x) => x.m[c]).filter((v): v is number => v !== undefined),
-    );
-    bounds[c] = robustBounds(vals);
+  // Notes neutres par défaut (couvre les communes sans donnée sur un critère).
+  const out = new Map<string, Record<Critere, number>>();
+  for (const { code } of metriques) {
+    out.set(code, Object.fromEntries(CRITERES.map((c) => [c, 5])) as Record<Critere, number>);
   }
 
-  // Passe 2 — normalisation min–max.
-  const out = new Map<string, Record<Critere, number>>();
-  for (const { code, m } of metriques) {
-    const notes = {} as Record<Critere, number>;
-    for (const c of CRITERES) {
-      const v = m[c];
-      notes[c] = v === undefined ? 5 : linearNote(v, bounds[c], INVERSE[c]);
+  // Par critère : noter les communes qui ont une valeur, réaffecter le résultat.
+  for (const critere of CRITERES) {
+    const codes: string[] = [];
+    const valeurs: number[] = [];
+    for (const { code, m } of metriques) {
+      const v = m[critere];
+      if (v !== undefined) {
+        codes.push(code);
+        valeurs.push(v);
+      }
     }
-    out.set(code, notes);
+    const notes = rankNotes(valeurs, INVERSE[critere]);
+    for (let i = 0; i < codes.length; i++) {
+      out.get(codes[i])![critere] = notes[i];
+    }
   }
   return out;
 }
