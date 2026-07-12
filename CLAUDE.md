@@ -138,6 +138,16 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
 - **Carte `/carte`** : Leaflet + markercluster (chargé en dynamique), filtre note.
 - **Comparateur `/comparer`** : jusqu'à 3 villes, URL partageable `?villes=`.
 - **Méthodologie** : statique.
+- **Thème clair/sombre/système** : `ThemeService` (signal `preference` persisté
+  localStorage `mvn-theme`, `resolved` computed suivant `prefers-color-scheme`
+  en direct) → `data-theme` sur `<html>` via `effect`. Tokens sombres dans
+  `styles.scss` (`:root[data-theme='dark']` + `color-scheme`). **Script inline
+  anti-flash dans `index.html`** (à garder aligné avec le service). Sélecteur
+  ☀️/🌙/💻 dans le header. Toute couleur nouvelle DOIT passer par les tokens
+  (jamais de hex en dur dans les composants).
+- **Nav mobile** (≤920px) : burger → panneau déroulant sous la topbar
+  (backdrop, fermeture au clic sur un lien), pseudo compte masqué, marque
+  réduite au badge <380px.
 
 ## Supabase (Phase 7 — avis + auth)
 

@@ -17,6 +17,7 @@
   --warn: #d9a514;
   --bad: #c93a2e;
   --line: #d9d2c3;
+  --topbar-bg: rgb(250 246 239 / 0.85);
 
   /* Typo */
   --font-display: 'Fraunces', 'Georgia', serif;
@@ -28,6 +29,31 @@
   --shadow: 0 2px 0 var(--ink);
   --shadow-lift: 0 6px 0 rgb(24 32 58 / 0.12);
   --container: 1080px;
+
+  color-scheme: light;
+}
+
+/* ── Thème sombre ─────────────────────────────
+   Appliqué via data-theme sur <html> (ThemeService + script inline
+   anti-flash dans index.html). Même encre/craie, inversée : fond nuit,
+   encre craie, accents éclaircis pour le contraste. */
+:root[data-theme='dark'] {
+  --paper: #141a2e;
+  --paper-soft: #1d2440;
+  --ink: #ece7db;
+  --ink-soft: #a9aec6;
+  --accent: #ff7257;
+  --accent-soft: #52251b;
+  --good: #3cb488;
+  --good-soft: #17402f;
+  --warn: #e3b62f;
+  --bad: #e5675b;
+  --line: #333c5c;
+  --topbar-bg: rgb(20 26 46 / 0.85);
+  --shadow: 0 2px 0 #05070f;
+  --shadow-lift: 0 6px 0 rgb(0 0 0 / 0.35);
+
+  color-scheme: dark;
 }
 
 *,

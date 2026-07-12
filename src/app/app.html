@@ -5,26 +5,87 @@
       <span class="brand__name">ma ville, <em>notée.</em></span>
     </a>
 
-    <nav class="nav" aria-label="Navigation principale">
+    @if (navOpen()) {
+      <button type="button" class="nav-backdrop" aria-label="Fermer le menu" (click)="closeNav()"></button>
+    }
+
+    <nav
+      id="site-nav"
+      class="nav"
+      [class.nav--open]="navOpen()"
+      aria-label="Navigation principale"
+    >
       <a
         routerLink="/"
         routerLinkActive="nav__link--active"
         [routerLinkActiveOptions]="{ exact: true }"
         class="nav__link"
+        (click)="closeNav()"
         >Recherche</a
       >
-      <a routerLink="/carte" routerLinkActive="nav__link--active" class="nav__link">Carte</a>
-      <a routerLink="/regions" routerLinkActive="nav__link--active" class="nav__link">Régions</a>
-      <a routerLink="/classement" routerLinkActive="nav__link--active" class="nav__link"
+      <a routerLink="/carte" routerLinkActive="nav__link--active" class="nav__link" (click)="closeNav()">Carte</a>
+      <a routerLink="/regions" routerLinkActive="nav__link--active" class="nav__link" (click)="closeNav()">Régions</a>
+      <a routerLink="/classement" routerLinkActive="nav__link--active" class="nav__link" (click)="closeNav()"
         >Classement</a
       >
-      <a routerLink="/comparer" routerLinkActive="nav__link--active" class="nav__link"
+      <a routerLink="/comparer" routerLinkActive="nav__link--active" class="nav__link" (click)="closeNav()"
         >Comparer</a
       >
-      <a routerLink="/methodologie" routerLinkActive="nav__link--active" class="nav__link"
+      <a routerLink="/methodologie" routerLinkActive="nav__link--active" class="nav__link" (click)="closeNav()"
         >Méthodologie</a
       >
     </nav>
+
+    <div class="topbar__actions">
+      <div class="theme">
+        <button
+          type="button"
+          class="theme__btn"
+          (click)="toggleThemeMenu()"
+          [attr.aria-expanded]="themeMenuOpen()"
+          aria-haspopup="menu"
+          aria-label="Choisir le thème d'affichage"
+          title="Thème : clair, sombre ou système"
+        >
+          <span aria-hidden="true">{{ themeIcon() }}</span>
+        </button>
+
+        @if (themeMenuOpen()) {
+          <button type="button" class="theme__backdrop" aria-label="Fermer" (click)="toggleThemeMenu()"></button>
+          <div class="theme__menu" role="menu" aria-label="Thème d'affichage">
+            @for (opt of themeOptions; track opt.value) {
+              <button
+                type="button"
+                role="menuitemradio"
+                class="theme__item"
+                [class.theme__item--active]="theme.preference() === opt.value"
+                [attr.aria-checked]="theme.preference() === opt.value"
+                (click)="setTheme(opt.value)"
+              >
+                <span aria-hidden="true">{{ opt.icon }}</span>
+                {{ opt.label }}
+                @if (theme.preference() === opt.value) {
+                  <span class="theme__check" aria-hidden="true">✓</span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <button
+        type="button"
+        class="burger"
+        (click)="toggleNav()"
+        [attr.aria-expanded]="navOpen()"
+        aria-controls="site-nav"
+        aria-label="Ouvrir le menu de navigation"
+        [class.burger--open]="navOpen()"
+      >
+        <span class="burger__bar" aria-hidden="true"></span>
+        <span class="burger__bar" aria-hidden="true"></span>
+        <span class="burger__bar" aria-hidden="true"></span>
+      </button>
 
     @if (auth.disponible) {
       <div class="account">
@@ -61,6 +122,7 @@
         }
       </div>
     }
+    </div>
   </div>
 </header>
 
