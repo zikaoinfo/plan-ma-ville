@@ -120,11 +120,14 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
 ## Features livrées
 
 - **Home** : recherche (nom ou CP, dispatch), grille départements.
-- **Commune `/ville/:slug`** : **dashboard** — carte OSM (iframe `afterNextRender`),
-  notes par thématique, historique (sparkline SVG), prix m² estimé, communes
-  voisines (haversine). Estimations déterministes dans `commune-insights.ts`
-  (pures, testées). Onglets « Données officielles » / « Avis habitants »
-  (`?onglet=avis` pour survivre au retour OAuth).
+- **Commune `/ville/:slug`** : **dashboard** en grille à zones nommées
+  (`grid-template-areas`) — notes par thématique D'ABORD (pleine largeur), puis
+  carte OSM (iframe `afterNextRender`) adossée à la pile prix m² + historique
+  (sparkline SVG, hauteurs équilibrées ; variante `dash--nomap` sans coordonnées),
+  puis communes voisines (haversine) en grille de vignettes pleine largeur.
+  Estimations déterministes dans `commune-insights.ts` (pures, testées).
+  Onglets « Données officielles » / « Avis habitants » (`?onglet=avis` pour
+  survivre au retour OAuth).
 - **Régions `/regions`** : classement des régions (grille, note ↓), drill-down.
   **Région `/region/:code`** : ses départements classés note ↓ → lien commune.
   Chaîne région → département → ville. Lu depuis `regions.json` (départements
