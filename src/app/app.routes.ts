@@ -12,6 +12,16 @@ export const routes: Routes = [
     title: 'Commune — Ma ville, notée',
   },
   {
+    path: 'regions',
+    loadComponent: () => import('./features/regions/regions').then((m) => m.Regions),
+    title: 'Régions — Ma ville, notée',
+  },
+  {
+    path: 'region/:code',
+    loadComponent: () => import('./features/region/region').then((m) => m.Region),
+    title: 'Région — Ma ville, notée',
+  },
+  {
     path: 'departement/:code',
     loadComponent: () =>
       import('./features/departement/departement').then((m) => m.Departement),

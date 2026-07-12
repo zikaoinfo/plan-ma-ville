@@ -100,8 +100,13 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
 - Cache `.cache/{name}.csv` (< 30 j, gitignoré), décompression zip/gz + parsing
   CSV streaming (`fetch/download.ts`, deps `adm-zip`+`csv-parse`).
 - Émet dans `public/data/` (gitignoré, régénéré en CI) : `index.json` (trié nn),
-  `departements.json`, `dep/{code}.json`, `classement.json`, `geo-light.json`
+  `departements.json`, `regions.json` (classement régional → départements imbriqués,
+  `emit/regions.ts`), `dep/{code}.json`, `classement.json`, `geo-light.json`
   (carte, communes ≥500 hab avec lat/lng) + `public/sitemap.xml`.
+- **Régions** (`emit/regions.ts`) : table statique `DEPARTEMENT_REGION` (101 dépts →
+  code région INSEE) + `REGIONS` (code → nom). `aggregateRegions()` regroupe les
+  départements, note région = moyenne des communes **pondérée population**
+  (recalculée depuis les sommes non arrondies), régions et départements triés note ↓.
 - 6 invariants validés en fin de run (notes ∈[0,10] 1 déc., slugs uniques, etc.).
 - **Déterministe à données constantes** : même cache → fichiers identiques.
 - Refresh mensuel : `.github/workflows/data-refresh.yml` (cron + `workflow_dispatch`,
@@ -120,6 +125,11 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
   voisines (haversine). Estimations déterministes dans `commune-insights.ts`
   (pures, testées). Onglets « Données officielles » / « Avis habitants »
   (`?onglet=avis` pour survivre au retour OAuth).
+- **Régions `/regions`** : classement des régions (grille, note ↓), drill-down.
+  **Région `/region/:code`** : ses départements classés note ↓ → lien commune.
+  Chaîne région → département → ville. Lu depuis `regions.json` (départements
+  imbriqués, pas de fichier par région : ~18 entrées). Service
+  `SearchIndexService.getRegions()/regionSummary(code)`.
 - **Département `/departement/:code`** : tableau triable/filtrable.
 - **Classement `/classement`** : top/flop, filtre département.
 - **Carte `/carte`** : Leaflet + markercluster (chargé en dynamique), filtre note.

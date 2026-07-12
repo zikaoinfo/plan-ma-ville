@@ -1,0 +1,43 @@
+<section class="regions container">
+  <a routerLink="/" class="back">← Retour à la recherche</a>
+
+  <header class="regions__head">
+    <h1>Classement des régions</h1>
+    <p class="regions__note">
+      Note moyenne de chaque région (pondérée par la population). Ouvrez une région
+      pour voir ses départements, puis leurs communes.
+    </p>
+  </header>
+
+  @switch (status()) {
+    @case ('loading') {
+      <div class="loading" role="status">
+        <span class="spinner" aria-hidden="true"></span> Chargement des régions…
+      </div>
+    }
+    @case ('error') {
+      <app-error-message message="Impossible de charger le classement régional." [retry]="reload" />
+    }
+    @default {
+      <ul class="region-grid">
+        @for (r of regions(); track r.code; let i = $index) {
+          <li>
+            <a class="region" [routerLink]="['/region', r.code]">
+              <span class="region__rang">{{ i + 1 }}</span>
+              <span class="region__body">
+                <span class="region__nom">{{ r.nom }}</span>
+                <span class="region__meta">
+                  {{ r.nbDepartements }} département{{ r.nbDepartements > 1 ? 's' : '' }} ·
+                  {{ r.nbCommunes | number: '1.0-0' }} communes
+                </span>
+              </span>
+              <app-score-badge [score]="r.noteMoyenne" />
+            </a>
+          </li>
+        } @empty {
+          <li class="region-grid__empty">Aucune région à afficher.</li>
+        }
+      </ul>
+    }
+  }
+</section>

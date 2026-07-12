@@ -4,6 +4,8 @@ import { httpResource } from '@angular/common/http';
 import type {
   DepartementSummary,
   DepartementsFile,
+  RegionSummary,
+  RegionsFile,
   SearchIndexFile,
   SearchIndexItem,
 } from '../models/data.models';
@@ -57,6 +59,7 @@ export class SearchIndexService {
 
   readonly #index = httpResource<SearchIndexFile>(() => this.#url('index.json'));
   readonly #departements = httpResource<DepartementsFile>(() => this.#url('departements.json'));
+  readonly #regions = httpResource<RegionsFile>(() => this.#url('regions.json'));
 
   /** `true` dès que l'index de recherche est chargé. */
   readonly ready = computed(() => this.#index.status() === 'resolved');
@@ -93,9 +96,27 @@ export class SearchIndexService {
     return [...items].sort((a, b) => a.code.localeCompare(b.code, undefined, { numeric: true }));
   }
 
+  /** État brut de la ressource régions (idle | loading | resolved | error). */
+  readonly regionsStatus = this.#regions.status;
+
+  /** Régions déjà triées par note décroissante (ordre du fichier) ; `[]` sinon. */
+  getRegions(): RegionSummary[] {
+    return this.#regions.value()?.items ?? [];
+  }
+
+  /** Détail d'une région (avec ses départements) ; `undefined` si absent/non chargé. */
+  regionSummary(code: string): RegionSummary | undefined {
+    return this.#regions.value()?.items.find((r) => r.code === code);
+  }
+
+  reloadRegions(): void {
+    this.#regions.reload();
+  }
+
   reload(): void {
     this.#index.reload();
     this.#departements.reload();
+    this.#regions.reload();
   }
 
   /**

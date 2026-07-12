@@ -60,7 +60,10 @@
 </section>
 
 <section class="departements container">
-  <h2>Explorer par département</h2>
+  <div class="departements__head">
+    <h2>Explorer par département</h2>
+    <a routerLink="/regions" class="departements__lien">Classement par région →</a>
+  </div>
   @if (departements().length) {
     <ul class="dep-grid">
       @for (dep of departements(); track dep.code) {

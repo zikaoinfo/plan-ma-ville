@@ -53,6 +53,21 @@ const DEPS = {
   items: [{ code: '69', nom: 'Rhône', nbCommunes: 3, noteMoyenne: 6 }],
 };
 
+const REGIONS = {
+  v: 1 as const,
+  gen: '2026-06-13',
+  items: [
+    {
+      code: '84',
+      nom: 'Auvergne-Rhône-Alpes',
+      nbDepartements: 1,
+      nbCommunes: 3,
+      noteMoyenne: 6,
+      departements: [{ code: '69', nom: 'Rhône', nbCommunes: 3, noteMoyenne: 6 }],
+    },
+  ],
+};
+
 const DEP69: DepartementDetailFile = {
   v: 1,
   gen: '2026-06-13',
@@ -113,6 +128,7 @@ describe('Commune', () => {
 
     await flushWhenReady(fixture, '/data/index.json', INDEX);
     await flushWhenReady(fixture, '/data/departements.json', DEPS);
+    await flushWhenReady(fixture, '/data/regions.json', REGIONS);
     await flushWhenReady(fixture, '/data/dep/69.json', DEP69);
 
     for (let i = 0; i < 3; i++) {

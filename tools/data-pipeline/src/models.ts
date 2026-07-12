@@ -71,6 +71,25 @@ export interface DepartementSummary {
 }
 
 // ─────────────────────────────────────────────
+// regions.json — classement régional (régions → départements)
+// ─────────────────────────────────────────────
+export interface RegionsFile {
+  v: 1;
+  gen: string;
+  items: RegionSummary[]; // triés par note décroissante
+}
+
+export interface RegionSummary {
+  code: string; // code INSEE région ("84")
+  nom: string; // "Auvergne-Rhône-Alpes"
+  nbDepartements: number;
+  nbCommunes: number;
+  noteMoyenne: number; // moyenne pondérée population, 1 décimale
+  /** Départements de la région, triés par note décroissante. */
+  departements: DepartementSummary[];
+}
+
+// ─────────────────────────────────────────────
 // dep/{code}.json — détail par département (lazy)
 // ─────────────────────────────────────────────
 export interface DepartementDetailFile {
