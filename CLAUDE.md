@@ -1,49 +1,151 @@
-# ma-ville-notes (repo : plan-ma-ville)
+# ma-ville-notée (repo : plan-ma-ville)
 
-Application Angular 22 qui note les communes françaises sur 8 critères
-(données open data, notes factices déterministes en Phase 1).
-Spécification contractuelle : `docs/SPEC-DATA.md`.
+App Angular 22 qui note les communes françaises sur 8 critères (open data +
+avis habitants). Concurrence ville-ideale.fr. **100 % statique (GitHub Pages)**,
+backend communautaire = **Supabase** uniquement.
 
-## Stack & conventions
+Specs : `docs/SPEC-DATA.md`, `docs/SPEC-PHASES-2-6.md`, `docs/SPEC-PHASES-7-12.md`.
 
-- **Angular 22**, standalone uniquement (aucun `NgModule`), **zoneless**
-  (pas de `zone.js`, pas de `provideZoneChangeDetection`).
-- Injection via `inject()` uniquement — jamais par constructeur.
-- `ChangeDetectionStrategy.OnPush` sur tous les composants.
+## Stack & conventions (NON négociables)
+
+- **Angular 22**, standalone (aucun `NgModule`), **zoneless** (pas de zone.js,
+  pas de `provideZoneChangeDetection`).
+- **`inject()` uniquement** (jamais d'injection par constructeur).
+- `ChangeDetectionStrategy.OnPush` sur **tous** les composants.
+- **Signals partout** : pas d'`async` pipe, pas de `subscribe()`. `httpResource`
+  pour le fetch. `computed` pour le dérivé, `effect` seulement pour l'impératif
+  DOM (title/meta, Leaflet).
 - SCSS, TypeScript strict, ESLint flat config (`eslint.config.js`).
 - Routing lazy via `loadComponent` dans `src/app/app.routes.ts`.
-- Données runtime : fichiers JSON statiques dans `public/data/`
-  (générés, gitignorés sauf `README.md`).
+- **PrimeNG INTERDIT** : sa dernière version peer-requiert Angular 21, pas de
+  build ng22 → tous les atomes UI sont **maison** (badge, barre, slider, onglets,
+  spinner, auth-gate…).
 
-## Arborescence
+## Environnement (IMPORTANT)
 
-- `src/app/core/models/data.models.ts` — schémas contractuels (§1 de la spec).
-- `src/app/core/services/` — services (httpResource).
-- `src/app/features/{home,commune,departement,classement,methodologie}/`
-- `src/app/shared/{note-bar,score-badge}/`
-- `tools/data-pipeline/` — pipeline TypeScript exécuté avec `tsx` (pas de build).
+- **Node 24 requis** (le CLI ng22 exige > 22.22.3). Si la sandbox a Node 22.x,
+  installer Node 24 en local puis `export PATH=$HOME/.local/node/bin:$PATH`
+  avant toute commande npm/npx.
+- **Réseau sandbox bloqué** vers `geo.api.gouv.fr` / `insee.fr` / `data.gouv.fr`
+  (hors allowlist). Le pipeline lit un **fixture** `tools/data-pipeline/.cache/geo.json`
+  (gitignoré) → `npm run data:build` marche en local. En CI le réseau est ouvert.
+- Impossible de tester Supabase/navigateur ici → tests unitaires + dégradation.
 
 ## Commandes
 
-- `npm start` — serveur de dev.
-- `npm run build` — build prod + génération `404.html` (GitHub Pages).
-- `npm run data:sample` — pipeline sur les départements 69 et 75.
-- `npm run data:build` — pipeline complet + validation des 6 invariants.
-- `npm test` — tests Vitest du pipeline (`tools/data-pipeline`).
+- `npm start` — dev (http://localhost:4200/plan-ma-ville/).
+- `npm run build` — build prod + `404.html` (fallback SPA Pages).
+- `npm run data:build` — pipeline complet + validation 6 invariants + sitemap.
+- `npm run data:sample` — pipeline départements 69,75.
+- `npm test` — Vitest (app). `npm run test:data` — tests pipeline.
 - `npx eslint .` — lint.
 
-## Décisions de déploiement
+## Arborescence
 
-- Le repo GitHub s'appelle `plan-ma-ville` ⇒ le `baseHref` est
-  **`/plan-ma-ville/`** (et non `/ma-ville-notes/` comme dans la spec,
-  sinon GitHub Pages servirait un 404). L'app et `outputPath` gardent
-  le nom `ma-ville-notes`.
-- Déploiement GitHub Pages via `.github/workflows/deploy.yml`
-  (data:build → build → upload-pages-artifact).
+```
+src/app/
+├── core/
+│   ├── models/data.models.ts        schémas contractuels (+ copie pipeline models.ts)
+│   ├── normalise.ts                 normaliseNom (aligné pipeline)
+│   └── services/
+│       ├── search-index.service.ts  httpResource index+departements, search()
+│       ├── commune-data.service.ts  getCommuneBySlug()→{state,depFile}, loadDep()
+│       ├── meta.service.ts          title/description/og/canonical
+│       ├── supabase.service.ts      client optionnel (enabled/null)
+│       ├── auth.service.ts          Google + magic-link, user() signal
+│       └── avis.service.ts          stats/liste/upsert (dégrade en []/null)
+├── features/{home,commune,departement,classement,carte,comparateur,methodologie}/
+│   └── commune/commune-avis/{commune-avis-list,commune-avis-form}
+└── shared/{note-bar,score-badge,score-color,page-skeleton,error-message,
+            critere-slider,auth-gate}
+tools/data-pipeline/                 tsx (pas de build), fixture .cache/geo.json
+docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
+```
 
-## Invariants données (rappel)
+## Données (pipeline `tsx`)
 
-Toute note ∈ [0,10] à 1 décimale ; `index.json` trié par `nn` ;
-slugs uniques ; chaque commune de l'index présente dans exactement un
-`dep/{d}.json` ; pas de doublons arrondissements/commune mère ;
-codes Corse `2A`/`2B`.
+- Source : `geo.api.gouv.fr` (champs nom,code,codesPostaux,codeDepartement,
+  population,**centre**). URLs dans `sources.config.json`.
+- **Notes factices déterministes** (Phase 1, pas encore réel) : PRNG
+  `cyrb53`+`mulberry32` seedé par code INSEE → `score/fake.ts`. Note globale =
+  Σ(note×poids)/Σ(poids), `scoring.config.json`.
+- Émet dans `public/data/` (gitignoré, régénéré en CI) : `index.json` (trié nn),
+  `departements.json`, `dep/{code}.json`, `classement.json`, `geo-light.json`
+  (carte, communes ≥500 hab avec lat/lng) + `public/sitemap.xml`.
+- 6 invariants validés en fin de run (notes ∈[0,10] 1 déc., slugs uniques, etc.).
+- **Déterministe** : deux runs → fichiers identiques. Ne pas casser ça.
+- URL des données runtime = `new URL('data/x.json', document.baseURI)` (relatif,
+  correct en dev comme en prod — jamais coder `/plan-ma-ville/` en dur).
+
+## Features livrées
+
+- **Home** : recherche (nom ou CP, dispatch), grille départements.
+- **Commune `/ville/:slug`** : **dashboard** — carte OSM (iframe `afterNextRender`),
+  notes par thématique, historique (sparkline SVG), prix m² estimé, communes
+  voisines (haversine). Estimations déterministes dans `commune-insights.ts`
+  (pures, testées). Onglets « Données officielles » / « Avis habitants »
+  (`?onglet=avis` pour survivre au retour OAuth).
+- **Département `/departement/:code`** : tableau triable/filtrable.
+- **Classement `/classement`** : top/flop, filtre département.
+- **Carte `/carte`** : Leaflet + markercluster (chargé en dynamique), filtre note.
+- **Comparateur `/comparer`** : jusqu'à 3 villes, URL partageable `?villes=`.
+- **Méthodologie** : statique.
+
+## Supabase (Phase 7 — avis + auth)
+
+- **Dégradation gracieuse** : si `environment.supabaseUrl` n'est pas une vraie
+  URL http (placeholder/vide), `SupabaseService.enabled=false`, `client=null`,
+  toutes les méthodes renvoient `[]`/`null` → onglet avis « bientôt », pas de crash.
+- **Env** : `environment.ts` contient des placeholders `__SUPABASE_URL__` /
+  `__SUPABASE_ANON_KEY__` / `__WORKER_URL__`, remplacés en CI par une étape `sed`
+  dans `deploy.yml` depuis les secrets GitHub. `environment.development.ts` vide
+  (auth off en local — y mettre ses clés pour tester, ne pas commiter).
+- **Activation** (côté proprio) : coller `docs/supabase-schema.sql` ; activer le
+  provider Email + Google ; secrets GitHub `SUPABASE_URL`/`SUPABASE_ANON_KEY` ;
+  autoriser les Redirect URLs (localhost + github.io).
+- **Piège trigger** : la création de profil s'exécute dans la transaction
+  d'`auth.users` → doit fournir un pseudo non-null unique et **ne jamais lever**
+  (sinon « Database error saving new user » casse Google + magic-link). Corrigé
+  dans le schéma (`handle_new_user`, garde-fou `WHEN OTHERS`).
+- **Header** : menu compte (avatar Google/initiales, pseudo, email, déconnexion)
+  affiché si Supabase configuré. `auth.user()` signal ; callbacks Supabase → `set()`
+  déclenche la CD en zoneless.
+
+## Pièges zoneless / Angular 22
+
+- `viewChild`/`input`/`model` **ne peuvent pas** être des champs ES `#private` →
+  utiliser `private readonly` TS.
+- Leaflet : `afterNextRender` + `await import('leaflet')` (accès DOM). CSS Leaflet
+  dans `angular.json` ; `leaflet`/`leaflet.markercluster` en `allowedCommonJsDependencies`.
+- `httpResource` fetch async : en test, `fixture.detectChanges()` puis attendre
+  (helper `tick` + poll sur `HttpTestingController.match`), pas `whenStable()`
+  (bloque sur requête en vol).
+- Ne pas désactiver un bouton via binding réactif fragile → valider au clic.
+
+## Déploiement & Git
+
+- **baseHref `/plan-ma-ville/`** (nom réel du repo), `outputPath dist/ma-ville-notes`.
+- `.github/workflows/deploy.yml` : sur push `main` → inject secrets → data:build
+  (cache) → build → Pages. **Pages déjà activé** (source « GitHub Actions »).
+- **Branche de dev** : `claude/angular-21-creative-design-bfybnz`. Workflow
+  demandé par l'utilisateur : **committer sur la branche + ouvrir/mettre à jour
+  une PR, NE PAS merger dans `main` soi-même** (il relit et merge).
+- **PR #5 ouverte** = Phase 7 (avis Supabase), pas encore mergée.
+- Push de **tags bloqué (403)** dans l'env distant → tags locaux seulement.
+- Fin des messages de commit : la co-authorship + session (voir gabarit fourni
+  par l'outil). Ne jamais mettre l'ID de modèle dans un artefact poussé.
+
+## Tests
+
+- Vitest. Extraire la logique en **fonctions pures** testables (search, sort,
+  insights, resolveCommuneState, marker-style…). ~42 tests.
+- Intégration composant : `TestBed` + `provideRouter([])` + `provideHttpClient()`
+  + `provideHttpClientTesting()`.
+
+## État des phases
+
+Faites : 0–4, 6, 8 (carte), 11 (comparateur), 7 (avis, en PR #5). Dashboard commune.
+Reste : **5** (vraies données open data — BPE/SSMSI/Filosofi/DVF, réseau requis),
+**12** (page profil/villes suivies, Supabase), **9/10** (IA — bloqué : nécessite
+un proxy serveur pour cacher la clé Claude ; option quiz déterministe sans IA).
+Détail vivant : `docs/TODO.md`.
