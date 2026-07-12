@@ -253,6 +253,16 @@ async function main(): Promise<void> {
     .map((label, i) => `${label}:${pct(tranches[i])}`)
     .join('  ');
 
+  // Diag : étendue des notes par critère (doit couvrir ~0→10, meilleure = 10).
+  const statCritere = CRITERES.map((crit) => {
+    const vals = scorees.map((s) => s.score.criteres[crit]).sort((a, b) => a - b);
+    const med = vals[Math.floor(vals.length / 2)];
+    return `${crit}: ${vals[0].toFixed(1)}–${vals[vals.length - 1].toFixed(1)} (méd ${med.toFixed(1)})`;
+  });
+  // Diag : communes de référence (grandes villes + une aisée).
+  const refs = ['75056', '69123', '13055', '92051', '31555'];
+  const parInsee = new Map(scorees.map((s) => [s.codeInsee, s]));
+
   console.log('');
   console.log('── Rapport ──────────────────────────────');
   console.log(`Communes      : ${rapport.nbCommunes}`);
@@ -264,6 +274,18 @@ async function main(): Promise<void> {
       ` · Filosofi ${pct(couverture.filosofi)}`,
   );
   console.log(`Notes /tranche: ${histo}`);
+  console.log('Étendue notes/critère :');
+  for (const l of statCritere) console.log(`   ${l}`);
+  console.log('Communes réf. (securite | sante | niveauVie | global) :');
+  for (const insee of refs) {
+    const s = parInsee.get(insee);
+    if (s) {
+      const c = s.score.criteres;
+      console.log(
+        `   ${s.nom} (${insee}) : ${c.securite} | ${c.sante} | ${c.niveauVie} | ${s.score.global}`,
+      );
+    }
+  }
   console.log(`Top 3         : ${rapport.top3.map(fmt).join(' · ')}`);
   console.log(`Flop 3        : ${rapport.flop3.map(fmt).join(' · ')}`);
   console.log(`Durée         : ${((Date.now() - debut) / 1000).toFixed(1)} s`);
