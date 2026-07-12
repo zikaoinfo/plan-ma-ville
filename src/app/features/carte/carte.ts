@@ -60,8 +60,12 @@ export class Carte {
 
     // Leaflet ne s'initialise que dans le navigateur (accès au DOM).
     afterNextRender(async () => {
-      const leaflet = await import('leaflet');
+      const mod = await import('leaflet');
+      // Le plugin markercluster augmente l'objet Leaflet runtime (module CJS).
+      // Avec un import ESM, le namespace est figé à l'import : la méthode
+      // `markerClusterGroup` n'apparaît que sur l'objet réel (`.default`).
       await import('leaflet.markercluster');
+      const leaflet = ((mod as { default?: typeof L }).default ?? mod) as typeof L;
       this.#L = leaflet;
 
       const map = leaflet.map(this.mapEl().nativeElement, {
