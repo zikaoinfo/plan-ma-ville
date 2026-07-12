@@ -106,10 +106,26 @@
 }
 
 /* ── Grille dashboard ─────────────────────── */
+/* Zones nommées : notes d'abord (pleine largeur), puis la carte adossée à
+   la pile prix + historique (la carte occupe leurs deux rangées → hauteurs
+   équilibrées, aucun trou), puis les alentours en pleine largeur. */
 .dash {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 3fr 2fr;
+  grid-template-areas:
+    'themes themes'
+    'map    price'
+    'map    histo'
+    'near   near';
   gap: 1rem;
+}
+
+/* Sans coordonnées (pas de carte) : prix et historique côte à côte. */
+.dash--nomap {
+  grid-template-areas:
+    'themes themes'
+    'price  histo'
+    'near   near';
 }
 
 .card {
@@ -125,9 +141,24 @@
   margin: 0 0 0.9rem;
 }
 
-/* le bloc thématique occupe toute la largeur */
 .card--themes {
-  grid-column: 1 / -1;
+  grid-area: themes;
+}
+
+.card--map {
+  grid-area: map;
+}
+
+.card--price {
+  grid-area: price;
+}
+
+.card--histo {
+  grid-area: histo;
+}
+
+.card--near {
+  grid-area: near;
 }
 
 /* ── Carte ────────────────────────────────── */
@@ -262,28 +293,33 @@
 }
 
 /* ── Alentours ────────────────────────────── */
+/* Grille de vignettes (pleine largeur) plutôt que liste verticale étroite. */
 .near {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.6rem;
 }
 
 .near__item {
   display: flex;
   align-items: center;
   gap: 0.7rem;
-  padding: 0.5rem 0.6rem;
-  border-radius: 10px;
+  padding: 0.55rem 0.75rem;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
   text-decoration: none;
   color: inherit;
-  transition: background 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .near__item:hover {
   background: var(--paper-soft);
+  border-color: var(--ink);
 }
 
 .near__name {
@@ -392,6 +428,24 @@
 /* ── Responsive ───────────────────────────── */
 @media (max-width: 720px) {
   .dash,
+  .dash--nomap {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'themes'
+      'map'
+      'price'
+      'histo'
+      'near';
+  }
+
+  .dash--nomap {
+    grid-template-areas:
+      'themes'
+      'price'
+      'histo'
+      'near';
+  }
+
   .sk-grid {
     grid-template-columns: 1fr;
   }

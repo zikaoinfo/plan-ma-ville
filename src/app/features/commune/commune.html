@@ -64,7 +64,22 @@
       </nav>
 
       @if (onglet() === 'officiel') {
-      <div class="dash">
+      <!-- L'info clé (notes) d'abord, puis carte + prix/historique côte à
+           côte (hauteurs équilibrées), puis les alentours en pleine largeur. -->
+      <div class="dash" [class.dash--nomap]="!mapUrl()">
+        <!-- Notes par thématique — le cœur de la fiche, en premier -->
+        <section class="card card--themes" aria-label="Notes par thématique">
+          <h2 class="card__title">Notes par thématique</h2>
+          <div class="themes">
+            @for (critere of criteres; track critere) {
+              <div class="theme">
+                <span class="theme__icon" aria-hidden="true">{{ icons[critere] }}</span>
+                <app-note-bar [label]="labels[critere]" [score]="c.score.criteres[critere]" />
+              </div>
+            }
+          </div>
+        </section>
+
         <!-- Carte -->
         @if (mapUrl(); as src) {
           <section class="card card--map" aria-label="Localisation">
@@ -110,19 +125,6 @@
             </div>
           }
           <p class="estimate-note">Trajectoire estimée</p>
-        </section>
-
-        <!-- Notes par thématique -->
-        <section class="card card--themes" aria-label="Notes par thématique">
-          <h2 class="card__title">Notes par thématique</h2>
-          <div class="themes">
-            @for (critere of criteres; track critere) {
-              <div class="theme">
-                <span class="theme__icon" aria-hidden="true">{{ icons[critere] }}</span>
-                <app-note-bar [label]="labels[critere]" [score]="c.score.criteres[critere]" />
-              </div>
-            }
-          </div>
         </section>
 
         <!-- Villes aux alentours -->
