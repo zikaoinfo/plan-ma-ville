@@ -12,7 +12,7 @@
 | 2 | Recherche & page Home | ✅ Fait |
 | 3 | Fiche commune | ✅ Fait |
 | 4 | Page département & classement | ✅ Fait |
-| 5 | **Vraies données open data** | ⏳ À faire (réseau) |
+| 5 | **Vraies données open data** | 🟡 Codé + testé — valider URLs en CI |
 | 6 | Finitions (SEO, états, méthodologie, assets) | ✅ Fait |
 | + | Dashboard commune (carte, thématiques, historique, prix m², voisins) | ✅ Fait (estimations factices) |
 | 8 | **Carte interactive Leaflet** | ✅ Fait |
@@ -49,29 +49,28 @@ Tests : 37 verts (Vitest). Lint clean. Build OK. Pipeline déterministe.
 
 ## 2. Phase 5 — Vraies données open data (gros morceau)
 
-> Bloqué en sandbox : `insee.fr` et `data.gouv.fr` hors allowlist réseau. À faire
-> dans un environnement avec accès, ou en CI. L'API publique de `score/fake.ts`
-> doit rester compatible (le reste du pipeline ne bouge pas).
+> **Codé + testé** (29 tests pipeline verts, typecheck + lint OK). `score/fake.ts`
+> supprimé, remplacé par `score/real.ts` (percentile). **Réseau bloqué en sandbox**
+> → le vrai fetch/parsing n'a **jamais tourné ici**, à valider au 1er run CI.
 
-- [ ] `tools/data-pipeline/src/score/percentile.ts` : `toPercentileNote(value, all, invert)`
-      + communes sans données → médiane nationale (jamais 0). Test :
-      `toPercentileNote(5,[1,3,5,7,9]) === 6`.
-- [ ] Fetchers (cache `.cache/{nom}.json` < 30 j, décompression zip, parsing CSV) :
-  - [ ] `fetch/bpe.ts` — Base permanente des équipements (santé, commerces,
-        enseignement, sports, culture, transports). Densité / 1000 hab.
-  - [ ] `fetch/securite.ts` — SSMSI (taux pour 1000 hab, note inversée).
-  - [ ] `fetch/filosofi.ts` — revenu médian (niveau de vie).
-- [ ] `score/real.ts` — remplace `fake.ts`, même signature ; `DataMaps`
-      (bpe, securite, filosofi, distributions nationales).
-- [ ] URLs **uniquement** dans `sources.config.json` (UUID data.gouv inclus).
-- [ ] Ajouter `csv-parse` (ou `papaparse`) à `tools/data-pipeline/package.json`.
-- [ ] Rapport de run : distribution des notes globales par tranche (courbe ~normale).
-- [ ] Tests : percentile, commune sans données → médiane.
-- [ ] Critères : Lyon transports > 7 ; commune rurale ≠ 0 ; pas de 0/10 parfaits.
-- [ ] `.github/workflows/data-refresh.yml` (cron) — rafraîchit les données ;
-      tester via `workflow_dispatch` avant merge.
-- [ ] Mettre à jour `/methodologie` : retirer l'encart « notes déterministes »,
-      renseigner sources + millésimes réels.
+- [x] `score/percentile.ts` : `toPercentileNote(value, all, invert)` (fraction ≤
+      valeur), `median`, `sortedValues`. Communes sans données → médiane nationale.
+- [x] Fetchers (cache `.cache/{nom}.csv` < 30 j, décompression zip/gz, CSV
+      streaming — `fetch/download.ts`) :
+  - [x] `fetch/bpe.ts` — BPE, densité /1000 hab (F1/F2 sports, F3 culture).
+  - [x] `fetch/securite.ts` — SSMSI, dernier millésime, taux /1000 hab inversé.
+  - [x] `fetch/filosofi.ts` — revenu médian (auto-détection colonne `MED**`).
+  - [x] `fetch/insee-code.ts` — repli arrondissements Paris/Lyon/Marseille → mère.
+- [x] `score/real.ts` — `computeRealScores(communes, DataMaps)` deux passes.
+- [x] URLs dans `sources.config.json`. Deps `adm-zip` + `csv-parse`.
+- [x] Rapport de run : couverture par source + histogramme des notes /tranche.
+- [x] Tests : percentile, repli médiane, parsing BPE/SSMSI/Filosofi, arrondissements.
+- [x] `.github/workflows/data-refresh.yml` (cron mensuel + `workflow_dispatch`).
+- [x] `/methodologie` : encart « rang percentile » + sources.
+- [ ] **CI À FAIRE** : confirmer/corriger les URLs BPE/SSMSI/Filosofi de
+      `sources.config.json` (best-effort). Les ⚠ du run indiquent statut HTTP +
+      entrées zip dispo. Vérifier ensuite : Lyon transports > 7 ; commune rurale
+      ≠ 0 ; histogramme ~ étalé ; couverture SSMSI/Filosofi élevée.
 
 ## 3. Dashboard commune — remplacer les estimations factices
 

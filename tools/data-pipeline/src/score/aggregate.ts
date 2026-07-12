@@ -1,5 +1,5 @@
 import type { Critere } from '../models.js';
-import { round1 } from './fake.js';
+import { round1 } from './round.js';
 
 /**
  * Note globale = Σ(note × poids) / Σ(poids), arrondie à 1 décimale.

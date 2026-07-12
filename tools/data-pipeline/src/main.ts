@@ -10,7 +10,11 @@ import type {
   SearchIndexFile,
 } from './models.js';
 import { fetchCommunes } from './fetch/geo.js';
-import { fakeScores } from './score/fake.js';
+import { fetchBpe } from './fetch/bpe.js';
+import { fetchSecurite } from './fetch/securite.js';
+import { fetchFilosofi } from './fetch/filosofi.js';
+import type { SourceSpec } from './fetch/download.js';
+import { computeRealScores, type DataMaps } from './score/real.js';
 import { noteGlobale } from './score/aggregate.js';
 import { emitAll, slugify, type CommuneScoree } from './emit/index.js';
 import { DEPARTEMENTS } from './emit/departements.js';
@@ -24,6 +28,28 @@ interface ScoringConfig {
   version: number;
   populationMinClassement: number;
   ponderations: Record<Critere, number>;
+}
+
+interface SourcesConfig {
+  geoCommunes: string;
+  bpe: SourceSpec;
+  securite: SourceSpec;
+  filosofi: SourceSpec;
+}
+
+/**
+ * Exécute un fetch de source ; en cas d'échec (URL/format/réseau), logge un
+ * avertissement explicite et renvoie un repli neutre. Objectif : ne jamais
+ * bloquer tout le déploiement pour une source indisponible — le critère
+ * concerné bascule sur la médiane nationale.
+ */
+async function fetchOrWarn<T>(label: string, fn: () => Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await fn();
+  } catch (err) {
+    console.warn(`  ⚠ ${label} indisponible → repli médiane : ${(err as Error).message}`);
+    return fallback;
+  }
 }
 
 function parseDepartementsArg(argv: string[]): string[] | undefined {
@@ -136,15 +162,16 @@ async function main(): Promise<void> {
   const debut = Date.now();
   const filtreDeps = parseDepartementsArg(process.argv.slice(2));
 
+  const cacheDir = path.join(PIPELINE_DIR, '.cache');
   const sources = JSON.parse(
     await readFile(path.join(PIPELINE_DIR, 'sources.config.json'), 'utf8'),
-  ) as { geoCommunes: string };
+  ) as SourcesConfig;
   const scoring = JSON.parse(
     await readFile(path.join(PIPELINE_DIR, 'scoring.config.json'), 'utf8'),
   ) as ScoringConfig;
 
   console.log('▸ Téléchargement des communes (geo.api.gouv.fr)…');
-  const toutes = await fetchCommunes(sources.geoCommunes, path.join(PIPELINE_DIR, '.cache'));
+  const toutes = await fetchCommunes(sources.geoCommunes, cacheDir);
 
   const retenues = toutes.filter(
     (c) =>
@@ -156,9 +183,30 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  console.log(`▸ Scoring de ${retenues.length} communes…`);
+  console.log('▸ Téléchargement des sources open data (BPE, SSMSI, Filosofi)…');
+  const [bpe, securite, filosofi] = await Promise.all([
+    fetchOrWarn('BPE', () => fetchBpe(sources.bpe, cacheDir), new Map()),
+    fetchOrWarn(
+      'SSMSI',
+      () => fetchSecurite(sources.securite, cacheDir),
+      { map: new Map(), millesime: NaN },
+    ),
+    fetchOrWarn('Filosofi', () => fetchFilosofi(sources.filosofi, cacheDir), new Map()),
+  ]);
+  const maps: DataMaps = { bpe, securite: securite.map, filosofi };
+  const couverture = {
+    bpe: retenues.filter((c) => bpe.has(c.codeInsee)).length,
+    securite: retenues.filter((c) => maps.securite.has(c.codeInsee)).length,
+    filosofi: retenues.filter((c) => filosofi.has(c.codeInsee)).length,
+  };
+
+  console.log(`▸ Scoring de ${retenues.length} communes (rang percentile national)…`);
+  const notesParCommune = computeRealScores(
+    retenues.map((c) => ({ codeInsee: c.codeInsee, population: c.population })),
+    maps,
+  );
   const scorees: CommuneScoree[] = retenues.map((c) => {
-    const criteres = fakeScores(c.codeInsee, c.population);
+    const criteres = notesParCommune.get(c.codeInsee)!;
     return {
       slug: slugify(c.nom, c.codeInsee),
       nom: c.nom,
@@ -193,11 +241,25 @@ async function main(): Promise<void> {
 
   const fmt = (e: { nom: string; departement: string; global: number }) =>
     `${e.nom} (${e.departement}) — ${e.global}/10`;
+  const pct = (n: number) => `${((100 * n) / retenues.length).toFixed(0)}%`;
+  // Distribution des notes globales par tranche de 2 points (courbe attendue ~ normale).
+  const tranches = [0, 0, 0, 0, 0];
+  for (const c of scorees) tranches[Math.min(4, Math.floor(c.score.global / 2))]++;
+  const histo = ['0-2', '2-4', '4-6', '6-8', '8-10']
+    .map((label, i) => `${label}:${pct(tranches[i])}`)
+    .join('  ');
+
   console.log('');
   console.log('── Rapport ──────────────────────────────');
   console.log(`Communes      : ${rapport.nbCommunes}`);
   console.log(`Départements  : ${rapport.nbDepartements}`);
   console.log(`index.json gz : ${(rapport.indexGzipBytes / 1024).toFixed(0)} Ko`);
+  console.log(
+    `Couverture    : BPE ${pct(couverture.bpe)} · SSMSI ${pct(couverture.securite)}` +
+      `${Number.isNaN(securite.millesime) ? '' : ` (${securite.millesime})`}` +
+      ` · Filosofi ${pct(couverture.filosofi)}`,
+  );
+  console.log(`Notes /tranche: ${histo}`);
   console.log(`Top 3         : ${rapport.top3.map(fmt).join(' · ')}`);
   console.log(`Flop 3        : ${rapport.flop3.map(fmt).join(' · ')}`);
   console.log(`Durée         : ${((Date.now() - debut) / 1000).toFixed(1)} s`);

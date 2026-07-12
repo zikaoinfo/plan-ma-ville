@@ -1,3 +1,17 @@
 {
-  "geoCommunes": "https://geo.api.gouv.fr/communes?fields=nom,code,codesPostaux,codeDepartement,population,centre&format=json"
+  "_readme": "URLs open data. Réseau bloqué en sandbox (insee.fr/data.gouv.fr hors allowlist) : les URLs BPE/SSMSI/Filosofi sont des cibles best-effort à confirmer/corriger au 1er run CI. Les fetchers loggent le statut HTTP et, pour un zip, la liste des entrées disponibles → correction rapide. Voir docs/TODO.md §Phase 5.",
+  "geoCommunes": "https://geo.api.gouv.fr/communes?fields=nom,code,codesPostaux,codeDepartement,population,centre&format=json",
+  "bpe": {
+    "url": "https://www.insee.fr/fr/statistiques/fichier/8217525/BPE23.zip",
+    "entry": "ensemble.*\\.csv$"
+  },
+  "securite": {
+    "url": "https://www.data.gouv.fr/fr/datasets/r/acc332f6-92be-42af-9721-f3609bea8cfc",
+    "entry": "commune"
+  },
+  "filosofi": {
+    "url": "https://www.insee.fr/fr/statistiques/fichier/6692396/cc_filosofi_2021_COM_csv.zip",
+    "entry": "COM.*\\.csv$",
+    "valueCol": "^(MED|Q2)"
+  }
 }
