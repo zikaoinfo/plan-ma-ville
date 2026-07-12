@@ -1,0 +1,122 @@
+.regions {
+  padding-block: 2rem 1rem;
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 1.2rem;
+  color: var(--ink-soft);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.back:hover {
+  color: var(--ink);
+}
+
+.regions__head h1 {
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+  margin: 0;
+}
+
+.regions__note {
+  margin: 0.4rem 0 0;
+  max-width: 60ch;
+  color: var(--ink-soft);
+}
+
+.region-grid {
+  list-style: none;
+  margin: 1.6rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.region-grid__empty {
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+.region {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.9rem 1rem;
+  border: 1.5px solid var(--line);
+  border-radius: 16px;
+  background: var(--paper);
+  text-decoration: none;
+  color: inherit;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.region:hover {
+  border-color: var(--ink);
+  box-shadow: var(--shadow);
+  transform: translateY(-2px);
+}
+
+.region__rang {
+  flex: 0 0 auto;
+  min-width: 1.8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+.region__body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.region__nom {
+  font-weight: 700;
+}
+
+.region__meta {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+
+/* ── États ────────────────────────────────── */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  padding: 2.5rem;
+  color: var(--ink-soft);
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid var(--line);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2s;
+  }
+  .region:hover {
+    transform: none;
+  }
+}

@@ -1,0 +1,65 @@
+<section class="region container">
+  <a routerLink="/regions" class="back">← Toutes les régions</a>
+
+  @switch (status()) {
+    @case ('loading') {
+      <div class="loading" role="status">
+        <span class="spinner" aria-hidden="true"></span> Chargement de la région…
+      </div>
+    }
+    @case ('error') {
+      <app-error-message message="Impossible de charger la région." [retry]="reload" />
+    }
+    @default {
+      @if (region(); as r) {
+        <header class="region__head">
+          <div>
+            <span class="region__tag">Région</span>
+            <h1>{{ r.nom }}</h1>
+            <p class="region__meta">
+              {{ r.nbDepartements }} département{{ r.nbDepartements > 1 ? 's' : '' }} ·
+              {{ r.nbCommunes | number: '1.0-0' }} communes
+            </p>
+          </div>
+          <div class="region__moy">
+            <span class="region__moy-label">Note moyenne</span>
+            <app-score-badge [score]="r.noteMoyenne" />
+          </div>
+        </header>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col" class="th th--rang">#</th>
+                <th scope="col" class="th th--code">Dép.</th>
+                <th scope="col" class="th">Département</th>
+                <th scope="col" class="th th--num">Communes</th>
+                <th scope="col" class="th th--num">Note</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (d of r.departements; track d.code; let i = $index) {
+                <tr>
+                  <td class="td td--rang">{{ i + 1 }}</td>
+                  <td class="td td--code">{{ d.code }}</td>
+                  <td class="td td--nom">
+                    <a [routerLink]="['/departement', d.code]">{{ d.nom }}</a>
+                  </td>
+                  <td class="td td--num">{{ d.nbCommunes | number: '1.0-0' }}</td>
+                  <td class="td td--num"><app-score-badge [score]="d.noteMoyenne" /></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="notfound">
+          <h1>Région introuvable</h1>
+          <p>Aucune région ne correspond au code « {{ code() }} ».</p>
+          <a routerLink="/regions" class="btn">Voir toutes les régions</a>
+        </div>
+      }
+    }
+  }
+</section>

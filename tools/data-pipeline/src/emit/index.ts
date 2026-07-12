@@ -8,10 +8,12 @@ import type {
   DepartementDetailFile,
   DepartementsFile,
   GeoLightFile,
+  RegionsFile,
   SearchIndexFile,
   SearchIndexItem,
 } from '../models.js';
 import { DEPARTEMENTS } from './departements.js';
+import { aggregateRegions, type DepAggregat } from './regions.js';
 
 /** Commune scorée, prête à être émise. */
 export interface CommuneScoree extends CommuneDetail {
@@ -37,6 +39,7 @@ export function slugify(nom: string, codeInsee: string): string {
 export interface EmitResult {
   nbCommunes: number;
   nbDepartements: number;
+  nbRegions: number;
   indexGzipBytes: number;
   top3: ClassementEntry[];
   flop3: ClassementEntry[];
@@ -51,10 +54,18 @@ async function emitSitemap(
   file: string,
   base: string,
   codes: string[],
+  regionCodes: string[],
   gen: string,
 ): Promise<void> {
   const root = base.replace(/\/$/, '');
-  const paths = ['/', '/classement', '/methodologie', ...codes.map((c) => `/departement/${c}`)];
+  const paths = [
+    '/',
+    '/classement',
+    '/regions',
+    '/methodologie',
+    ...regionCodes.map((c) => `/region/${c}`),
+    ...codes.map((c) => `/departement/${c}`),
+  ];
   const urls = paths
     .map((p) => `  <url><loc>${root}${p}</loc><lastmod>${gen}</lastmod></url>`)
     .join('\n');
@@ -124,27 +135,38 @@ export async function emitAll(
   }
 
   // ── departements.json ─────────────────────
-  const departementsFile: DepartementsFile = {
-    v: 1,
-    gen,
-    items: codes.map((code) => {
-      const liste = parDepartement.get(code) as CommuneScoree[];
-      const popTotale = liste.reduce((acc, c) => acc + c.population, 0);
-      const noteMoyenne =
-        liste.reduce((acc, c) => acc + c.score.global * c.population, 0) / popTotale;
-      return {
+  // On conserve les totaux non arrondis (popTotale, Σ note×pop) pour repondérer
+  // proprement au niveau région ensuite.
+  const depAggregats: DepAggregat[] = codes.map((code) => {
+    const liste = parDepartement.get(code) as CommuneScoree[];
+    const popTotale = liste.reduce((acc, c) => acc + c.population, 0);
+    const sommeNotePonderee = liste.reduce((acc, c) => acc + c.score.global * c.population, 0);
+    return {
+      summary: {
         code,
         nom: DEPARTEMENTS[code],
         nbCommunes: liste.length,
-        noteMoyenne: Math.round(noteMoyenne * 10) / 10,
-      };
-    }),
+        noteMoyenne: popTotale > 0 ? Math.round((sommeNotePonderee / popTotale) * 10) / 10 : 0,
+      },
+      popTotale,
+      sommeNotePonderee,
+    };
+  });
+
+  const departementsFile: DepartementsFile = {
+    v: 1,
+    gen,
+    items: depAggregats.map((d) => d.summary),
   };
   await writeFile(
     path.join(outDir, 'departements.json'),
     JSON.stringify(departementsFile),
     'utf8',
   );
+
+  // ── regions.json (classement régional → départements) ──
+  const regionsFile: RegionsFile = { v: 1, gen, items: aggregateRegions(depAggregats) };
+  await writeFile(path.join(outDir, 'regions.json'), JSON.stringify(regionsFile), 'utf8');
 
   // ── classement.json ───────────────────────
   const eligibles: ClassementEntry[] = communes
@@ -195,7 +217,13 @@ export async function emitAll(
   // ── sitemap.xml (à la racine publique, pas dans data/) ──
   // Pages statiques + 1 URL par département. PAS d'URL par commune (35k =
   // inutile pour GitHub Pages).
-  await emitSitemap(path.join(outDir, '..', 'sitemap.xml'), siteBaseUrl, codes, gen);
+  await emitSitemap(
+    path.join(outDir, '..', 'sitemap.xml'),
+    siteBaseUrl,
+    codes,
+    regionsFile.items.map((r) => r.code),
+    gen,
+  );
 
   const indexGzipBytes = Number(
     execSync(`gzip -c ${JSON.stringify(indexPath)} | wc -c`).toString().trim(),
@@ -204,6 +232,7 @@ export async function emitAll(
   return {
     nbCommunes: communes.length,
     nbDepartements: codes.length,
+    nbRegions: regionsFile.items.length,
     indexGzipBytes,
     top3: classementFile.top.slice(0, 3),
     flop3: classementFile.flop.slice(0, 3),

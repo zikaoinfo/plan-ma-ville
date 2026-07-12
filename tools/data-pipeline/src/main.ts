@@ -270,6 +270,7 @@ async function main(): Promise<void> {
   console.log('── Rapport ──────────────────────────────');
   console.log(`Communes      : ${rapport.nbCommunes}`);
   console.log(`Départements  : ${rapport.nbDepartements}`);
+  console.log(`Régions       : ${rapport.nbRegions}`);
   console.log(`index.json gz : ${(rapport.indexGzipBytes / 1024).toFixed(0)} Ko`);
   console.log(
     `Couverture    : BPE ${pct(couverture.bpe)} · SSMSI ${pct(couverture.securite)}` +
