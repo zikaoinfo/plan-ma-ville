@@ -71,12 +71,15 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
     F3 culture).
   - **SSMSI** (data.gouv) — délinquance → sécurité (note inversée). `fetch/securite.ts`.
   - **Filosofi** (INSEE) — revenu médian → niveau de vie. `fetch/filosofi.ts`.
-- **Scoring réel par rang percentile** (`score/real.ts`, plus de notes factices) :
-  densité /1000 hab (BPE), taux /1000 hab (SSMSI, inversé), revenu médian
-  (Filosofi) → `toPercentileNote` (`score/percentile.ts`, convention « fraction
-  ≤ valeur », test `toPercentileNote(5,[1,3,5,7,9])===6`). Commune sans donnée
-  → **médiane nationale** (jamais 0). Arrondissements Paris/Lyon/Marseille
-  repliés sur la mère (`fetch/insee-code.ts`). Note globale = Σ(note×poids)/Σ(poids).
+- **Scoring réel par normalisation min–max robuste** (`score/real.ts`, plus de
+  notes factices) : densité /1000 hab (BPE), taux /1000 hab (SSMSI, inversé),
+  revenu médian (Filosofi) → `linearNote` (`score/scale.ts`) sur bornes 2ᵉ/98ᵉ
+  centiles (`robustBounds`, écrête les valeurs aberrantes) : moins dotée → 0,
+  mieux dotée → 10. **NB** : l'ancien rang percentile (`count ≤ valeur`) donnait
+  une note ÉLEVÉE aux ex æquo à zéro (commune sans culture = 9.6/10) → abandonné.
+  Commune sans donnée → **note neutre 5** (jamais 0). Arrondissements
+  Paris/Lyon/Marseille repliés sur la mère (`fetch/insee-code.ts`). Note globale =
+  Σ(note×poids)/Σ(poids).
 - **URLs résolues et validées en CI** (job « Validate open data » vert, PR #11) :
   BPE via dataset data.gouv `base-permanente-des-equipements` (CSV ensemble
   **2018**, en-têtes FR), SSMSI `bases-statistiques-…-delinquance` (COM csv.gz,

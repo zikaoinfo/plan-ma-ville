@@ -12,16 +12,17 @@
       puis on arrondit à une décimale.
     </p>
     <p class="callout">
-      <strong>Notes calculées par rang national.</strong> Pour chaque critère, on
-      mesure un indicateur réel issu de l'open data&nbsp;: densité d'équipements
-      pour 1&nbsp;000 habitants (santé, commerces, enseignement, sports, culture,
-      transports), taux de délinquance pour 1&nbsp;000 habitants (sécurité, note
-      <em>inversée</em>&nbsp;: moins de faits = meilleure note) et revenu médian
-      (niveau de vie). La note /10 correspond au <strong>rang percentile</strong> de
-      la commune parmi toutes les communes de France&nbsp;: une note de 7 signifie
-      «&nbsp;mieux que 70&nbsp;% des communes&nbsp;». Une commune sans donnée
-      disponible pour un critère (secret statistique) reçoit la note de la médiane
-      nationale, jamais 0.
+      <strong>Notes calculées à partir de données réelles.</strong> Pour chaque
+      critère, on mesure un indicateur issu de l'open data&nbsp;: densité
+      d'équipements pour 1&nbsp;000 habitants (santé, commerces, enseignement,
+      sports, culture, transports), taux de délinquance pour 1&nbsp;000 habitants
+      (sécurité, note <em>inversée</em>&nbsp;: moins de faits = meilleure note) et
+      revenu médian (niveau de vie). La note /10 est obtenue par
+      <strong>normalisation</strong>&nbsp;: la commune la moins bien dotée de France
+      obtient 0, la mieux dotée 10, et les autres se répartissent linéairement entre
+      les deux (les 2&nbsp;% de valeurs extrêmes sont écrêtées pour éviter qu'une
+      commune atypique n'écrase l'échelle). Une commune sans donnée disponible pour
+      un critère (secret statistique) reçoit une note neutre (5/10), jamais 0.
     </p>
   </section>
 
