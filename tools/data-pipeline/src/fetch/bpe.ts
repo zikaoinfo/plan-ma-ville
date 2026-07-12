@@ -42,11 +42,21 @@ export function typequToCritere(typequ: string): BpeCritere | undefined {
   }
 }
 
-const CODE_COLS = ['DEPCOM', 'CODGEO', 'CODGEO_2024', 'CODGEO_2023', 'DCIRIS', 'COM', 'depcom', 'codgeo'];
-const TYPE_COLS = ['TYPEQU', 'typequ'];
+const CODE_COLS = [
+  'DEPCOM',
+  'CODGEO',
+  'CODGEO_2024',
+  'CODGEO_2023',
+  'DCIRIS',
+  'COM',
+  'depcom',
+  'codgeo',
+  'Code INSEE', // variante data.gouv (en-têtes en français)
+];
+const TYPE_COLS = ['TYPEQU', 'typequ', "Code d'équipement", 'Code d’équipement'];
 // Fichiers « nombre d'équipements par commune » : colonne d'effectif. Absente
 // dans le fichier détaillé (1 ligne = 1 équipement) → chaque ligne compte 1.
-const NB_COLS = ['NB', 'NB_EQUIP', 'NB_EQUIPEMENT', 'nb', 'nombre'];
+const NB_COLS = ['NB', 'NB_EQUIP', 'NB_EQUIPEMENT', 'nb', 'nombre', 'Nombre'];
 
 function emptyCounts(): BpeCounts {
   return { sante: 0, commerces: 0, enseignement: 0, sports: 0, culture: 0, transports: 0 };
