@@ -3,6 +3,8 @@
   "populationMinClassement": 2000,
   "_prerenderMinPopulation": "Seuil de population au-delà duquel la page commune est prérendue (SSG) ET listée dans le sitemap. Lu aussi par src/app/app.routes.server.ts.",
   "prerenderMinPopulation": 5000,
+  "_hubAutourMinPopulation": "Seuil de population des grandes villes ayant une page « Où vivre autour de {ville} » (prerender + sitemap).",
+  "hubAutourMinPopulation": 50000,
   "ponderations": {
     "securite": 1.5,
     "sante": 1.2,

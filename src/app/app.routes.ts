@@ -39,6 +39,26 @@ export const routes: Routes = [
     title: 'Classement — Ma ville, notée',
   },
   {
+    path: 'palmares/securite/:code',
+    loadComponent: () =>
+      import('./features/palmares/palmares-departement').then((m) => m.PalmaresDepartement),
+    data: { type: 'securite' },
+    title: 'Villes les plus sûres — Ma ville, notée',
+  },
+  {
+    path: 'palmares/prix/:code',
+    loadComponent: () =>
+      import('./features/palmares/palmares-departement').then((m) => m.PalmaresDepartement),
+    data: { type: 'prix' },
+    title: 'Meilleurs prix au m² — Ma ville, notée',
+  },
+  {
+    path: 'palmares/autour/:slug',
+    loadComponent: () =>
+      import('./features/palmares/palmares-autour').then((m) => m.PalmaresAutour),
+    title: 'Où vivre autour de… — Ma ville, notée',
+  },
+  {
     path: 'comparer',
     loadComponent: () =>
       import('./features/comparateur/comparateur').then((m) => m.Comparateur),

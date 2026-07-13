@@ -164,6 +164,13 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
   `classement.json`), comparateur (ligne dédiée), département (colonne triable
   `perso` via `filterAndSortCommunes(..., poids)`).
 - **Méthodologie** : statique.
+- **Palmarès (hubs SEO, docs/SEO-PLAN.md §P4)** : `/palmares/securite/:dep` et
+  `/palmares/prix/:dep` (un composant, `type` via route data +
+  withComponentInputBinding), `/palmares/autour/:slug` (grandes villes
+  ≥ `hubAutourMinPopulation` = 50k, rayon 20 km via geo-light.json). Logique
+  pure `palmares-logic.ts` (tops, intros factuelles). Prerendus + sitemap +
+  JSON-LD (Breadcrumb+ItemList) + maillage (département ↔ hubs ↔ communes,
+  lien depuis les fiches des grandes villes).
 - **Thème clair/sombre/système** : `ThemeService` (signal `preference` persisté
   localStorage `mvn-theme`, `resolved` computed suivant `prefers-color-scheme`
   en direct) → `data-theme` sur `<html>` via `effect`. Tokens sombres dans

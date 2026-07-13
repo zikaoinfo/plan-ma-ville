@@ -187,7 +187,14 @@
         <!-- Villes aux alentours -->
         @if (voisins().length) {
           <section class="card card--near" aria-label="Communes aux alentours">
-            <h2 class="card__title">Aux alentours</h2>
+            <div class="card__head">
+              <h2 class="card__title">Aux alentours</h2>
+              @if (aHubAutour()) {
+                <a class="near__hub" [routerLink]="['/palmares/autour', c.slug]">
+                  Où vivre autour de {{ c.nom }} ? →
+                </a>
+              }
+            </div>
             <ul class="near">
               @for (v of voisins(); track v.commune.slug) {
                 <li>

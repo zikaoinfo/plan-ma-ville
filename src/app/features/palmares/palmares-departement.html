@@ -1,0 +1,67 @@
+<section class="palmares container">
+  <a [routerLink]="['/departement', code()]" class="back">← Département {{ nom() }}</a>
+
+  <header class="palmares__head">
+    <h1>{{ titre() }}</h1>
+    @if (charge()) {
+      <p class="palmares__intro">{{ intro() }}</p>
+    }
+  </header>
+
+  @if (!charge()) {
+    <div class="loading" role="status">
+      <span class="spinner" aria-hidden="true"></span> Chargement du classement…
+    </div>
+  } @else if (top().length === 0) {
+    <p class="palmares__vide">{{ intro() }}</p>
+  } @else {
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col" class="th th--rang">#</th>
+            <th scope="col" class="th">Commune</th>
+            <th scope="col" class="th th--num">
+              {{ type() === 'securite' ? 'Sécurité' : 'Prix m² (DVF)' }}
+            </th>
+            <th scope="col" class="th th--num">Note globale</th>
+            <th scope="col" class="th th--num">Population</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of top(); track c.slug; let i = $index) {
+            <tr>
+              <td class="td td--rang">{{ i + 1 }}</td>
+              <td class="td td--nom"><a [routerLink]="['/ville', c.slug]">{{ c.nom }}</a></td>
+              <td class="td td--num td--valeur">
+                @if (type() === 'securite') {
+                  {{ c.score.criteres.securite.toFixed(1) }}/10
+                } @else {
+                  {{ c.prix!.m2 | number: '1.0-0' }} €
+                }
+              </td>
+              <td class="td td--num"><app-score-badge [score]="c.score.global" /></td>
+              <td class="td td--num">{{ c.population | number: '1.0-0' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <p class="palmares__note">
+      Communes de plus de 2 000 habitants ·
+      {{ type() === 'securite'
+        ? 'source : délinquance enregistrée (SSMSI), comparaison entre communes de taille similaire'
+        : 'source : médianes des ventes réelles (DVF, DGFiP)' }}
+      · <a routerLink="/methodologie">méthodologie</a>
+    </p>
+
+    <nav class="palmares__liens" aria-label="Autres classements">
+      <a [routerLink]="['/palmares', autreType(), code()]">
+        {{ autreType() === 'securite' ? 'Les villes les plus sûres' : 'Les meilleurs prix au m²' }}
+        du {{ nom() }} →
+      </a>
+      <a [routerLink]="['/departement', code()]">Toutes les communes du {{ nom() }} →</a>
+    </nav>
+  }
+</section>

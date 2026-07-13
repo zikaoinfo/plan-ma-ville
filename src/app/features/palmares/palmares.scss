@@ -1,0 +1,171 @@
+.palmares {
+  padding-block: 2rem 1rem;
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 1.2rem;
+  color: var(--ink-soft);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.back:hover {
+  color: var(--ink);
+}
+
+.palmares__head h1 {
+  font-size: clamp(1.7rem, 4.5vw, 2.5rem);
+  margin: 0;
+}
+
+.palmares__intro {
+  margin: 0.7rem 0 1.4rem;
+  max-width: 78ch;
+  color: var(--ink-soft);
+  line-height: 1.65;
+}
+
+.palmares__vide {
+  padding: 1.5rem 0;
+  color: var(--ink-soft);
+}
+
+/* ── Tableau (mêmes conventions que région/classement) ── */
+.table-wrap {
+  overflow-x: auto;
+  border: 1.5px solid var(--line);
+  border-radius: 16px;
+  background: var(--paper);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.th {
+  background: var(--paper-soft);
+  padding: 0.7rem 0.9rem;
+  text-align: left;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  border-bottom: 1.5px solid var(--line);
+}
+
+.th--num {
+  text-align: right;
+}
+
+.th--rang {
+  width: 3rem;
+  text-align: center;
+}
+
+.td {
+  padding: 0.55rem 0.9rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.table tbody tr:last-child .td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background: var(--paper-soft);
+}
+
+.td--num {
+  text-align: right;
+}
+
+.td--rang {
+  text-align: center;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.td--valeur {
+  font-weight: 700;
+}
+
+.td--nom a {
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.td--nom a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.palmares__note {
+  margin: 0.9rem 0 0;
+  font-size: 0.8rem;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.palmares__liens {
+  display: flex;
+  gap: 1.4rem;
+  flex-wrap: wrap;
+  margin-top: 1.3rem;
+}
+
+.palmares__liens a {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.palmares__liens a:hover {
+  text-decoration: underline;
+}
+
+.lien {
+  border: none;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* ── États ── */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  padding: 2.5rem;
+  color: var(--ink-soft);
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid var(--line);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2s;
+  }
+}

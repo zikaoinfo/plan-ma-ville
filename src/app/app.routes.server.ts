@@ -27,6 +27,18 @@ function seuilPopulation(): number {
   return scoring?.prerenderMinPopulation ?? MIN_POP_DEFAUT;
 }
 
+function seuilHubAutour(): number {
+  const scoring = lireJson<{ hubAutourMinPopulation?: number }>(
+    'tools/data-pipeline/scoring.config.json',
+  );
+  return scoring?.hubAutourMinPopulation ?? 50000;
+}
+
+function codesDepartements(): { code: string }[] {
+  const deps = lireJson<DepartementsFile>('public/data/departements.json')?.items ?? [];
+  return deps.map((d) => ({ code: d.code }));
+}
+
 /** Log en une ligne, seulement au moment du build (jamais côté navigateur). */
 function info(msg: string): void {
   console.log(`  · prerender : ${msg}`);
@@ -59,9 +71,38 @@ export const serverRoutes: ServerRoute[] = [
     path: 'departement/:code',
     renderMode: RenderMode.Prerender,
     async getPrerenderParams() {
-      const deps = lireJson<DepartementsFile>('public/data/departements.json')?.items ?? [];
+      const deps = codesDepartements();
       info(`${deps.length} pages département`);
-      return deps.map((d) => ({ code: d.code }));
+      return deps;
+    },
+  },
+  {
+    path: 'palmares/securite/:code',
+    renderMode: RenderMode.Prerender,
+    async getPrerenderParams() {
+      const deps = codesDepartements();
+      info(`${deps.length} palmarès sécurité`);
+      return deps;
+    },
+  },
+  {
+    path: 'palmares/prix/:code',
+    renderMode: RenderMode.Prerender,
+    async getPrerenderParams() {
+      const deps = codesDepartements();
+      info(`${deps.length} palmarès prix`);
+      return deps;
+    },
+  },
+  {
+    path: 'palmares/autour/:slug',
+    renderMode: RenderMode.Prerender,
+    async getPrerenderParams() {
+      const seuil = seuilHubAutour();
+      const items = lireJson<SearchIndexFile>('public/data/index.json')?.items ?? [];
+      const grandes = items.filter((it) => it.p >= seuil);
+      info(`${grandes.length} pages « autour de » (population ≥ ${seuil})`);
+      return grandes.map((it) => ({ slug: it.s }));
     },
   },
   {
