@@ -138,8 +138,13 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
   **Prix m² = RÉEL (DVF)** : médiane + tendance 1 an (`dvfTrendPct`) + sparkline
   depuis `commune.prix.histo` ; sans donnée → message honnête, pas d'estimation.
   L'historique de NOTE reste une trajectoire estimée (`commune-insights.ts`,
-  pur, testé). Onglets « Données officielles » / « Avis habitants »
-  (`?onglet=avis` pour survivre au retour OAuth).
+  pur, testé). **Texte éditorial SEO** (`commune-texte.ts`, pur, testé) :
+  réponse directe ~60 mots sous l'en-tête + 4 sections h2 « Vivre à {ville} »
+  (~250 mots), 100 % dérivés des données réelles (rang départemental, moyennes,
+  DVF), variantes de tournures par hash INSEE (déterministe entre builds,
+  anti scaled-content-abuse — cf. docs/SEO-PLAN.md). Onglets « Données
+  officielles » / « Avis habitants » (`?onglet=avis` pour survivre au retour
+  OAuth).
 - **Régions `/regions`** : classement des régions (grille, note ↓), drill-down.
   **Région `/region/:code`** : ses départements classés note ↓ → lien commune.
   Chaîne région → département → ville. Lu depuis `regions.json` (départements

@@ -16,6 +16,7 @@ import { ScoreBadge } from '../../shared/score-badge/score-badge';
 import { CommuneAvisForm } from './commune-avis/commune-avis-form';
 import { CommuneAvisList } from './commune-avis/commune-avis-list';
 import { dvfTrendPct, nearestCommunes, noteHistory } from './commune-insights';
+import { genereTexteCommune } from './commune-texte';
 
 const ICONS: Record<Critere, string> = {
   securite: '🛡️',
@@ -101,6 +102,14 @@ export class Commune {
     const c = this.commune();
     const f = this.#commune.depFile();
     return c && f ? nearestCommunes(c, f.communes, 6) : [];
+  });
+
+  // Texte éditorial (SEO) : réponse directe + sections, dérivés des données
+  // réelles — présent dans le HTML prérendu (cf. docs/SEO-PLAN.md, P1).
+  protected readonly texte = computed(() => {
+    const c = this.commune();
+    const f = this.#commune.depFile();
+    return c && f ? genereTexteCommune(c, f.communes, this.depNom()) : null;
   });
 
   // Prix immobilier réel — agrégats DVF émis par le pipeline (cf. /methodologie).
