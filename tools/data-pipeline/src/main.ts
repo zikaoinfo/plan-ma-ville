@@ -28,6 +28,8 @@ const OUT_DIR = path.join(REPO_ROOT, 'public/data');
 interface ScoringConfig {
   version: number;
   populationMinClassement: number;
+  /** Seuil de population des pages communes prérendues (SSG) + sitemap. */
+  prerenderMinPopulation?: number;
   ponderations: Record<Critere, number>;
   /** Gamma d'ajustement par critère (< 1 relève/homogénéise vers le haut). */
   boost?: Partial<Record<Critere, number>>;
@@ -242,6 +244,7 @@ async function main(): Promise<void> {
     outDir: OUT_DIR,
     gen,
     populationMin: scoring.populationMinClassement,
+    sitemapVillesMinPop: scoring.prerenderMinPopulation ?? 5000,
     siteBaseUrl: 'https://zikaoinfo.github.io/plan-ma-ville',
   });
 

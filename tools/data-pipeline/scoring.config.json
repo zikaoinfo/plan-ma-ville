@@ -1,6 +1,8 @@
 {
   "version": 1,
   "populationMinClassement": 2000,
+  "_prerenderMinPopulation": "Seuil de population au-delà duquel la page commune est prérendue (SSG) ET listée dans le sitemap. Lu aussi par src/app/app.routes.server.ts.",
+  "prerenderMinPopulation": 5000,
   "ponderations": {
     "securite": 1.5,
     "sante": 1.2,

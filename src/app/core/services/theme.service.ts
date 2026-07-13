@@ -47,9 +47,11 @@ export class ThemeService {
     this.#media()?.addEventListener('change', (e) => this.#systemDark.set(e.matches));
 
     // Impératif DOM : attribut sur <html>, meta theme-color, persistance.
+    // setAttribute (et pas dataset) : le DOM serveur du prerender n'implémente
+    // pas dataset sur documentElement.
     effect(() => {
       const theme = this.resolved();
-      this.#doc.documentElement.dataset['theme'] = theme;
+      this.#doc.documentElement.setAttribute('data-theme', theme);
       this.#doc
         .querySelector('meta[name="theme-color"]')
         ?.setAttribute('content', META_THEME_COLOR[theme]);

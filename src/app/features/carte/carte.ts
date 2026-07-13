@@ -1,4 +1,5 @@
 import { DecimalPipe, DOCUMENT } from '@angular/common';
+import { baseUri, dataUrl } from '../../core/data-url';
 import { httpResource } from '@angular/common/http';
 import {
   afterNextRender,
@@ -32,7 +33,7 @@ export class Carte {
   private readonly mapEl = viewChild.required<ElementRef<HTMLElement>>('map');
 
   readonly #geo = httpResource<GeoLightFile>(
-    () => new URL('data/geo-light.json', this.#doc.baseURI).href,
+    () => dataUrl(this.#doc, 'geo-light.json'),
   );
 
   protected readonly status = this.#geo.status;
@@ -104,7 +105,7 @@ export class Carte {
     if (!leaflet || !cluster) return;
 
     cluster.clearLayers();
-    const base = this.#doc.baseURI.replace(/\/$/, '');
+    const base = baseUri(this.#doc);
     const markers = items.map((c) => {
       const m = leaflet.circleMarker([c.lat, c.lng], {
         radius: markerRadius(c.p),

@@ -6,6 +6,7 @@ import type {
   DepartementDetailFile,
   SearchIndexItem,
 } from '../models/data.models';
+import { dataUrl } from '../data-url';
 import { SearchIndexService } from './search-index.service';
 
 /** État résolu d'une fiche commune. */
@@ -114,6 +115,6 @@ export class CommuneDataService {
   }
 
   #url(code: string): string {
-    return new URL(`data/dep/${code}.json`, this.#doc.baseURI).href;
+    return dataUrl(this.#doc, `dep/${code}.json`);
   }
 }
