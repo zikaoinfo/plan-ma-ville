@@ -14,10 +14,20 @@ if (!cle) {
   process.exit(1);
 }
 
-const reponse = await fetch(`${SITE}/sitemap.xml`);
+// Le sitemap peut être temporairement injoignable : DNS/HTTPS pas encore
+// propagés le jour du lancement, ou fenêtre de bascule GitHub Pages. Ce n'est
+// PAS une erreur de déploiement — on prévient et on sortira proprement (le
+// ping se fera au prochain déploiement, une fois le domaine servi).
+let reponse;
+try {
+  reponse = await fetch(`${SITE}/sitemap.xml`, { signal: AbortSignal.timeout(15000) });
+} catch (err) {
+  console.warn(`::warning::IndexNow ignoré : ${SITE}/sitemap.xml injoignable (${err.message}). Le ping se fera au prochain déploiement.`);
+  process.exit(0);
+}
 if (!reponse.ok) {
-  console.error(`✗ IndexNow : sitemap inaccessible (${reponse.status}) — site pas encore en ligne ?`);
-  process.exit(1);
+  console.warn(`::warning::IndexNow ignoré : ${SITE}/sitemap.xml a répondu ${reponse.status} (site pas encore en ligne ?). Réessai au prochain déploiement.`);
+  process.exit(0);
 }
 const xml = await reponse.text();
 const urls = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
