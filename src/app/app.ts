@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from './core/services/auth.service';
 import { ThemeService, type ThemePref } from './core/services/theme.service';
+import { UpdateService } from './core/services/update.service';
 
 /** Options du sélecteur de thème (ordre d'affichage). */
 const THEME_OPTIONS: { value: ThemePref; label: string; icon: string }[] = [
@@ -20,6 +21,7 @@ const THEME_OPTIONS: { value: ThemePref; label: string; icon: string }[] = [
 export class App {
   protected readonly auth = inject(AuthService);
   protected readonly theme = inject(ThemeService);
+  protected readonly maj = inject(UpdateService);
   protected readonly annee = new Date().getFullYear();
 
   protected readonly menuOpen = signal(false);

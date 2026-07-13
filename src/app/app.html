@@ -126,6 +126,13 @@
   </div>
 </header>
 
+@if (maj.disponible()) {
+  <div class="maj" role="status">
+    <span>Une nouvelle version de l'app est disponible.</span>
+    <button type="button" class="maj__btn" (click)="maj.recharger()">Recharger</button>
+  </div>
+}
+
 <main class="page">
   <router-outlet />
 </main>
