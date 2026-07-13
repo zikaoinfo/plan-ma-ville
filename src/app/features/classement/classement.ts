@@ -4,6 +4,8 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } 
 import { RouterLink } from '@angular/router';
 import { dataUrl } from '../../core/data-url';
 import type { ClassementEntry, ClassementFile } from '../../core/models/data.models';
+import { schemaItemList } from '../../core/seo/schemas';
+import { JsonLdService } from '../../core/services/json-ld.service';
 import { MetaService } from '../../core/services/meta.service';
 import { PonderationService } from '../../core/services/ponderation.service';
 import { SearchIndexService } from '../../core/services/search-index.service';
@@ -59,15 +61,28 @@ export class Classement {
 
   protected readonly reload = () => this.#classement.reload();
 
+  readonly #jsonLd = inject(JsonLdService);
+
   constructor() {
-    effect(() =>
+    effect(() => {
       this.#meta.setPage({
         title: 'Classement des communes — ma ville, notée',
         description:
           'Les meilleures et les pires communes françaises selon leur note globale sur 10.',
         canonicalPath: '/classement',
-      }),
-    );
+      });
+
+      // ItemList = le top 50 OFFICIEL (stable, indépendant des filtres UI).
+      const top = this.#classement.value()?.top ?? [];
+      if (top.length) {
+        this.#jsonLd.set([
+          schemaItemList(
+            'Meilleures communes de France par note de qualité de vie',
+            top.map((e) => ({ nom: e.nom, path: `/ville/${e.slug}` })),
+          ),
+        ]);
+      }
+    });
   }
 
   protected setTab(tab: 'top' | 'flop'): void {

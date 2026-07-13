@@ -40,32 +40,32 @@
 
 ## Phases restantes (ordre d'exécution)
 
-### P1 — Contenu unique par commune ⚠️ LE cœur
-- [ ] Paragraphe « réponse directe » 50-70 mots en HAUT de page (format cité
+### P1 — Contenu unique par commune ⚠️ LE cœur — ✅ FAIT (PR #24)
+- [x] Paragraphe « réponse directe » 50-70 mots en HAUT de page (format cité
       par les AIO) : note, rang départemental, 2 points forts, prix m² DVF,
       population.
-- [ ] `commune-texte.ts` : fonctions PURES de génération (hash INSEE →
+- [x] `commune-texte.ts` : fonctions PURES de génération (hash INSEE →
       variantes de tournures stables entre builds ; formulations
       conditionnelles par seuils ; comparaisons au département et à la strate).
-- [ ] Section « Vivre à {ville} » (3-4 paragraphes, h2 par thème) en bas de
+- [x] Section « Vivre à {ville} » (3-4 paragraphes, h2 par thème) en bas de
       fiche : qualité de vie, sécurité (neutre, factuel), équipements &
       transports, immobilier & niveau de vie (DVF ; phrase honnête si absent).
-- [ ] Maillage : lien « Comparer {ville} » vers /comparer?villes={slug}.
-- [ ] Tests : déterminisme, variation inter-communes, seuils, absence de
+- [x] Maillage : lien « Comparer {ville} » vers /comparer?villes={slug}.
+- [x] Tests : déterminisme, variation inter-communes, seuils, absence de
       « undefined », branche sans DVF.
 - Anti-scaled-content : seuil 5 000 hab au lancement ; élargir par paliers
   (2 000 puis 500) seulement si l'indexation GSC est saine.
 
-### P2 — Meta finales (XS)
-- [ ] `og:image` statique de marque 1200×630 (public/), `og:locale=fr_FR`,
+### P2 — Meta finales (XS) — ✅ FAIT
+- [x] `og:image` statique de marque 1200×630 (public/), `og:locale=fr_FR`,
       `twitter:card=summary_large_image`.
 
-### P3 — JSON-LD ciblé (S) — attentes réalistes
-- [ ] `JsonLdService` (script ld+json via DOCUMENT, nettoyé à la navigation).
-- [ ] `BreadcrumbList` (Accueil › Région › Département › Ville) — rich result
+### P3 — JSON-LD ciblé (S) — ✅ FAIT
+- [x] `JsonLdService` (script ld+json via DOCUMENT, nettoyé à la navigation).
+- [x] `BreadcrumbList` (Accueil › Région › Département › Ville) — rich result
       encore actif. `Place` + geo sur les fiches. `ItemList` sur classements
       et hubs. `Dataset` sur la méthodologie.
-- [ ] ❌ Pas de FAQPage ni d'AggregateRating (cf. contexte 2-3). AggregateRating
+- [x] ❌ Pas de FAQPage ni d'AggregateRating (cf. contexte 2-3). AggregateRating
       à reconsidérer si les avis Supabase décollent (note visible sur la page).
 
 ### P4 — Hubs longue traîne (M)

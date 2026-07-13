@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CRITERE_LABELS, CRITERES, type Critere } from '../../core/models/data.models';
+import { schemaDataset } from '../../core/seo/schemas';
+import { JsonLdService } from '../../core/services/json-ld.service';
 import { MetaService } from '../../core/services/meta.service';
 
 const PONDERATIONS: Record<Critere, number> = {
@@ -28,14 +30,17 @@ export class Methodologie {
   protected readonly labels = CRITERE_LABELS;
   protected readonly ponderations = PONDERATIONS;
 
+  readonly #jsonLd = inject(JsonLdService);
+
   constructor() {
-    effect(() =>
+    effect(() => {
       this.#meta.setPage({
         title: 'Méthodologie — ma ville, notée',
         description:
           'Comment sont calculées les notes des communes : critères, pondérations, sources et limites.',
         canonicalPath: '/methodologie',
-      }),
-    );
+      });
+      this.#jsonLd.set([schemaDataset()]);
+    });
   }
 }

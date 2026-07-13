@@ -1,6 +1,8 @@
 import { DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { schemaBreadcrumb, schemaItemList } from '../../core/seo/schemas';
+import { JsonLdService } from '../../core/services/json-ld.service';
 import { MetaService } from '../../core/services/meta.service';
 import { SearchIndexService } from '../../core/services/search-index.service';
 import { ErrorMessage } from '../../shared/error-message/error-message';
@@ -29,6 +31,8 @@ export class Region {
 
   protected readonly reload = () => this.#search.reloadRegions();
 
+  readonly #jsonLd = inject(JsonLdService);
+
   constructor() {
     effect(() => {
       const region = this.region();
@@ -41,6 +45,23 @@ export class Region {
           : 'Classement des départements de la région.',
         canonicalPath: `/region/${this.code()}`,
       });
+
+      if (region) {
+        this.#jsonLd.set([
+          schemaBreadcrumb([
+            { nom: 'Accueil', path: '/' },
+            { nom: 'Régions', path: '/regions' },
+            { nom: region.nom },
+          ]),
+          schemaItemList(
+            `Départements de ${region.nom} classés par note`,
+            region.departements.map((d) => ({
+              nom: `${d.nom} (${d.code})`,
+              path: `/departement/${d.code}`,
+            })),
+          ),
+        ]);
+      }
     });
   }
 }
