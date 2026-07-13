@@ -50,6 +50,14 @@ jobs:
           sed -i "s|__SUPABASE_ANON_KEY__|${SUPABASE_ANON_KEY}|g" "$ENV"
           sed -i "s|__WORKER_URL__|${WORKER_URL}|g" "$ENV"
 
+      # L'URL github.io ne doit pas être indexée tant que le site n'est pas sur
+      # son domaine définitif. Le jour venu : définir la variable de dépôt
+      # SITE_INDEXABLE=true (Settings → Secrets and variables → Variables) —
+      # cette étape retire alors la balise noindex de toutes les pages.
+      - name: Allow indexing (SITE_INDEXABLE=true)
+        if: vars.SITE_INDEXABLE == 'true'
+        run: sed -i '/name="robots" content="noindex/d' src/index.html
+
       - name: Build app
         run: npm run build
 

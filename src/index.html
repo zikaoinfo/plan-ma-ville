@@ -6,6 +6,12 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="La note sur 10 de chaque commune française : sécurité, santé, commerces, enseignement, sports, culture, transports et niveau de vie.">
+  <!-- NOINDEX temporaire : l'URL github.io ne doit PAS être indexée (le site
+       sera hébergé sur son vrai domaine). Retiré automatiquement par deploy.yml
+       quand la variable de dépôt SITE_INDEXABLE vaut "true". Un robots.txt ne
+       suffirait pas : sur un site projet Pages il devrait vivre à la racine de
+       zikaoinfo.github.io, hors de notre contrôle. -->
+  <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#18203a">
   <!-- Anti-flash : pose data-theme AVANT le chargement d'Angular.
        Doit rester aligné avec ThemeService (clé mvn-theme, défaut system). -->

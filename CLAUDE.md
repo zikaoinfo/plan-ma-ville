@@ -182,6 +182,12 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
   données ; idem `dataset` sur documentElement (utiliser setAttribute).
   Hydratation activée avec `withNoHttpTransferCache` (sinon index.json ~Mo
   embarqué dans chaque HTML). Le sitemap inclut les mêmes communes ≥ seuil.
+  **NOINDEX temporaire** : `<meta name="robots" noindex>` dans index.html
+  (l'URL github.io ne doit pas être indexée avant le vrai domaine ; un
+  robots.txt ne marcherait pas — racine github.io hors de contrôle sur un
+  site projet). deploy.yml la retire si la variable de dépôt
+  `SITE_INDEXABLE=true` — à activer au passage sur le domaine définitif
+  (avec `environment.baseUrl` + `siteBaseUrl` de main.ts à mettre à jour).
 - **PWA installable** : `@angular/service-worker` (version EXACTE du core,
   22.0.1), activé en **prod uniquement** (`serviceWorker` dans la config
   production d'angular.json + `provideServiceWorker` gardé par `isDevMode`).
