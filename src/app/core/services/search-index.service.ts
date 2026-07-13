@@ -110,6 +110,13 @@ export class SearchIndexService {
     return this.#regions.value()?.items.find((r) => r.code === code);
   }
 
+  /** Région contenant un département (fil d'Ariane) ; `undefined` si non chargé. */
+  regionForDepartement(codeDep: string): RegionSummary | undefined {
+    return this.#regions
+      .value()
+      ?.items.find((r) => r.departements.some((d) => d.code === codeDep));
+  }
+
   reloadRegions(): void {
     this.#regions.reload();
   }

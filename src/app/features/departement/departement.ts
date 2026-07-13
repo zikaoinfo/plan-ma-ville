@@ -2,7 +2,9 @@ import { DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CRITERE_LABELS, CRITERES, type Critere } from '../../core/models/data.models';
+import { schemaBreadcrumb, type Miette } from '../../core/seo/schemas';
 import { CommuneDataService } from '../../core/services/commune-data.service';
+import { JsonLdService } from '../../core/services/json-ld.service';
 import { MetaService } from '../../core/services/meta.service';
 import { PonderationService } from '../../core/services/ponderation.service';
 import { SearchIndexService } from '../../core/services/search-index.service';
@@ -59,6 +61,8 @@ export class Departement {
     return this.ponderation.note(criteres);
   }
 
+  readonly #jsonLd = inject(JsonLdService);
+
   constructor() {
     effect(() => {
       const nom = this.nom();
@@ -69,6 +73,14 @@ export class Departement {
         description: `Les communes du département ${nom} (${this.code()}) notées sur 10, classables par critère.`,
         canonicalPath: `/departement/${this.code()}`,
       });
+
+      const region = this.#search.regionForDepartement(this.code());
+      const miettes: Miette[] = [
+        { nom: 'Accueil', path: '/' },
+        ...(region ? [{ nom: region.nom, path: `/region/${region.code}` }] : []),
+        { nom: `${nom} (${this.code()})` },
+      ];
+      this.#jsonLd.set([schemaBreadcrumb(miettes)]);
     });
   }
 

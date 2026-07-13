@@ -5,7 +5,9 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CRITERE_LABELS, CRITERES, type Critere } from '../../core/models/data.models';
 import { AuthService } from '../../core/services/auth.service';
 import { AvisService } from '../../core/services/avis.service';
+import { schemaBreadcrumb, schemaPlace, type Miette } from '../../core/seo/schemas';
 import { CommuneDataService } from '../../core/services/commune-data.service';
+import { JsonLdService } from '../../core/services/json-ld.service';
 import { MetaService } from '../../core/services/meta.service';
 import { PonderationService } from '../../core/services/ponderation.service';
 import { SearchIndexService } from '../../core/services/search-index.service';
@@ -49,6 +51,7 @@ export class Commune {
   readonly #data = inject(CommuneDataService);
   readonly #search = inject(SearchIndexService);
   readonly #meta = inject(MetaService);
+  readonly #jsonLd = inject(JsonLdService);
   readonly #sanitizer = inject(DomSanitizer);
   protected readonly auth = inject(AuthService);
   protected readonly avisDisponible = inject(AvisService).disponible;
@@ -229,6 +232,16 @@ export class Commune {
             `niveau de vie ${cr.niveauVie}.`,
           canonicalPath: `/ville/${s.slug}`,
         });
+
+        // JSON-LD : fil d'Ariane (avec la région si résolue) + entité Place.
+        const region = this.#search.regionForDepartement(this.depCode());
+        const miettes: Miette[] = [
+          { nom: 'Accueil', path: '/' },
+          ...(region ? [{ nom: region.nom, path: `/region/${region.code}` }] : []),
+          { nom: this.depNom(), path: `/departement/${this.depCode()}` },
+          { nom: s.nom },
+        ];
+        this.#jsonLd.set([schemaBreadcrumb(miettes), schemaPlace(s, this.depNom())]);
       }
     });
   }
