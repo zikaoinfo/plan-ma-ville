@@ -76,3 +76,14 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  # Notifie Bing/Yandex/… (IndexNow) des URLs du sitemap fraîchement déployé.
+  # Google ne supporte pas IndexNow : lui passe par GSC + sitemap.
+  indexnow:
+    needs: deploy
+    if: vars.SITE_INDEXABLE == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ping IndexNow
+        run: node tools/indexnow.mjs

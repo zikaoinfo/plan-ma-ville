@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://zikaoinfo.github.io/plan-ma-ville/sitemap.xml
+Sitemap: https://planmaville.fr/sitemap.xml

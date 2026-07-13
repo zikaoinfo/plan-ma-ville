@@ -2,6 +2,7 @@ import { DOCUMENT } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
 import { Meta, Title } from '@angular/platform-browser';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { environment } from '../../../environments/environment';
 import { MetaService } from './meta.service';
 
 describe('MetaService', () => {
@@ -25,10 +26,10 @@ describe('MetaService', () => {
     service.setPage({ title: 't', description: 'd', canonicalPath: '/classement' });
 
     const og = TestBed.inject(Meta).getTag('property="og:url"')?.content;
-    expect(og).toMatch(/\/plan-ma-ville\/classement$/);
+    expect(og).toBe(environment.baseUrl + '/classement');
 
     const canonical = doc.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
-    expect(canonical?.getAttribute('href')).toMatch(/\/plan-ma-ville\/classement$/);
+    expect(canonical?.getAttribute('href')).toBe(environment.baseUrl + '/classement');
   });
 
   it('réutilise le même lien canonique entre deux pages (pas de doublon)', () => {
