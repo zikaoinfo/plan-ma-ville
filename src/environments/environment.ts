@@ -1,7 +1,7 @@
 export const environment = {
   production: true,
   /** Origine + baseHref, sans slash final. Sert aux URLs canoniques / OpenGraph. */
-  baseUrl: 'https://zikaoinfo.github.io/plan-ma-ville',
+  baseUrl: 'https://planmaville.fr',
   /**
    * Features communautaires (avis/auth). Placeholders remplacés en CI par
    * les secrets GitHub (voir deploy.yml). Sans remplacement → features off.

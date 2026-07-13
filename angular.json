@@ -24,7 +24,7 @@
           "builder": "@angular/build:application",
           "options": {
             "outputPath": "dist/ma-ville-notes",
-            "baseHref": "/plan-ma-ville/",
+            "baseHref": "/",
             "allowedCommonJsDependencies": [
               "leaflet",
               "leaflet.markercluster"

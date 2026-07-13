@@ -36,7 +36,7 @@ Specs : `docs/SPEC-DATA.md`, `docs/SPEC-PHASES-2-6.md`, `docs/SPEC-PHASES-7-12.m
 
 ## Commandes
 
-- `npm start` — dev (http://localhost:4200/plan-ma-ville/).
+- `npm start` — dev (http://localhost:4200/).
 - `npm run build` — build prod + `404.html` (fallback SPA Pages).
 - `npm run data:build` — pipeline complet + validation 6 invariants + sitemap.
 - `npm run data:sample` — pipeline départements 69,75.
@@ -244,7 +244,12 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
 
 ## Déploiement & Git
 
-- **baseHref `/plan-ma-ville/`** (nom réel du repo), `outputPath dist/ma-ville-notes`.
+- **Domaine : planmaville.fr** (fichier `public/CNAME`, baseHref `/`,
+  `environment.baseUrl` + `siteBaseUrl` pipeline alignés). GitHub redirige
+  automatiquement l'ancienne URL github.io vers le domaine. `public/robots.txt`
+  (Allow + Sitemap). **IndexNow** : clé `public/<hex32>.txt` + job `indexnow`
+  de deploy.yml (ping Bing/Yandex à chaque déploiement, seulement si
+  `SITE_INDEXABLE=true`). `outputPath dist/ma-ville-notes`.
 - `.github/workflows/deploy.yml` : sur push `main` → inject secrets → data:build
   (cache) → build → Pages. **Pages déjà activé** (source « GitHub Actions »).
 - **Branche de dev** : `claude/angular-21-creative-design-bfybnz`. Workflow

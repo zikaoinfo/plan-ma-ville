@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  baseUrl: 'http://localhost:4200/plan-ma-ville',
+  baseUrl: 'http://localhost:4200',
   supabaseUrl: '',
   supabaseAnonKey: '',
   workerUrl: '',

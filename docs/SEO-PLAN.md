@@ -77,11 +77,11 @@
       /palmares/autour/:slug (villes ≥ hubAutourMinPopulation = 50 000, ~130).
 - Ce sont aussi les contenus à promouvoir (P6).
 
-### P5 — Jour J du domaine (S + manuel)
-- Code : `CNAME` dans public/, `environment.baseUrl` + `siteBaseUrl`
-  (pipeline), `SITE_INDEXABLE=true`, `robots.txt` (possible sur domaine custom)
-  avec ligne Sitemap, ping IndexNow depuis le CI (Bing — Google ne le supporte
-  pas), page canonical/redirect sur l'ancien github.io.
+### P5 — Jour J du domaine (S + manuel) — CODE ✅ FAIT (domaine : planmaville.fr)
+- [x] Code : `CNAME` (planmaville.fr), baseHref `/`, `environment.baseUrl` +
+  `siteBaseUrl` → https://planmaville.fr, `robots.txt` (Allow + Sitemap),
+  clé + job IndexNow dans deploy.yml (gated `SITE_INDEXABLE`). La redirection
+  github.io → domaine est gérée automatiquement par GitHub Pages.
 - Manuel (propriétaire) : DNS (4 A + CNAME www), Enforce HTTPS, propriétés
   Google Search Console + Bing Webmaster le jour même, soumettre le sitemap,
   Request Indexing (home, hubs, top-50 villes). 2-6 semaines d'indexation puis

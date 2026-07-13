@@ -248,7 +248,7 @@ async function main(): Promise<void> {
     populationMin: scoring.populationMinClassement,
     sitemapVillesMinPop: scoring.prerenderMinPopulation ?? 5000,
     hubAutourMinPop: scoring.hubAutourMinPopulation ?? 50000,
-    siteBaseUrl: 'https://zikaoinfo.github.io/plan-ma-ville',
+    siteBaseUrl: 'https://planmaville.fr',
   });
 
   console.log('▸ Validation des invariants…');
