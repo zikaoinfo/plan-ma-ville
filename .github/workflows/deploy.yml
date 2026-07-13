@@ -35,9 +35,20 @@ jobs:
           path: public/data
           key: public-data-${{ hashFiles('tools/data-pipeline/**/*.ts', 'tools/data-pipeline/*.json') }}
 
+      # Boucle de reprise : les serveurs open data coupent parfois la
+      # connexion en plein transfert et certains crashs (assertion undici de
+      # Node) ne sont pas rattrapables dans le process. Chaque nouvelle
+      # tentative reprend sur tools/data-pipeline/.cache/ (téléchargements
+      # déjà aboutis conservés).
       - name: Build data files
         if: steps.data-cache.outputs.cache-hit != 'true'
-        run: npm run data:build
+        run: |
+          for i in 1 2 3; do
+            npm run data:build && exit 0
+            echo "::warning::data:build tentative $i/3 échouée — nouvel essai dans 30 s"
+            sleep 30
+          done
+          exit 1
 
       - name: Inject environment secrets
         env:

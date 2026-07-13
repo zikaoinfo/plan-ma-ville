@@ -31,7 +31,13 @@ jobs:
         run: npm ci
 
       - name: Build data files (sans cache — données fraîches)
-        run: npm run data:build
+        run: |
+          for i in 1 2 3; do
+            npm run data:build && exit 0
+            echo "::warning::data:build tentative $i/3 échouée — nouvel essai dans 30 s"
+            sleep 30
+          done
+          exit 1
 
       - name: Inject environment secrets
         env:

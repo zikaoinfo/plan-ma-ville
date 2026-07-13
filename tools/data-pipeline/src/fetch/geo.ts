@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
+import { avecReprise } from './download.js';
 
 /** Réponse brute de geo.api.gouv.fr (champs demandés dans sources.config.json). */
 interface GeoCommuneRaw {
@@ -40,11 +41,13 @@ export async function fetchCommunes(url: string, cacheDir: string): Promise<Comm
   if (existsSync(cacheFile)) {
     raw = JSON.parse(await readFile(cacheFile, 'utf8')) as GeoCommuneRaw[];
   } else {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`geo.api.gouv.fr a répondu ${response.status} ${response.statusText}`);
-    }
-    raw = (await response.json()) as GeoCommuneRaw[];
+    raw = await avecReprise('geo.api.gouv.fr', async () => {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`geo.api.gouv.fr a répondu ${response.status} ${response.statusText}`);
+      }
+      return (await response.json()) as GeoCommuneRaw[];
+    });
     await mkdir(cacheDir, { recursive: true });
     await writeFile(cacheFile, JSON.stringify(raw), 'utf8');
   }

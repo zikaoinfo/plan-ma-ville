@@ -30,4 +30,10 @@ jobs:
         run: npm ci
 
       - name: Build data (strict — échoue si une source est vide)
-        run: npm run data:validate
+        run: |
+          for i in 1 2 3; do
+            npm run data:validate && exit 0
+            echo "::warning::data:validate tentative $i/3 échouée — nouvel essai dans 30 s"
+            sleep 30
+          done
+          exit 1

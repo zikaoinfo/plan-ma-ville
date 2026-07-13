@@ -41,6 +41,36 @@ export interface SourceSpec {
 
 const UA = 'ma-ville-notee/data-pipeline (open data)';
 
+/**
+ * Exécute une requête avec reprise (3 tentatives, backoff 3 s/6 s) : les
+ * serveurs open data coupent parfois la connexion en plein transfert
+ * (ECONNRESET, réponses tronquées, 5xx transitoires). NB : les assertions
+ * internes d'undici (crash process non rattrapable, vu sur Node 24.18) ne
+ * peuvent PAS être reprises ici — c'est le rôle de la boucle de retry des
+ * workflows CI, qui relance le run en reprenant sur `.cache/`.
+ */
+export async function avecReprise<T>(
+  label: string,
+  fn: () => Promise<T>,
+  tentatives = 3,
+): Promise<T> {
+  let derniere: unknown;
+  for (let i = 1; i <= tentatives; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      derniere = err;
+      if (i < tentatives) {
+        console.warn(
+          `  ⚠ ${label} : tentative ${i}/${tentatives} échouée (${(err as Error).message}) — nouvel essai dans ${i * 3} s`,
+        );
+        await new Promise((r) => setTimeout(r, i * 3000));
+      }
+    }
+  }
+  throw derniere;
+}
+
 interface DataGouvResource {
   title?: string;
   format?: string;
@@ -58,11 +88,13 @@ async function resolveUrl(name: string, spec: SourceSpec): Promise<string> {
   if (!spec.dataset) throw new Error(`Source "${name}" : ni "url" ni "dataset" dans la config`);
 
   const api = `https://www.data.gouv.fr/api/1/datasets/${spec.dataset}/`;
-  const res = await fetch(api, { headers: { 'User-Agent': UA } });
-  if (!res.ok) {
-    throw new Error(`Source "${name}" — API data.gouv ${res.status} (dataset ${spec.dataset})`);
-  }
-  const data = (await res.json()) as { resources: DataGouvResource[] };
+  const data = await avecReprise(`API data.gouv (${name})`, async () => {
+    const res = await fetch(api, { headers: { 'User-Agent': UA } });
+    if (!res.ok) {
+      throw new Error(`Source "${name}" — API data.gouv ${res.status} (dataset ${spec.dataset})`);
+    }
+    return (await res.json()) as { resources: DataGouvResource[] };
+  });
   // Inventaire (aide au choix du motif `resource` en lisant les logs CI).
   const inventaire = data.resources
     .slice(0, 40)
@@ -110,11 +142,15 @@ export async function ensureCsv(name: string, spec: SourceSpec, cacheDir: string
   }
 
   const url = await resolveUrl(name, spec);
-  const response = await fetch(url, { headers: { 'User-Agent': UA } });
-  if (!response.ok) {
-    throw new Error(`Source "${name}" — ${url} a répondu ${response.status} ${response.statusText}`);
-  }
-  const raw = Buffer.from(await response.arrayBuffer());
+  // fetch + lecture du corps DANS la reprise : les coupures serveur arrivent
+  // aussi bien à la connexion qu'en plein téléchargement.
+  const raw = await avecReprise(`téléchargement ${name}`, async () => {
+    const response = await fetch(url, { headers: { 'User-Agent': UA } });
+    if (!response.ok) {
+      throw new Error(`Source "${name}" — ${url} a répondu ${response.status} ${response.statusText}`);
+    }
+    return Buffer.from(await response.arrayBuffer());
+  });
   const csv = decompress(raw, spec, name);
 
   await mkdir(cacheDir, { recursive: true });
