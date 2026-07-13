@@ -71,6 +71,13 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
     F3 culture).
   - **SSMSI** (data.gouv) — délinquance → sécurité (note inversée). `fetch/securite.ts`.
   - **Filosofi** (INSEE) — revenu médian → niveau de vie. `fetch/filosofi.ts`.
+  - **Statistiques DVF** (DGFiP/data.gouv) — agrégats PRÊTS À L'EMPLOI du prix m²
+    médian résidentiel par commune et par semestre (pas le DVF brut multi-Go).
+    `fetch/dvf.ts` : échelle commune uniquement, priorité appartements+maisons,
+    historique ≤10 périodes → `CommuneDetail.prix` (`{m2, periode, nb?, histo}`)
+    dans `dep/{code}.json`. Hors couverture (Alsace, Moselle, Mayotte, communes
+    sans ventes) → champ absent, l'UI l'affiche honnêtement. N'alimente PAS la
+    note (info affichée, pas critère).
 - **Scoring réel par rang percentile moyen** (`score/real.ts`, plus de notes
   factices) : densité /1000 hab (BPE), taux /1000 hab (SSMSI, inversé), revenu
   médian (Filosofi) → `rankNotes` (`score/scale.ts`) = midrank puis remise à
@@ -125,9 +132,11 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
   carte OSM (iframe `afterNextRender`) adossée à la pile prix m² + historique
   (sparkline SVG, hauteurs équilibrées ; variante `dash--nomap` sans coordonnées),
   puis communes voisines (haversine) en grille de vignettes pleine largeur.
-  Estimations déterministes dans `commune-insights.ts` (pures, testées).
-  Onglets « Données officielles » / « Avis habitants » (`?onglet=avis` pour
-  survivre au retour OAuth).
+  **Prix m² = RÉEL (DVF)** : médiane + tendance 1 an (`dvfTrendPct`) + sparkline
+  depuis `commune.prix.histo` ; sans donnée → message honnête, pas d'estimation.
+  L'historique de NOTE reste une trajectoire estimée (`commune-insights.ts`,
+  pur, testé). Onglets « Données officielles » / « Avis habitants »
+  (`?onglet=avis` pour survivre au retour OAuth).
 - **Régions `/regions`** : classement des régions (grille, note ↓), drill-down.
   **Région `/region/:code`** : ses départements classés note ↓ → lien commune.
   Chaîne région → département → ville. Lu depuis `regions.json` (départements
@@ -214,6 +223,7 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
 Faites : 0–4, 6, 8 (carte), 11 (comparateur), 7 (avis). Dashboard commune.
 **5** (vraies données open data — BPE/SSMSI/Filosofi via percentile) : **codée +
 testée** (29 tests pipeline), en attente de **validation CI** des URLs sources.
-Reste : DVF (prix m² réel), **12** (page profil/villes suivies, Supabase),
+DVF (prix m² réel) : **fait** (en attente de validation CI des colonnes/URL).
+Reste : **12** (page profil/villes suivies, Supabase),
 **9/10** (IA — bloqué : nécessite un proxy serveur pour cacher la clé Claude ;
 option quiz déterministe sans IA). Détail vivant : `docs/TODO.md`.

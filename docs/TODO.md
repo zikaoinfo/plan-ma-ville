@@ -83,9 +83,12 @@ Tests : 37 verts (Vitest). Lint clean. Build OK. Pipeline déterministe.
 > Actuellement déterministes par code INSEE (cf. `commune-insights.ts`), assumées
 > « indicatives ». À brancher sur du réel une fois la phase 5 en place.
 
-- [ ] **Prix au m²** : source réelle DVF (Demandes de Valeurs Foncières,
-      data.gouv.fr) → prix médian par commune. Ajouter au pipeline + au schéma
-      `CommuneDetail` (`prixM2?`). Retirer `estimatePriceM2` une fois réel.
+- [x] **Prix au m²** : FAIT — agrégats « Statistiques DVF » (data.gouv) →
+      `fetch/dvf.ts`, `CommuneDetail.prix` (médiane, période, nb ventes,
+      historique ≤10 périodes). `estimatePriceM2`/`priceTrendPct` supprimés,
+      remplacés par `dvfTrendPct` (tendance 1 an sur données réelles). UI :
+      carte prix (sparkline + source), ligne comparateur, méthodologie.
+      Hors couverture (Alsace/Moselle/Mayotte, communes sans ventes) → absent.
 - [ ] **Historique** : si série temporelle réelle dispo (notes par millésime),
       remplacer `noteHistory` ; sinon garder l'estimation en l'étiquetant.
 - [ ] **Carte** : vérifier le rendu de l'iframe OSM en conditions réelles

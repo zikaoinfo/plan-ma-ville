@@ -15,12 +15,7 @@ import { ProfilPicker } from '../../shared/profil-picker/profil-picker';
 import { ScoreBadge } from '../../shared/score-badge/score-badge';
 import { CommuneAvisForm } from './commune-avis/commune-avis-form';
 import { CommuneAvisList } from './commune-avis/commune-avis-list';
-import {
-  estimatePriceM2,
-  nearestCommunes,
-  noteHistory,
-  priceTrendPct,
-} from './commune-insights';
+import { dvfTrendPct, nearestCommunes, noteHistory } from './commune-insights';
 
 const ICONS: Record<Critere, string> = {
   securite: '🛡️',
@@ -108,14 +103,39 @@ export class Commune {
     return c && f ? nearestCommunes(c, f.communes, 6) : [];
   });
 
-  // Estimations indicatives, déterministes (cf. /methodologie).
-  protected readonly prixM2 = computed(() => {
-    const c = this.commune();
-    return c ? estimatePriceM2(c) : null;
-  });
+  // Prix immobilier réel — agrégats DVF émis par le pipeline (cf. /methodologie).
+  protected readonly prix = computed(() => this.commune()?.prix ?? null);
   protected readonly prixTrend = computed(() => {
-    const c = this.commune();
-    return c ? priceTrendPct(c) : 0;
+    const p = this.prix();
+    return p ? dvfTrendPct(p.histo) : null;
+  });
+  /** Libellé humain de la période DVF ("2025-S2" → "2ᵉ semestre 2025"). */
+  protected readonly prixPeriode = computed(() => {
+    const p = this.prix();
+    if (!p) return '';
+    const m = /^(\d{4})-S([12])$/.exec(p.periode);
+    if (m) return `${m[2]}${m[2] === '1' ? 'ᵉʳ' : 'ᵉ'} semestre ${m[1]}`;
+    return p.periode;
+  });
+  /** Sparkline SVG du prix m² (mêmes proportions que celle de la note). */
+  protected readonly sparkPrix = computed(() => {
+    const p = this.prix();
+    if (!p || p.histo.length < 2) return null;
+    const vals = p.histo.map((h) => h.v);
+    const min = Math.min(...vals);
+    const max = Math.max(...vals);
+    const span = Math.max(1, max - min);
+    const W = 100;
+    const H = 32;
+    const pad = 4;
+    const points = p.histo
+      .map((h, i) => {
+        const x = (i / (p.histo.length - 1)) * (W - 2 * pad) + pad;
+        const y = H - pad - ((h.v - min) / span) * (H - 2 * pad);
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      })
+      .join(' ');
+    return { points, first: p.histo[0], last: p.histo[p.histo.length - 1] };
   });
   protected readonly historique = computed(() => {
     const c = this.commune();
