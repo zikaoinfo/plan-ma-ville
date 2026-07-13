@@ -51,7 +51,10 @@
   color: var(--ink);
 }
 
-.chip--active {
+/* :hover inclus : sans lui, `.chip:hover` (plus spécifique) repeindrait le
+   texte du chip actif en encre… sur fond encre → libellé invisible. */
+.chip--active,
+.chip--active:hover {
   background: var(--ink);
   border-color: var(--ink);
   color: var(--paper);
