@@ -17,5 +17,10 @@
     "format": "csv",
     "resource": "commune",
     "valueCol": "^\\[DISP\\].*M[eé]diane"
+  },
+  "dvf": {
+    "dataset": "statistiques-dvf",
+    "format": "csv",
+    "resource": "total"
   }
 }

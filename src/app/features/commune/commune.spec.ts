@@ -36,6 +36,16 @@ function detail(slug: string, nom: string, lat: number, lon: number, global: num
     lat,
     lon,
     score: { source: 'computed', global, criteres: crit(global) },
+    prix: {
+      m2: 4200,
+      periode: '2025-S1',
+      nb: 120,
+      histo: [
+        { p: '2024-S1', v: 4000 },
+        { p: '2024-S2', v: 4100 },
+        { p: '2025-S1', v: 4200 },
+      ],
+    },
   };
 }
 

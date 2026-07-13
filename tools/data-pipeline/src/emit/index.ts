@@ -128,6 +128,7 @@ export async function emitAll(
         codesPostaux: c.codesPostaux,
         population: c.population,
         ...(c.lat !== undefined && c.lon !== undefined ? { lat: c.lat, lon: c.lon } : {}),
+        ...(c.prix ? { prix: c.prix } : {}),
         score: c.score,
       })),
     };

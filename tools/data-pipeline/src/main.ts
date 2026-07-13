@@ -11,6 +11,7 @@ import type {
 } from './models.js';
 import { fetchCommunes } from './fetch/geo.js';
 import { fetchBpe } from './fetch/bpe.js';
+import { fetchDvf } from './fetch/dvf.js';
 import { fetchSecurite } from './fetch/securite.js';
 import { fetchFilosofi } from './fetch/filosofi.js';
 import type { SourceSpec } from './fetch/download.js';
@@ -37,6 +38,7 @@ interface SourcesConfig {
   bpe: SourceSpec;
   securite: SourceSpec;
   filosofi: SourceSpec;
+  dvf: SourceSpec;
 }
 
 /**
@@ -189,8 +191,8 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  console.log('▸ Téléchargement des sources open data (BPE, SSMSI, Filosofi)…');
-  const [bpe, securite, filosofi] = await Promise.all([
+  console.log('▸ Téléchargement des sources open data (BPE, SSMSI, Filosofi, DVF)…');
+  const [bpe, securite, filosofi, dvf] = await Promise.all([
     fetchOrWarn('BPE', () => fetchBpe(sources.bpe, cacheDir), new Map()),
     fetchOrWarn(
       'SSMSI',
@@ -198,12 +200,14 @@ async function main(): Promise<void> {
       { map: new Map(), millesime: NaN },
     ),
     fetchOrWarn('Filosofi', () => fetchFilosofi(sources.filosofi, cacheDir), new Map()),
+    fetchOrWarn('DVF', () => fetchDvf(sources.dvf, cacheDir), new Map()),
   ]);
   const maps: DataMaps = { bpe, securite: securite.map, filosofi };
   const couverture = {
     bpe: retenues.filter((c) => bpe.has(c.codeInsee)).length,
     securite: retenues.filter((c) => maps.securite.has(c.codeInsee)).length,
     filosofi: retenues.filter((c) => filosofi.has(c.codeInsee)).length,
+    dvf: retenues.filter((c) => dvf.has(c.codeInsee)).length,
   };
 
   console.log(`▸ Scoring de ${retenues.length} communes (rang percentile national)…`);
@@ -214,6 +218,7 @@ async function main(): Promise<void> {
   );
   const scorees: CommuneScoree[] = retenues.map((c) => {
     const criteres = notesParCommune.get(c.codeInsee)!;
+    const prix = dvf.get(c.codeInsee);
     return {
       slug: slugify(c.nom, c.codeInsee),
       nom: c.nom,
@@ -221,6 +226,7 @@ async function main(): Promise<void> {
       codesPostaux: c.codesPostaux,
       population: c.population,
       ...(c.lat !== undefined && c.lon !== undefined ? { lat: c.lat, lon: c.lon } : {}),
+      ...(prix ? { prix } : {}),
       codeDepartement: c.codeDepartement,
       score: {
         source: 'computed',
@@ -275,7 +281,7 @@ async function main(): Promise<void> {
   console.log(
     `Couverture    : BPE ${pct(couverture.bpe)} · SSMSI ${pct(couverture.securite)}` +
       `${Number.isNaN(securite.millesime) ? '' : ` (${securite.millesime})`}` +
-      ` · Filosofi ${pct(couverture.filosofi)}`,
+      ` · Filosofi ${pct(couverture.filosofi)} · DVF ${pct(couverture.dvf)}`,
   );
   console.log(`Notes /tranche: ${histo}`);
   console.log('Étendue notes/critère :');
@@ -301,6 +307,7 @@ async function main(): Promise<void> {
         ['BPE', couverture.bpe],
         ['SSMSI', couverture.securite],
         ['Filosofi', couverture.filosofi],
+        ['DVF', couverture.dvf],
       ] as const
     )
       .filter(([, n]) => n === 0)

@@ -111,6 +111,24 @@ export interface CommuneDetail {
   /** Longitude du centre. */
   lon?: number;
   score: CommuneScore;
+  /** Prix immobilier réel DVF (absent : pas de ventes / hors couverture). */
+  prix?: PrixM2;
+}
+
+/**
+ * Prix au m² réel issu des agrégats « Statistiques DVF » (data.gouv, DGFiP).
+ * Couverture : France sauf Alsace, Moselle, Mayotte (livre foncier local) ;
+ * médiane absente quand trop peu de ventes sur la période.
+ */
+export interface PrixM2 {
+  /** €/m² médian (résidentiel) sur la dernière période disponible. */
+  m2: number;
+  /** Dernière période ("2025-S2" ou "2025-12" selon la granularité source). */
+  periode: string;
+  /** Nombre de ventes de la période (indice de fiabilité), si publié. */
+  nb?: number;
+  /** Historique chronologique (≤ 10 périodes) pour la sparkline. */
+  histo: { p: string; v: number }[];
 }
 
 export interface CommuneScore {

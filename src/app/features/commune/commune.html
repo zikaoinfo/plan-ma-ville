@@ -107,16 +107,38 @@
           </section>
         }
 
-        <!-- Prix immobilier estimé -->
-        <section class="card card--price" aria-label="Prix immobilier estimé">
-          <h2 class="card__title">Prix au m² estimé</h2>
-          <p class="price">
-            {{ prixM2() | number: '1.0-0' }} <span class="price__unit">€/m²</span>
-          </p>
-          <p class="price__trend" [class.price__trend--up]="prixTrend() >= 0" [class.price__trend--down]="prixTrend() < 0">
-            {{ prixTrend() >= 0 ? '▲' : '▼' }} {{ prixTrend() }} % sur un an
-          </p>
-          <p class="estimate-note">Estimation indicative · non contractuelle</p>
+        <!-- Prix immobilier réel (DVF) -->
+        <section class="card card--price" aria-label="Prix immobilier">
+          <h2 class="card__title">Prix au m²</h2>
+          @if (prix(); as p) {
+            <p class="price">
+              {{ p.m2 | number: '1.0-0' }} <span class="price__unit">€/m²</span>
+            </p>
+            @if (prixTrend() !== null) {
+              <p
+                class="price__trend"
+                [class.price__trend--up]="prixTrend()! >= 0"
+                [class.price__trend--down]="prixTrend()! < 0"
+              >
+                {{ prixTrend()! >= 0 ? '▲' : '▼' }} {{ prixTrend() }} % sur un an
+              </p>
+            }
+            @if (sparkPrix(); as s) {
+              <svg class="spark spark--prix" viewBox="0 0 100 32" preserveAspectRatio="none" role="img"
+                [attr.aria-label]="'Prix de ' + s.first.v + ' à ' + s.last.v + ' €/m²'">
+                <polyline class="spark__line" [attr.points]="s.points" />
+              </svg>
+            }
+            <p class="estimate-note">
+              Médiane des ventes ({{ prixPeriode() }}@if (p.nb) {, {{ p.nb | number: '1.0-0' }} ventes}) ·
+              source DVF/data.gouv.fr
+            </p>
+          } @else {
+            <p class="price__none">
+              Pas assez de ventes enregistrées pour une médiane fiable
+              <span class="price__none-detail">(source DVF — non couvert en Alsace, Moselle et Mayotte)</span>
+            </p>
+          }
         </section>
 
         <!-- Historique de la note -->

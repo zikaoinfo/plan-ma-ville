@@ -135,6 +135,17 @@
           </tr>
 
           <tr class="cmp__row cmp__row--info">
+            <th scope="row">Prix m² <span class="cmp__source">DVF</span></th>
+            @for (col of colonnes(); track col.slug) {
+              @if (communeAt($index)?.prix; as p) {
+                <td>{{ p.m2 | number: '1.0-0' }} €</td>
+              } @else {
+                <td class="cell--na">—</td>
+              }
+            }
+          </tr>
+
+          <tr class="cmp__row cmp__row--info">
             <th scope="row">
               Note habitants
               <span class="soon">bientôt</span>

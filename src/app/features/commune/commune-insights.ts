@@ -27,16 +27,25 @@ function mulberry32(seed: number): () => number {
   };
 }
 
+// ── Prix m² réel (DVF) ──
+
 /**
- * Estimation indicative du prix au m² (€), dérivée du niveau de vie, de la
- * population et d'une variation déterministe par commune. Bornée [900, 12000].
+ * Évolution du prix m² (%) entre la dernière période DVF et la période
+ * comparable UN AN avant (même semestre/mois de l'année précédente si présent,
+ * sinon le point le plus ancien à ≥ 2 périodes d'écart). `null` si l'historique
+ * est trop court pour une comparaison honnête.
  */
-export function estimatePriceM2(commune: CommuneDetail): number {
-  const rand = mulberry32(cyrb53(commune.codeInsee, 7));
-  const niveauVie = commune.score.criteres.niveauVie;
-  const base = 950 + niveauVie * 360 + Math.log10(commune.population + 10) * 280;
-  const prix = base * (0.9 + rand() * 0.35);
-  return Math.min(12000, Math.max(900, Math.round(prix / 10) * 10));
+export function dvfTrendPct(histo: readonly { p: string; v: number }[]): number | null {
+  if (histo.length < 2) return null;
+  const dernier = histo[histo.length - 1];
+  const anneeDerniere = Number(dernier.p.slice(0, 4));
+  const suffixe = dernier.p.slice(4); // "-S2", "-12"…
+  const cible = `${anneeDerniere - 1}${suffixe}`;
+  const reference =
+    histo.find((h) => h.p === cible) ??
+    (histo.length >= 3 ? histo[histo.length - 3] : null);
+  if (!reference || reference.v <= 0) return null;
+  return Math.round(((dernier.v - reference.v) / reference.v) * 1000) / 10;
 }
 
 /** Point d'historique : année + note globale estimée cette année-là. */
@@ -63,12 +72,6 @@ export function noteHistory(
     points.unshift({ year: endYear - i, note });
   }
   return points;
-}
-
-/** Variation de prix sur 1 an (%), déterministe, dans [-3, +8]. */
-export function priceTrendPct(commune: CommuneDetail): number {
-  const rand = mulberry32(cyrb53(commune.codeInsee, 99));
-  return Math.round((-3 + rand() * 11) * 10) / 10;
 }
 
 function clampNote(n: number): number {

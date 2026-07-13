@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { CommuneDetail, Critere } from '../../core/models/data.models';
 import {
-  estimatePriceM2,
+  dvfTrendPct,
   haversineKm,
   nearestCommunes,
   noteHistory,
@@ -35,20 +35,39 @@ const villeurbanne = commune('villeurbanne-69266', '69266', 6.8, { lat: 45.7733,
 const caluire = commune('caluire-69034', '69034', 4.9, { lat: 45.7956, lon: 4.8467 });
 const affoux = commune('affoux-69001', '69001', 5, { lat: 45.8856, lon: 4.4761 });
 
-describe('estimatePriceM2', () => {
-  it('est déterministe et borné', () => {
-    const a = estimatePriceM2(lyon);
-    const b = estimatePriceM2(lyon);
-    expect(a).toBe(b);
-    expect(a).toBeGreaterThanOrEqual(900);
-    expect(a).toBeLessThanOrEqual(12000);
+describe('dvfTrendPct', () => {
+  it('compare au même semestre un an avant', () => {
+    const histo = [
+      { p: '2024-S1', v: 4000 },
+      { p: '2024-S2', v: 4100 },
+      { p: '2025-S1', v: 4200 },
+    ];
+    expect(dvfTrendPct(histo)).toBe(5); // 4200 vs 4000 (2024-S1)
   });
 
-  it('croît avec le niveau de vie', () => {
-    const pauvre = commune('a', '00001', 5, { niveauVie: 2, population: 10000 });
-    const riche = commune('b', '00001', 5, { niveauVie: 9, population: 10000 });
-    // même seed (codeInsee), seul niveauVie change → prix plus élevé
-    expect(estimatePriceM2(riche)).toBeGreaterThan(estimatePriceM2(pauvre));
+  it("replie sur l'avant-avant-dernière période si l'année N-1 manque", () => {
+    const histo = [
+      { p: '2023-S2', v: 4000 },
+      { p: '2024-S2', v: 4100 },
+      { p: '2025-S1', v: 4300 },
+    ];
+    // pas de 2024-S1 → référence = histo[length-3] = 2023-S2
+    expect(dvfTrendPct(histo)).toBe(7.5);
+  });
+
+  it('historique trop court → null (pas de fausse tendance)', () => {
+    expect(dvfTrendPct([])).toBeNull();
+    expect(dvfTrendPct([{ p: '2025-S1', v: 4000 }])).toBeNull();
+    // 2 points mais pas d'année N-1 comparable ni de 3ᵉ point
+    expect(dvfTrendPct([{ p: '2025-S1', v: 4000 }, { p: '2025-S2', v: 4100 }])).toBeNull();
+  });
+
+  it('gère la baisse (signe négatif) et arrondit à 0.1', () => {
+    const histo = [
+      { p: '2024-S2', v: 4000 },
+      { p: '2025-S2', v: 3868 },
+    ];
+    expect(dvfTrendPct(histo)).toBe(-3.3);
   });
 });
 
