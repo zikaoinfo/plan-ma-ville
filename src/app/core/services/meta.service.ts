@@ -41,7 +41,7 @@ export class MetaService {
     this.#meta.updateTag({ property: 'og:image:height', content: '630' });
     this.#meta.updateTag({
       property: 'og:image:alt',
-      content: 'ma ville, notée — la note sur 10 des communes françaises',
+      content: 'ma ville, notée — découvrez la note sur 10 de votre ville',
     });
     this.#meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
 
