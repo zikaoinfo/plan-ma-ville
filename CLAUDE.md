@@ -166,6 +166,16 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
 - **Nav mobile** (≤920px) : burger → panneau déroulant sous la topbar
   (backdrop, fermeture au clic sur un lien), pseudo compte masqué, marque
   réduite au badge <380px.
+- **PWA installable** : `@angular/service-worker` (version EXACTE du core,
+  22.0.1), activé en **prod uniquement** (`serviceWorker` dans la config
+  production d'angular.json + `provideServiceWorker` gardé par `isDevMode`).
+  `ngsw-config.json` : app shell prefetch, `data/**` en **freshness** (réseau
+  d'abord, cache en secours → hors-ligne OK), Google Fonts en performance.
+  `public/manifest.webmanifest` + icônes `public/icons/` (générées, any +
+  maskable). `UpdateService` (toSignal sur `SwUpdate.versionUpdates`) →
+  bannière « Recharger » dans le shell. Les specs TestBed qui montent `App`
+  doivent fournir `provideServiceWorker('ngsw-worker.js', {enabled:false})`.
+  Vérifié headless : SW contrôlant + navigation et données HORS-LIGNE.
 
 ## Supabase (Phase 7 — avis + auth)
 
