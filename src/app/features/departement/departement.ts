@@ -1,16 +1,18 @@
 import { DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { CRITERE_LABELS, CRITERES } from '../../core/models/data.models';
+import { CRITERE_LABELS, CRITERES, type Critere } from '../../core/models/data.models';
 import { CommuneDataService } from '../../core/services/commune-data.service';
 import { MetaService } from '../../core/services/meta.service';
+import { PonderationService } from '../../core/services/ponderation.service';
 import { SearchIndexService } from '../../core/services/search-index.service';
+import { ProfilPicker } from '../../shared/profil-picker/profil-picker';
 import { ScoreBadge } from '../../shared/score-badge/score-badge';
 import { filterAndSortCommunes, type SortField, type SortOrder } from './sort-communes';
 
 @Component({
   selector: 'app-departement',
-  imports: [RouterLink, ScoreBadge, DecimalPipe],
+  imports: [RouterLink, ScoreBadge, DecimalPipe, ProfilPicker],
   templateUrl: './departement.html',
   styleUrl: './departement.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,6 +36,8 @@ export class Departement {
     () => this.#search.departementSummary(this.code())?.noteMoyenne ?? null,
   );
 
+  protected readonly ponderation = inject(PonderationService);
+
   protected readonly sortField = signal<SortField>('global');
   protected readonly sortOrder = signal<SortOrder>(-1);
   protected readonly filterText = signal('');
@@ -46,8 +50,14 @@ export class Departement {
       this.sortField(),
       this.sortOrder(),
       this.filterText(),
+      this.ponderation.poids(),
     );
   });
+
+  /** Note repondérée d'une commune (colonne « Pour vous »). */
+  protected notePerso(criteres: Record<Critere, number>): number {
+    return this.ponderation.note(criteres);
+  }
 
   constructor() {
     effect(() => {

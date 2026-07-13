@@ -139,6 +139,9 @@ export interface ClassementEntry {
   departement: string;
   population: number;
   global: number;
+  /** Notes par critère (100 entrées → coût nul) : permet la repondération
+   *  côté client (profil famille/actif/retraité). */
+  criteres: Record<Critere, number>;
 }
 
 // ─────────────────────────────────────────────

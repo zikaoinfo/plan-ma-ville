@@ -10,6 +10,8 @@
     }
   </header>
 
+  <app-profil-picker class="classement__picker" />
+
   <div class="controls">
     <div class="tabs" role="tablist" aria-label="Sens du classement">
       <button
@@ -45,6 +47,12 @@
     </label>
   </div>
 
+  @if (ponderation.actif()) {
+    <p class="classement__repondere">
+      Le top/flop officiel est re-trié selon vos priorités — colonne « Pour vous ».
+    </p>
+  }
+
   @switch (status()) {
     @case ('loading') {
       <div class="loading" role="status"><span class="spinner" aria-hidden="true"></span> Chargement du classement…</div>
@@ -62,6 +70,9 @@
               <th scope="col" class="th th--dep">Dép.</th>
               <th scope="col" class="th th--num">Population</th>
               <th scope="col" class="th th--num">Note</th>
+              @if (ponderation.actif()) {
+                <th scope="col" class="th th--num th--perso">Pour vous</th>
+              }
             </tr>
           </thead>
           <tbody>
@@ -74,10 +85,13 @@
                 </td>
                 <td class="td td--num">{{ e.population | number: '1.0-0' }}</td>
                 <td class="td td--num"><app-score-badge [score]="e.global" /></td>
+                @if (ponderation.actif()) {
+                  <td class="td td--num"><app-score-badge [score]="notePerso(e)" /></td>
+                }
               </tr>
             } @empty {
               <tr>
-                <td colspan="5" class="td td--empty">Aucune commune pour ce filtre.</td>
+                <td [attr.colspan]="ponderation.actif() ? 6 : 5" class="td td--empty">Aucune commune pour ce filtre.</td>
               </tr>
             }
           </tbody>

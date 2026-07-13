@@ -1,0 +1,131 @@
+.picker {
+  border: 1.5px dashed var(--line);
+  border-radius: 14px;
+  padding: 0.7rem 0.9rem;
+  background: var(--paper-soft);
+}
+
+.picker__head {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.picker__label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  flex: none;
+}
+
+.picker__chips {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.8rem;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.chip:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.chip--active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+
+.picker__toggle {
+  margin-left: auto;
+  padding: 0.3rem 0.7rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.picker__toggle:hover {
+  text-decoration: underline;
+}
+
+/* ── Panneau des sliders ──────────────────── */
+.poids {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 0.35rem 1.6rem;
+  margin-top: 0.8rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--line);
+}
+
+.poids__row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.poids__nom {
+  flex: 0 0 7.5rem;
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.poids__slider {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--accent);
+}
+
+.poids__val {
+  flex: 0 0 3.2rem;
+  text-align: right;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.poids__val--off {
+  color: var(--ink-soft);
+  font-weight: 500;
+  font-style: italic;
+}
+
+.poids__note {
+  grid-column: 1 / -1;
+  margin: 0.4rem 0 0;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 720px) {
+  .picker__toggle {
+    margin-left: 0;
+  }
+}

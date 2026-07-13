@@ -113,6 +113,7 @@
   display: grid;
   grid-template-columns: 3fr 2fr;
   grid-template-areas:
+    'picker picker'
     'themes themes'
     'map    price'
     'map    histo'
@@ -123,9 +124,37 @@
 /* Sans coordonnées (pas de carte) : prix et historique côte à côte. */
 .dash--nomap {
   grid-template-areas:
+    'picker picker'
     'themes themes'
     'price  histo'
     'near   near';
+}
+
+.dash__picker {
+  grid-area: picker;
+}
+
+.card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.pour-vous {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.9rem;
+}
+
+.pour-vous__label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
 }
 
 .card {
@@ -431,6 +460,7 @@
   .dash--nomap {
     grid-template-columns: 1fr;
     grid-template-areas:
+      'picker'
       'themes'
       'map'
       'price'
@@ -440,6 +470,7 @@
 
   .dash--nomap {
     grid-template-areas:
+      'picker'
       'themes'
       'price'
       'histo'

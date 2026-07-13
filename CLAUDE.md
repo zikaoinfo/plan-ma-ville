@@ -137,6 +137,15 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
 - **Classement `/classement`** : top/flop, filtre département.
 - **Carte `/carte`** : Leaflet + markercluster (chargé en dynamique), filtre note.
 - **Comparateur `/comparer`** : jusqu'à 3 villes, URL partageable `?villes=`.
+- **Pondération par profil** (`core/ponderation.ts` pur + `PonderationService`) :
+  presets Officiel/Famille/Jeune actif/Retraité + sliders Perso (poids ∈[0,2]),
+  persistés localStorage `mvn-profil`/`mvn-poids`. Note « pour vous » =
+  Σ(note×poids)/Σ(poids) recalculée **côté client** (les 8 critères sont dans
+  les données). `POIDS_OFFICIELS` à garder alignés avec `scoring.config.json`.
+  UI : `shared/profil-picker` branché sur commune, classement (colonne « Pour
+  vous » + re-tri du top/flop officiel — `criteres` embarqués dans
+  `classement.json`), comparateur (ligne dédiée), département (colonne triable
+  `perso` via `filterAndSortCommunes(..., poids)`).
 - **Méthodologie** : statique.
 - **Thème clair/sombre/système** : `ThemeService` (signal `preference` persisté
   localStorage `mvn-theme`, `resolved` computed suivant `prefers-color-scheme`
