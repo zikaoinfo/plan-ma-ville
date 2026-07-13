@@ -42,6 +42,11 @@
         </div>
       </header>
 
+      <!-- Réponse directe (~60 mots) : le format repris par les moteurs et IA. -->
+      @if (texte(); as t) {
+        <p class="resume">{{ t.resume }}</p>
+      }
+
       <nav class="tabs" aria-label="Sections de la fiche">
         <button
           type="button"
@@ -159,6 +164,25 @@
           }
           <p class="estimate-note">Trajectoire estimée</p>
         </section>
+
+        <!-- Texte éditorial : sections « Vivre à {ville} » (SEO, données réelles) -->
+        @if (texte(); as t) {
+          <section class="card card--texte" aria-label="Vivre à {{ c.nom }}">
+            @for (s of t.sections; track s.titre) {
+              <div class="texte__section">
+                <h2 class="texte__titre">{{ s.titre }}</h2>
+                <p class="texte__corps">{{ s.texte }}</p>
+              </div>
+            }
+            <p class="texte__note">
+              Texte généré automatiquement à partir des données publiques de la commune
+              (<a routerLink="/methodologie">méthodologie</a>) ·
+              <a [routerLink]="['/comparer']" [queryParams]="{ villes: c.slug }">
+                Comparer {{ c.nom }} avec une autre commune →
+              </a>
+            </p>
+          </section>
+        }
 
         <!-- Villes aux alentours -->
         @if (voisins().length) {
