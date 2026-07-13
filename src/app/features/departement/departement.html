@@ -15,6 +15,11 @@
   </header>
 
   @if (communes(); as list) {
+    <nav class="dep__palmares" aria-label="Classements du département">
+      <a [routerLink]="['/palmares/securite', code()]">🛡️ Les villes les plus sûres →</a>
+      <a [routerLink]="['/palmares/prix', code()]">💶 Les meilleurs prix au m² →</a>
+    </nav>
+
     <app-profil-picker class="dep__picker" />
 
     <div class="dep__tools">

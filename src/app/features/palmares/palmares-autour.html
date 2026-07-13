@@ -1,0 +1,71 @@
+<section class="palmares container">
+  @if (centre(); as v) {
+    <a [routerLink]="['/ville', v.s]" class="back">← Fiche de {{ v.n }}</a>
+  } @else {
+    <a routerLink="/" class="back">← Retour à la recherche</a>
+  }
+
+  @switch (status()) {
+    @case ('loading') {
+      <div class="loading" role="status">
+        <span class="spinner" aria-hidden="true"></span> Chargement…
+      </div>
+    }
+    @case ('error') {
+      <p class="palmares__vide">Impossible de charger les données. <button type="button" class="lien" (click)="reload()">Réessayer</button></p>
+    }
+    @default {
+      @if (centre(); as v) {
+        <header class="palmares__head">
+          <h1>Où vivre autour de {{ v.n }}&nbsp;?</h1>
+          <p class="palmares__intro">{{ intro() }}</p>
+        </header>
+
+        @if (proches().length === 0) {
+          <p class="palmares__vide">{{ intro() }}</p>
+        } @else {
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col" class="th th--rang">#</th>
+                  <th scope="col" class="th">Commune</th>
+                  <th scope="col" class="th th--num">Distance</th>
+                  <th scope="col" class="th th--num">Note globale</th>
+                  <th scope="col" class="th th--num">Population</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (p of proches(); track p.item.s; let i = $index) {
+                  <tr>
+                    <td class="td td--rang">{{ i + 1 }}</td>
+                    <td class="td td--nom"><a [routerLink]="['/ville', p.item.s]">{{ p.item.n }}</a></td>
+                    <td class="td td--num">{{ p.distanceKm | number: '1.0-0' }} km</td>
+                    <td class="td td--num"><app-score-badge [score]="p.item.g" /></td>
+                    <td class="td td--num">{{ p.item.p | number: '1.0-0' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <p class="palmares__note">
+            Communes de plus de 2 000 habitants dans un rayon de {{ rayon }} km ·
+            notes calculées sur données publiques · <a routerLink="/methodologie">méthodologie</a>
+          </p>
+
+          <nav class="palmares__liens" aria-label="Continuer">
+            <a [routerLink]="['/ville', v.s]">La fiche complète de {{ v.n }} →</a>
+            <a [routerLink]="['/comparer']" [queryParams]="{ villes: v.s }">Comparer {{ v.n }} avec une voisine →</a>
+          </nav>
+        }
+      } @else if (introuvable()) {
+        <div class="palmares__vide">
+          <h1>Ville introuvable</h1>
+          <p>Aucune grande ville ne correspond à ce lien.</p>
+          <a routerLink="/" class="back">Revenir à l'accueil</a>
+        </div>
+      }
+    }
+  }
+</section>

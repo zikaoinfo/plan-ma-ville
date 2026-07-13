@@ -68,10 +68,13 @@
 - [x] ❌ Pas de FAQPage ni d'AggregateRating (cf. contexte 2-3). AggregateRating
       à reconsidérer si les avis Supabase décollent (note visible sur la page).
 
-### P4 — Hubs longue traîne (M)
-- [ ] Pages prerendues à intention : « Villes les plus sûres du {dép} »,
-      « Où vivre autour de {grande ville} » (haversine existante), « Meilleur
-      prix m² de {région} » (DVF). ItemList + liens vers les fiches. Sitemap.
+### P4 — Hubs longue traîne (M) — ✅ FAIT
+- [x] Pages prerendues à intention : « Villes les plus sûres du {dép} »,
+      « Où vivre autour de {grande ville} » (haversine existante), « Meilleurs
+      prix m² du {département} » (DVF). ItemList + breadcrumb + intro factuelle,
+      liens croisés (hub ↔ hub ↔ département ↔ communes), sitemap. Routes :
+      /palmares/securite/:dep, /palmares/prix/:dep (101 chacun),
+      /palmares/autour/:slug (villes ≥ hubAutourMinPopulation = 50 000, ~130).
 - Ce sont aussi les contenus à promouvoir (P6).
 
 ### P5 — Jour J du domaine (S + manuel)

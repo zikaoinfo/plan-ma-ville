@@ -30,6 +30,8 @@ interface ScoringConfig {
   populationMinClassement: number;
   /** Seuil de population des pages communes prérendues (SSG) + sitemap. */
   prerenderMinPopulation?: number;
+  /** Seuil de population des hubs « autour de {ville} » (prerender + sitemap). */
+  hubAutourMinPopulation?: number;
   ponderations: Record<Critere, number>;
   /** Gamma d'ajustement par critère (< 1 relève/homogénéise vers le haut). */
   boost?: Partial<Record<Critere, number>>;
@@ -245,6 +247,7 @@ async function main(): Promise<void> {
     gen,
     populationMin: scoring.populationMinClassement,
     sitemapVillesMinPop: scoring.prerenderMinPopulation ?? 5000,
+    hubAutourMinPop: scoring.hubAutourMinPopulation ?? 50000,
     siteBaseUrl: 'https://zikaoinfo.github.io/plan-ma-ville',
   });
 

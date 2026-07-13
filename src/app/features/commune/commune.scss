@@ -430,6 +430,17 @@
   font-variant-numeric: tabular-nums;
 }
 
+.near__hub {
+  margin-bottom: 0.9rem;
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.near__hub:hover {
+  text-decoration: underline;
+}
+
 /* ── Pied ─────────────────────────────────── */
 .foot {
   display: flex;

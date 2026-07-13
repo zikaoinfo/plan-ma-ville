@@ -66,6 +66,23 @@
 }
 
 /* ── Outils ───────────────────────────────── */
+.dep__palmares {
+  display: flex;
+  gap: 1.4rem;
+  flex-wrap: wrap;
+  margin-top: 1.2rem;
+}
+
+.dep__palmares a {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.dep__palmares a:hover {
+  text-decoration: underline;
+}
+
 .dep__picker {
   display: block;
   margin-top: 1.6rem;

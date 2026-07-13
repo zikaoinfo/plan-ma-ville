@@ -20,6 +20,10 @@ import { CommuneAvisList } from './commune-avis/commune-avis-list';
 import { dvfTrendPct, nearestCommunes, noteHistory } from './commune-insights';
 import { genereTexteCommune } from './commune-texte';
 
+/** Seuil des pages « Où vivre autour de {ville} » — aligné sur
+ *  `hubAutourMinPopulation` de scoring.config.json. */
+const HUB_AUTOUR_MIN_POP = 50000;
+
 const ICONS: Record<Critere, string> = {
   securite: '🛡️',
   sante: '🏥',
@@ -114,6 +118,11 @@ export class Commune {
     const f = this.#commune.depFile();
     return c && f ? genereTexteCommune(c, f.communes, this.depNom()) : null;
   });
+
+  /** Grande ville → lien vers son hub « Où vivre autour de {ville} ». */
+  protected readonly aHubAutour = computed(
+    () => (this.commune()?.population ?? 0) >= HUB_AUTOUR_MIN_POP,
+  );
 
   // Prix immobilier réel — agrégats DVF émis par le pipeline (cf. /methodologie).
   protected readonly prix = computed(() => this.commune()?.prix ?? null);
