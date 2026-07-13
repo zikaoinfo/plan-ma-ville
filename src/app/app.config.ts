@@ -7,6 +7,11 @@ import {
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
+import {
+  provideClientHydration,
+  withEventReplay,
+  withNoHttpTransferCache,
+} from '@angular/platform-browser';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
 
@@ -19,6 +24,9 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(),
+    // Hydratation des pages prérendues (SSG). Transfer cache HTTP DÉSACTIVÉ :
+    // il embarquerait index.json (~Mo) et dep/*.json dans chaque HTML.
+    provideClientHydration(withEventReplay(), withNoHttpTransferCache()),
     { provide: LOCALE_ID, useValue: 'fr-FR' },
     // PWA : service worker actif en prod uniquement (ngsw-config.json).
     // Enregistré une fois l'app stable (ou après 30 s au plus tard).

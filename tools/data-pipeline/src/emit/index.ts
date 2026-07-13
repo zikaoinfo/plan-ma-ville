@@ -55,6 +55,7 @@ async function emitSitemap(
   base: string,
   codes: string[],
   regionCodes: string[],
+  villeSlugs: string[],
   gen: string,
 ): Promise<void> {
   const root = base.replace(/\/$/, '');
@@ -65,6 +66,8 @@ async function emitSitemap(
     '/methodologie',
     ...regionCodes.map((c) => `/region/${c}`),
     ...codes.map((c) => `/departement/${c}`),
+    // Communes prérendues (SSG) uniquement : mêmes pages que le prerender.
+    ...villeSlugs.map((s) => `/ville/${s}`),
   ];
   const urls = paths
     .map((p) => `  <url><loc>${root}${p}</loc><lastmod>${gen}</lastmod></url>`)
@@ -75,9 +78,16 @@ async function emitSitemap(
 
 export async function emitAll(
   communes: CommuneScoree[],
-  options: { outDir: string; gen: string; populationMin: number; siteBaseUrl: string },
+  options: {
+    outDir: string;
+    gen: string;
+    populationMin: number;
+    /** Seuil de population des pages communes prérendues → sitemap. */
+    sitemapVillesMinPop: number;
+    siteBaseUrl: string;
+  },
 ): Promise<EmitResult> {
-  const { outDir, gen, populationMin, siteBaseUrl } = options;
+  const { outDir, gen, populationMin, sitemapVillesMinPop, siteBaseUrl } = options;
 
   // Repart d'un répertoire propre pour éviter les fichiers dep/ orphelins
   // d'un run précédent (le README est préservé : il vit dans outDir et
@@ -224,6 +234,7 @@ export async function emitAll(
     siteBaseUrl,
     codes,
     regionsFile.items.map((r) => r.code),
+    communes.filter((c) => c.population >= sitemapVillesMinPop).map((c) => c.slug),
     gen,
   );
 

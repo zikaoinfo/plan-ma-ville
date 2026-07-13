@@ -23,9 +23,12 @@ Specs : `docs/SPEC-DATA.md`, `docs/SPEC-PHASES-2-6.md`, `docs/SPEC-PHASES-7-12.m
 
 ## Environnement (IMPORTANT)
 
-- **Node 24 requis** (le CLI ng22 exige > 22.22.3). Si la sandbox a Node 22.x,
+- **Node 24 requis** (le CLI ng22 exige ≥ 22.22.3). Si la sandbox a Node 22.x,
   installer Node 24 en local puis `export PATH=$HOME/.local/node/bin:$PATH`
-  avant toute commande npm/npx.
+  avant toute commande npm/npx — ou patcher localement (non commité)
+  `node_modules/@angular/cli/src/utilities/node-version.js`.
+- **Angular épinglé en 22.0.6 exact** (paquets @angular/* alignés : le
+  service-worker et l'ssr peer-exigent la version EXACTE du core).
 - **Réseau sandbox bloqué** vers `geo.api.gouv.fr` / `insee.fr` / `data.gouv.fr`
   (hors allowlist). Le pipeline lit un **fixture** `tools/data-pipeline/.cache/geo.json`
   (gitignoré) → `npm run data:build` marche en local. En CI le réseau est ouvert.
@@ -166,6 +169,19 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
 - **Nav mobile** (≤920px) : burger → panneau déroulant sous la topbar
   (backdrop, fermeture au clic sur un lien), pseudo compte masqué, marque
   réduite au badge <380px.
+- **SSG/prerender (SEO)** : `outputMode: 'static'` + `src/main.server.ts`
+  (bootstrap AVEC `BootstrapContext` — NG0401 sinon) + routes serveur dans
+  `src/app/app.routes.server.ts` : pages fixes + `region/:code` +
+  `departement/:code` + `ville/:slug` (communes ≥ `prerenderMinPopulation`
+  de scoring.config.json, 5000 → ~2 500 pages), reste en
+  `RenderMode.Client` (fallback SPA 404.html). **Piège du prerender async
+  contourné** : intercepteur serveur `core/prerender/donnees-locales.interceptor.ts`
+  qui sert `data/*.json` depuis le disque en synchrone (data:build tourne
+  AVANT ng build en CI). `document.baseURI` N'EXISTE PAS dans le DOM serveur →
+  toujours passer par `core/data-url.ts` (`dataUrl`/`baseUri`) pour les URLs de
+  données ; idem `dataset` sur documentElement (utiliser setAttribute).
+  Hydratation activée avec `withNoHttpTransferCache` (sinon index.json ~Mo
+  embarqué dans chaque HTML). Le sitemap inclut les mêmes communes ≥ seuil.
 - **PWA installable** : `@angular/service-worker` (version EXACTE du core,
   22.0.1), activé en **prod uniquement** (`serviceWorker` dans la config
   production d'angular.json + `provideServiceWorker` gardé par `isDevMode`).

@@ -9,6 +9,7 @@ import type {
   SearchIndexFile,
   SearchIndexItem,
 } from '../models/data.models';
+import { dataUrl } from '../data-url';
 import { normaliseNom } from '../normalise';
 
 const MAX_RESULTS = 10;
@@ -119,12 +120,8 @@ export class SearchIndexService {
     this.#regions.reload();
   }
 
-  /**
-   * URL d'un fichier de données, résolue contre `document.baseURI` (qui inclut
-   * le `<base href>`), donc correcte en dev comme en prod quel que soit le
-   * baseHref — sans le coder en dur.
-   */
+  /** URL d'un fichier de données (voir `dataUrl` : gère aussi le prerender). */
   #url(file: string): string {
-    return new URL(`data/${file}`, this.#doc.baseURI).href;
+    return dataUrl(this.#doc, file);
   }
 }

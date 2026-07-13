@@ -2,6 +2,7 @@ import { DecimalPipe, DOCUMENT } from '@angular/common';
 import { httpResource } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { dataUrl } from '../../core/data-url';
 import type { ClassementEntry, ClassementFile } from '../../core/models/data.models';
 import { MetaService } from '../../core/services/meta.service';
 import { PonderationService } from '../../core/services/ponderation.service';
@@ -23,7 +24,7 @@ export class Classement {
   readonly #meta = inject(MetaService);
 
   readonly #classement = httpResource<ClassementFile>(
-    () => new URL('data/classement.json', this.#doc.baseURI).href,
+    () => dataUrl(this.#doc, 'classement.json'),
   );
 
   protected readonly status = this.#classement.status;
