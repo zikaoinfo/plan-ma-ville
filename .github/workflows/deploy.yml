@@ -94,6 +94,9 @@ jobs:
     needs: deploy
     if: vars.SITE_INDEXABLE == 'true'
     runs-on: ubuntu-latest
+    # Best-effort : une notification IndexNow ratée (site pas encore propagé,
+    # API tierce indisponible) ne doit JAMAIS marquer le déploiement en échec.
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - name: Ping IndexNow
