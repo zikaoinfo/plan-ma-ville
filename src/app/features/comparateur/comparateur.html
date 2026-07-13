@@ -3,6 +3,8 @@
   <h1>Comparateur de communes</h1>
   <p class="intro">Ajoutez jusqu'à {{ max }} communes et comparez-les critère par critère.</p>
 
+  <app-profil-picker class="cmp-picker" />
+
   @if (!full()) {
     <div class="add">
       <label class="sr-only" for="cmp-q">Ajouter une commune</label>
@@ -77,6 +79,26 @@
               }
             }
           </tr>
+
+          @if (ponderation.actif()) {
+            <tr class="cmp__row cmp__row--global cmp__row--perso">
+              <th scope="row">Note pour vous</th>
+              @for (col of colonnes(); track col.slug) {
+                @if (communeAt($index); as c) {
+                  <td [class.best]="notePerso(c) === meilleurePerso()">
+                    <span class="cell">
+                      <b class="cell__val">{{ notePerso(c).toFixed(1) }}</b>
+                      <span class="cell__bar">
+                        <span [style.width.%]="notePerso(c) * 10" [style.background]="couleur(notePerso(c))"></span>
+                      </span>
+                    </span>
+                  </td>
+                } @else {
+                  <td class="cell--na">—</td>
+                }
+              }
+            </tr>
+          }
 
           @for (critere of criteres; track critere) {
             <tr class="cmp__row">

@@ -7,9 +7,11 @@ import { AuthService } from '../../core/services/auth.service';
 import { AvisService } from '../../core/services/avis.service';
 import { CommuneDataService } from '../../core/services/commune-data.service';
 import { MetaService } from '../../core/services/meta.service';
+import { PonderationService } from '../../core/services/ponderation.service';
 import { SearchIndexService } from '../../core/services/search-index.service';
 import { AuthGate } from '../../shared/auth-gate/auth-gate';
 import { NoteBar } from '../../shared/note-bar/note-bar';
+import { ProfilPicker } from '../../shared/profil-picker/profil-picker';
 import { ScoreBadge } from '../../shared/score-badge/score-badge';
 import { CommuneAvisForm } from './commune-avis/commune-avis-form';
 import { CommuneAvisList } from './commune-avis/commune-avis-list';
@@ -41,6 +43,7 @@ const ICONS: Record<Critere, string> = {
     AuthGate,
     CommuneAvisList,
     CommuneAvisForm,
+    ProfilPicker,
   ],
   templateUrl: './commune.html',
   styleUrl: './commune.scss',
@@ -83,6 +86,14 @@ export class Commune {
   protected readonly commune = computed(() => {
     const s = this.#state();
     return typeof s === 'string' ? null : s;
+  });
+
+  protected readonly ponderation = inject(PonderationService);
+
+  /** Note globale repondérée selon le profil de l'utilisateur. */
+  protected readonly notePerso = computed(() => {
+    const c = this.commune();
+    return c ? this.ponderation.note(c.score.criteres) : null;
   });
 
   protected readonly depCode = computed(() => this.#search.findBySlug(this.slug())?.d ?? '');

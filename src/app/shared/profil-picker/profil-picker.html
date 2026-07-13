@@ -1,0 +1,60 @@
+<div class="picker">
+  <div class="picker__head">
+    <span class="picker__label">Vos priorités</span>
+    <div class="picker__chips" role="radiogroup" aria-label="Profil de pondération">
+      @for (p of ponderation.profils; track p.id) {
+        <button
+          type="button"
+          role="radio"
+          class="chip"
+          [class.chip--active]="ponderation.profil() === p.id"
+          [attr.aria-checked]="ponderation.profil() === p.id"
+          [title]="p.description"
+          (click)="choisir(p.id)"
+        >
+          <span aria-hidden="true">{{ p.icon }}</span> {{ p.label }}
+        </button>
+      }
+    </div>
+    <button
+      type="button"
+      class="picker__toggle"
+      (click)="reglages.set(!reglages())"
+      [attr.aria-expanded]="reglages()"
+      aria-controls="poids-panel"
+    >
+      {{ reglages() ? 'Masquer les réglages' : 'Régler les critères' }}
+    </button>
+  </div>
+
+  @if (reglages()) {
+    <div id="poids-panel" class="poids">
+      @for (critere of criteres; track critere) {
+        <label class="poids__row">
+          <span class="poids__nom">{{ labels[critere] }}</span>
+          <input
+            class="poids__slider"
+            type="range"
+            [min]="min"
+            [max]="max"
+            step="0.1"
+            [value]="ponderation.poids()[critere]"
+            (input)="onSlider(critere, $event)"
+            [attr.aria-label]="'Poids du critère ' + labels[critere]"
+          />
+          <span class="poids__val" [class.poids__val--off]="ponderation.poids()[critere] === 0">
+            @if (ponderation.poids()[critere] === 0) {
+              ignoré
+            } @else {
+              ×{{ ponderation.poids()[critere].toFixed(1) }}
+            }
+          </span>
+        </label>
+      }
+      <p class="poids__note">
+        Toucher un curseur bascule sur le profil <strong>Perso</strong>. La note « pour vous »
+        est recalculée sur votre appareil — les classements officiels ne changent pas.
+      </p>
+    </div>
+  }
+</div>

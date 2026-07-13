@@ -36,6 +36,22 @@
   color: var(--ink-soft);
 }
 
+.classement__picker {
+  display: block;
+  margin-top: 1.4rem;
+}
+
+.th--perso {
+  color: var(--accent);
+}
+
+.classement__repondere {
+  margin: 0.8rem 0 0;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
 /* ── Contrôles ────────────────────────────── */
 .controls {
   display: flex;

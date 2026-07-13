@@ -177,6 +177,7 @@ export async function emitAll(
       departement: c.codeDepartement,
       population: c.population,
       global: c.score.global,
+      criteres: c.score.criteres,
     }));
 
   const desc = eligibles

@@ -4,14 +4,16 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CRITERE_LABELS, CRITERES, type CommuneDetail } from '../../core/models/data.models';
 import { CommuneDataService } from '../../core/services/commune-data.service';
 import { MetaService } from '../../core/services/meta.service';
+import { PonderationService } from '../../core/services/ponderation.service';
 import { SearchIndexService } from '../../core/services/search-index.service';
+import { ProfilPicker } from '../../shared/profil-picker/profil-picker';
 import { scoreTier, TIER_BG } from '../../shared/score-color';
 
 const MAX_VILLES = 3;
 
 @Component({
   selector: 'app-comparateur',
-  imports: [RouterLink, DecimalPipe],
+  imports: [RouterLink, DecimalPipe, ProfilPicker],
   templateUrl: './comparateur.html',
   styleUrl: './comparateur.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -96,6 +98,20 @@ export class Comparateur {
     const vals = this.#communes()
       .filter((c): c is CommuneDetail => c !== null)
       .map((c) => c.score.global);
+    return vals.length ? Math.max(...vals) : null;
+  }
+
+  protected readonly ponderation = inject(PonderationService);
+
+  /** Note repondérée d'une commune selon le profil utilisateur. */
+  protected notePerso(c: CommuneDetail): number {
+    return this.ponderation.note(c.score.criteres);
+  }
+
+  protected meilleurePerso(): number | null {
+    const vals = this.#communes()
+      .filter((c): c is CommuneDetail => c !== null)
+      .map((c) => this.notePerso(c));
     return vals.length ? Math.max(...vals) : null;
   }
 

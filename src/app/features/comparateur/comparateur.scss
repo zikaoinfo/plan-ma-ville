@@ -24,6 +24,15 @@ h1 {
   margin: 0.3rem 0 1.4rem;
 }
 
+.cmp-picker {
+  display: block;
+  margin-bottom: 1.2rem;
+}
+
+.cmp__row--perso th[scope='row'] {
+  color: var(--accent);
+}
+
 .sr-only {
   position: absolute;
   width: 1px;

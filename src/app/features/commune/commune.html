@@ -67,9 +67,20 @@
       <!-- L'info clé (notes) d'abord, puis carte + prix/historique côte à
            côte (hauteurs équilibrées), puis les alentours en pleine largeur. -->
       <div class="dash" [class.dash--nomap]="!mapUrl()">
+        <!-- Profil de pondération (recalcul côté client) -->
+        <app-profil-picker class="dash__picker" />
+
         <!-- Notes par thématique — le cœur de la fiche, en premier -->
         <section class="card card--themes" aria-label="Notes par thématique">
-          <h2 class="card__title">Notes par thématique</h2>
+          <div class="card__head">
+            <h2 class="card__title">Notes par thématique</h2>
+            @if (ponderation.actif() && notePerso() !== null) {
+              <div class="pour-vous">
+                <span class="pour-vous__label">Pour vous</span>
+                <app-score-badge [score]="notePerso()!" />
+              </div>
+            }
+          </div>
           <div class="themes">
             @for (critere of criteres; track critere) {
               <div class="theme">
