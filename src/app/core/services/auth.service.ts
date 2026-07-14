@@ -5,7 +5,8 @@ import type { User } from '@supabase/supabase-js';
 import { SupabaseService } from './supabase.service';
 
 /**
- * Authentification Supabase (Google OAuth + lien magique email).
+ * Authentification Supabase : invité (anonymous sign-in) par défaut,
+ * Google OAuth + lien magique email en option.
  * Sans configuration Supabase, `user` reste null et les actions no-op.
  * Le client Supabase est chargé en différé (voir SupabaseService).
  */
@@ -17,6 +18,10 @@ export class AuthService {
 
   readonly user = signal<User | null>(null);
   readonly connecte = computed(() => this.user() !== null);
+  /** Session invitée (anonymous sign-in) — un UUID opaque, aucune PII. */
+  readonly estAnonyme = computed(() => this.user()?.is_anonymous === true);
+  /** Connecté avec un vrai compte (email/Google) — un invité n'en est pas un. */
+  readonly connecteCompte = computed(() => this.connecte() && !this.estAnonyme());
   /** L'auth est-elle disponible (Supabase configuré) ? */
   readonly disponible = this.#sb.enabled;
 
@@ -70,12 +75,59 @@ export class AuthService {
     return p ? p.slice(0, 2).toUpperCase() : '?';
   }
 
+  /**
+   * Garantit une identité pour publier : session existante (compte ou invité),
+   * sinon création silencieuse d'un invité (`signInAnonymously`) — le mode par
+   * défaut pour donner un avis, sans aucune donnée personnelle.
+   */
+  async ensureUser(): Promise<User | null> {
+    const client = await this.#sb.getClient();
+    if (!client) return null;
+    // Lit la session directement (le signal `user` peut être en retard :
+    // #init est différé après la stabilisation de l'appli).
+    const { data } = await client.auth.getSession();
+    if (data.session?.user) {
+      this.user.set(data.session.user);
+      return data.session.user;
+    }
+    const { data: anon, error } = await client.auth.signInAnonymously();
+    if (error || !anon.user) return null;
+    this.user.set(anon.user);
+    return anon.user;
+  }
+
+  /**
+   * Rattache un email au compte invité courant : Supabase envoie un lien de
+   * confirmation qui le convertit en compte permanent, MÊME user_id → avis
+   * conservés. L'unicité de l'email est garantie nativement (`email_exists`).
+   */
+  async attacherEmail(email: string): Promise<{ ok: boolean; dejaPris: boolean }> {
+    const client = await this.#sb.getClient();
+    if (!client) return { ok: false, dejaPris: false };
+    const { error } = await client.auth.updateUser(
+      { email },
+      { emailRedirectTo: this.#doc.location.href },
+    );
+    if (!error) return { ok: true, dejaPris: false };
+    return {
+      ok: false,
+      dejaPris: error.code === 'email_exists' || /already|exists/i.test(error.message),
+    };
+  }
+
   async loginWithGoogle(): Promise<void> {
     const client = await this.#sb.getClient();
-    await client?.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: this.#doc.location.href },
-    });
+    if (!client) return;
+    const options = { redirectTo: this.#doc.location.href };
+    // Un invité qui se connecte GARDE ses avis : l'identité Google est
+    // rattachée au même user_id (« manual linking » activé côté Supabase).
+    if (this.estAnonyme()) {
+      const { error } = await client.auth.linkIdentity({ provider: 'google', options });
+      if (!error) return;
+      // Identité déjà liée à un autre compte (ou option désactivée) → repli
+      // sur la connexion classique : ce compte-là reprend la main.
+    }
+    await client.auth.signInWithOAuth({ provider: 'google', options });
   }
 
   /** Envoie un lien magique. Renvoie l'erreur Supabase réelle si l'envoi échoue. */

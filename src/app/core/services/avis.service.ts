@@ -98,4 +98,16 @@ export class AvisService {
     // du prochain avis. Le pseudo réel reste calculé côté serveur (force_avis_pseudo).
     await client.from('profiles').update({ anonyme_defaut: avis.anonyme }).eq('user_id', avis.user_id);
   }
+
+  /** Supprime l'avis de l'utilisateur pour cette commune (droit RGPD). */
+  async deleteAvis(userId: string, codeInsee: string): Promise<void> {
+    const client = await this.#sb.getClient();
+    if (!client) throw new Error('Supabase non configuré');
+    const { error } = await client
+      .from('avis')
+      .delete()
+      .eq('user_id', userId)
+      .eq('commune_insee', codeInsee);
+    if (error) throw error;
+  }
 }

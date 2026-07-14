@@ -22,5 +22,6 @@ describe('Supabase désactivé (non configuré)', () => {
     expect((await avis.loadStatsBatch(['75056'])).size).toBe(0);
     expect(await avis.getUserAvis('u', '75056')).toBeNull();
     await expect(avis.submitAvis({} as never)).rejects.toThrow();
+    await expect(avis.deleteAvis('u', '75056')).rejects.toThrow();
   });
 });
