@@ -42,7 +42,7 @@
 }
 
 .th--perso {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .classement__repondere {
@@ -173,7 +173,7 @@
 }
 
 .td--nom a:hover {
-  color: var(--accent);
+  color: var(--accent-text);
   text-decoration: underline;
 }
 
@@ -183,7 +183,7 @@
 }
 
 .td--dep a:hover {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .td--empty {

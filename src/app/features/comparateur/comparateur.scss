@@ -30,7 +30,7 @@ h1 {
 }
 
 .cmp__row--perso th[scope='row'] {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .sr-only {
@@ -160,7 +160,7 @@ h1 {
 }
 
 .cmp__nom:hover {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .cmp__nom--ko {

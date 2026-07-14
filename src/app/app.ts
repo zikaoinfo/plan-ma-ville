@@ -2,6 +2,7 @@ import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   effect,
   inject,
   PLATFORM_ID,
@@ -14,6 +15,8 @@ import { filter } from 'rxjs/operators';
 import { AuthService } from './core/services/auth.service';
 import { ThemeService, type ThemePref } from './core/services/theme.service';
 import { UpdateService } from './core/services/update.service';
+import { PonderationService } from './core/services/ponderation.service';
+import { profilById } from './core/ponderation';
 
 /** Options du sélecteur de thème (ordre d'affichage). */
 const THEME_OPTIONS: { value: ThemePref; label: string; icon: string }[] = [
@@ -33,7 +36,11 @@ export class App {
   protected readonly auth = inject(AuthService);
   protected readonly theme = inject(ThemeService);
   protected readonly maj = inject(UpdateService);
+  protected readonly ponderation = inject(PonderationService);
   protected readonly annee = new Date().getFullYear();
+
+  /** Profil de pondération actif (« Officiel » par défaut) pour le menu compte. */
+  protected readonly profilActif = computed(() => profilById(this.ponderation.profil()));
 
   protected readonly menuOpen = signal(false);
   protected readonly navOpen = signal(false);

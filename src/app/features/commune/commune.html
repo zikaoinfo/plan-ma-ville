@@ -99,7 +99,26 @@
                 <app-note-bar [label]="labels[critere]" [score]="c.score.criteres[critere]" />
               </div>
             }
+            @if (avisStats(); as s) {
+              @if (s.nb_avis > 0 && s.note_habitants !== null) {
+                <div class="theme theme--avis">
+                  <span class="theme__icon" aria-hidden="true">🗣️</span>
+                  <app-note-bar
+                    [label]="'Avis habitants (' + s.nb_avis + ')'"
+                    [score]="s.note_habitants"
+                  />
+                </div>
+              }
+            }
           </div>
+          @if (avisStats(); as s) {
+            @if (s.nb_avis > 0 && s.note_habitants !== null) {
+              <p class="estimate-note">
+                Note des habitants indicative, non incluse dans la note globale —
+                voir l'onglet « Avis habitants ».
+              </p>
+            }
+          }
         </section>
 
         <!-- Carte -->

@@ -74,7 +74,7 @@
 }
 
 .dep__palmares a {
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 600;
   text-decoration: none;
 }
@@ -99,7 +99,7 @@
 
 .th--perso,
 .td--perso {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .filtre__input {
@@ -187,7 +187,7 @@
 }
 
 .arrow {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .td {
@@ -214,7 +214,7 @@
 }
 
 .td--nom a:hover {
-  color: var(--accent);
+  color: var(--accent-text);
   text-decoration: underline;
 }
 

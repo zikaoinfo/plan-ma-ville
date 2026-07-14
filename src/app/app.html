@@ -122,6 +122,16 @@
                 <strong>{{ auth.pseudo() }}</strong>
                 <span>{{ auth.email() }}</span>
               </div>
+              <a
+                routerLink="/classement"
+                role="menuitem"
+                class="account__item account__profil"
+                (click)="toggleMenu()"
+                title="Régler vos priorités depuis le classement"
+              >
+                <span class="account__profil-icone" aria-hidden="true">{{ profilActif().icon }}</span>
+                Priorité : {{ profilActif().label }}
+              </a>
               <button type="button" role="menuitem" class="account__item account__logout" (click)="logout()">
                 Se déconnecter
               </button>
