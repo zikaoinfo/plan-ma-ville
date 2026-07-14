@@ -79,6 +79,9 @@ export class AuthService {
    * Garantit une identité pour publier : session existante (compte ou invité),
    * sinon création silencieuse d'un invité (`signInAnonymously`) — le mode par
    * défaut pour donner un avis, sans aucune donnée personnelle.
+   * Null si Supabase n'est pas configuré ; PROPAGE l'erreur Supabase sinon
+   * (`code === 'anonymous_provider_disabled'` = toggle « Allow anonymous
+   * sign-ins » manquant côté dashboard, la cause n°1 en prod).
    */
   async ensureUser(): Promise<User | null> {
     const client = await this.#sb.getClient();
@@ -91,7 +94,8 @@ export class AuthService {
       return data.session.user;
     }
     const { data: anon, error } = await client.auth.signInAnonymously();
-    if (error || !anon.user) return null;
+    if (error) throw error;
+    if (!anon.user) return null;
     this.user.set(anon.user);
     return anon.user;
   }

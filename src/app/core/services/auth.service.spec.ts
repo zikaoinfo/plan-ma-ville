@@ -67,6 +67,20 @@ describe('AuthService — mode invité', () => {
     expect(await auth.ensureUser()).toBeNull();
   });
 
+  it('ensureUser propage l\'erreur Supabase (ex. anonymous sign-ins désactivés)', async () => {
+    const client = mockClient({
+      signInAnonymously: vi.fn().mockResolvedValue({
+        data: { user: null },
+        error: { code: 'anonymous_provider_disabled', message: 'Anonymous sign-ins are disabled' },
+      }),
+    });
+    const auth = setup(client);
+
+    await expect(auth.ensureUser()).rejects.toMatchObject({
+      code: 'anonymous_provider_disabled',
+    });
+  });
+
   it('attacherEmail convertit le compte invité (ok)', async () => {
     const client = mockClient();
     const auth = setup(client);
