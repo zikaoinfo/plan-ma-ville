@@ -28,12 +28,19 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Le pipeline émet public/data/*.json ET public/sitemap.xml : les deux
+      # doivent être dans le cache, sinon un cache-hit (data:build sauté) déploie
+      # sans sitemap.xml → /sitemap.xml sert le fallback SPA (404.html) qui
+      # redirige vers l'accueil. Clé bumpée v2 pour invalider les anciens caches
+      # qui ne contenaient pas le sitemap.
       - name: Cache generated data
         id: data-cache
         uses: actions/cache@v4
         with:
-          path: public/data
-          key: public-data-${{ hashFiles('tools/data-pipeline/**/*.ts', 'tools/data-pipeline/*.json') }}
+          path: |
+            public/data
+            public/sitemap.xml
+          key: public-data-v2-${{ hashFiles('tools/data-pipeline/**/*.ts', 'tools/data-pipeline/*.json') }}
 
       # Boucle de reprise : les serveurs open data coupent parfois la
       # connexion en plein transfert et certains crashs (assertion undici de
