@@ -34,13 +34,15 @@
   color: var(--ink-soft);
 }
 
-.head__dep {
+.head__dep,
+.head__mere {
   color: var(--accent-text);
   font-weight: 600;
   text-decoration: none;
 }
 
-.head__dep:hover {
+.head__dep:hover,
+.head__mere:hover {
   text-decoration: underline;
 }
 
@@ -118,6 +120,7 @@
     'map    price'
     'map    histo'
     'texte  texte'
+    'arr    arr'
     'near   near';
   gap: 1rem;
 }
@@ -129,6 +132,7 @@
     'themes themes'
     'price  histo'
     'texte  texte'
+    'arr    arr'
     'near   near';
 }
 
@@ -190,6 +194,10 @@
 
 .card--near {
   grid-area: near;
+}
+
+.card--arrondissements {
+  grid-area: arr;
 }
 
 .card--texte {

@@ -113,6 +113,31 @@ export interface CommuneDetail {
   score: CommuneScore;
   /** Prix immobilier réel DVF (absent : pas de ventes / hors couverture). */
   prix?: PrixM2;
+  /**
+   * Vrai pour un arrondissement municipal (Paris/Lyon/Marseille) : noté comme
+   * une commune à part entière, mais rattaché à une commune mère (`communeMere`).
+   * Hiérarchie : Région > Département > Ville > Arrondissement.
+   */
+  estArrondissement?: boolean;
+  /** Pour un arrondissement : identité de sa commune mère (fil d'Ariane). */
+  communeMere?: CommuneMereRef;
+  /** Pour Paris/Lyon/Marseille : ses arrondissements, triés par note décroissante. */
+  arrondissements?: ArrondissementResume[];
+}
+
+export interface CommuneMereRef {
+  slug: string;
+  nom: string;
+  codeInsee: string;
+}
+
+/** Résumé d'un arrondissement, embarqué dans la fiche de sa commune mère. */
+export interface ArrondissementResume {
+  slug: string;
+  nom: string;
+  codeInsee: string;
+  population: number;
+  score: CommuneScore;
 }
 
 /**

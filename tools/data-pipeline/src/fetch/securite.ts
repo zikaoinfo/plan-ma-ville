@@ -1,5 +1,5 @@
 import { ensureCsv, forEachCsvRow, parseNumber, type SourceSpec } from './download.js';
-import { communeParent } from './insee-code.js';
+import { codesAccumulation } from './insee-code.js';
 
 /** codeInsee (commune mère) → nombre total de faits sur le dernier millésime. */
 export type SecuriteMap = Map<string, number>;
@@ -43,10 +43,11 @@ export function makeSecuriteAccumulator() {
       if (!brut || faits === undefined) return; // faits masqué (secret stat.) → ignoré
       const annee = yearCol ? (parseNumber(row[yearCol]) ?? 0) : 0;
       if (annee > maxAnnee) maxAnnee = annee;
-      const code = communeParent(brut);
-      const parC = parAnnee.get(code) ?? new Map<number, number>();
-      parC.set(annee, (parC.get(annee) ?? 0) + faits);
-      parAnnee.set(code, parC);
+      for (const code of codesAccumulation(brut)) {
+        const parC = parAnnee.get(code) ?? new Map<number, number>();
+        parC.set(annee, (parC.get(annee) ?? 0) + faits);
+        parAnnee.set(code, parC);
+      }
     },
     result(): SecuriteMap {
       const out: SecuriteMap = new Map();

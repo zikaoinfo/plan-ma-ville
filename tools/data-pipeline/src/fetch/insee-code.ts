@@ -14,3 +14,21 @@ export function communeParent(code: string): string {
   if (n >= 13201 && n <= 13216) return '13055';
   return c;
 }
+
+/** Vrai si le code INSEE est un arrondissement municipal (Paris/Lyon/Marseille). */
+export function estArrondissement(code: string): boolean {
+  return communeParent(code) !== code.trim().toUpperCase();
+}
+
+/**
+ * Codes à créditer pour une ligne de donnée source (BPE/SSMSI/Filosofi/DVF) :
+ * la commune mère (toujours, pour son agrégat historique) et, si le code brut
+ * est un arrondissement, l'arrondissement lui-même (pour son propre scoring —
+ * Paris/Lyon/Marseille sont désormais notés à la fois par ville ET par
+ * arrondissement, cf. hiérarchie Région > Département > Ville > Arrondissement).
+ */
+export function codesAccumulation(code: string): string[] {
+  const c = code.trim().toUpperCase();
+  const parent = communeParent(c);
+  return c === parent ? [parent] : [parent, c];
+}

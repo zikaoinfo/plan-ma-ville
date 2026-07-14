@@ -17,7 +17,7 @@ import { ProfilPicker } from '../../shared/profil-picker/profil-picker';
 import { ScoreBadge } from '../../shared/score-badge/score-badge';
 import { CommuneAvisForm } from './commune-avis/commune-avis-form';
 import { CommuneAvisList } from './commune-avis/commune-avis-list';
-import { dvfTrendPct, nearestCommunes, noteHistory } from './commune-insights';
+import { dvfTrendPct, filtrerBassinVoisinage, nearestCommunes, noteHistory } from './commune-insights';
 import { genereTexteCommune } from './commune-texte';
 
 /** Seuil des pages « Où vivre autour de {ville} » — aligné sur
@@ -113,11 +113,18 @@ export class Commune {
     () => this.#search.departementName(this.depCode()) ?? this.depCode(),
   );
 
+  /** Pour un arrondissement : sa commune mère (fil d'Ariane « Ville »). */
+  protected readonly communeMere = computed(() => this.commune()?.communeMere ?? null);
+  /** Pour Paris/Lyon/Marseille : ses arrondissements, notés individuellement. */
+  protected readonly arrondissements = computed(() => this.commune()?.arrondissements ?? []);
+
   // Communes voisines, depuis le même fichier département (une seule requête).
+  // Le bassin exclut la commune mère / les arrondissements déjà reliés
+  // ailleurs sur la fiche (fil d'Ariane, section « ses arrondissements »).
   protected readonly voisins = computed(() => {
     const c = this.commune();
     const f = this.#commune.depFile();
-    return c && f ? nearestCommunes(c, f.communes, 6) : [];
+    return c && f ? nearestCommunes(c, filtrerBassinVoisinage(c, f.communes), 6) : [];
   });
 
   // Texte éditorial (SEO) : réponse directe + sections, dérivés des données
@@ -288,11 +295,15 @@ export class Commune {
         });
 
         // JSON-LD : fil d'Ariane (avec la région si résolue) + entité Place.
+        // Hiérarchie Région > Département > Ville > Arrondissement : un
+        // arrondissement insère sa commune mère entre le département et lui.
         const region = this.#search.regionForDepartement(this.depCode());
+        const mere = s.communeMere;
         const miettes: Miette[] = [
           { nom: 'Accueil', path: '/' },
           ...(region ? [{ nom: region.nom, path: `/region/${region.code}` }] : []),
           { nom: this.depNom(), path: `/departement/${this.depCode()}` },
+          ...(mere ? [{ nom: mere.nom, path: `/ville/${mere.slug}` }] : []),
           { nom: s.nom },
         ];
         this.#jsonLd.set([schemaBreadcrumb(miettes), schemaPlace(s, this.depNom())]);

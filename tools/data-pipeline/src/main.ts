@@ -14,6 +14,7 @@ import { fetchBpe } from './fetch/bpe.js';
 import { fetchDvf } from './fetch/dvf.js';
 import { fetchSecurite } from './fetch/securite.js';
 import { fetchFilosofi } from './fetch/filosofi.js';
+import { communeParent, estArrondissement } from './fetch/insee-code.js';
 import type { SourceSpec } from './fetch/download.js';
 import { computeRealScores, type DataMaps } from './score/real.js';
 import { noteGlobale } from './score/aggregate.js';
@@ -143,11 +144,27 @@ async function validerInvariants(): Promise<string[]> {
     if (n !== 1) erreurs.push(`Invariant 4 : INSEE ${item.i} présent dans ${n} fichier(s) dep/`);
   }
 
-  // 5. Pas d'arrondissements municipaux en double avec la commune mère.
-  const arrondissement = /^(751[0-2][0-9]|6938[1-9]|132[01][0-9]|13216)$/;
-  for (const item of index.items) {
-    if (arrondissement.test(item.i)) {
-      erreurs.push(`Invariant 5 : arrondissement municipal présent (${item.i} ${item.n})`);
+  // 5. Cohérence commune mère ↔ arrondissements (Paris/Lyon/Marseille) :
+  //    chaque `communeMere` référencé existe dans l'index, et chaque commune
+  //    mère présente dans ce run porte le bon nombre d'arrondissements.
+  const NB_ARR_ATTENDU: Record<string, number> = { '75056': 20, '69123': 9, '13055': 16 };
+  const nbParMere = new Map<string, number>();
+  for (const dep of depFiles.values()) {
+    for (const commune of dep.communes) {
+      if (!commune.communeMere) continue;
+      nbParMere.set(commune.communeMere.codeInsee, (nbParMere.get(commune.communeMere.codeInsee) ?? 0) + 1);
+      if (!index.items.some((it) => it.i === commune.communeMere!.codeInsee)) {
+        erreurs.push(
+          `Invariant 5 : commune mère ${commune.communeMere.codeInsee} absente de l'index (${commune.slug})`,
+        );
+      }
+    }
+  }
+  for (const [mere, attendu] of Object.entries(NB_ARR_ATTENDU)) {
+    if (!index.items.some((it) => it.i === mere)) continue; // hors périmètre du run (--departements)
+    const n = nbParMere.get(mere) ?? 0;
+    if (n !== attendu) {
+      erreurs.push(`Invariant 5 : ${n} arrondissement(s) rattaché(s) à ${mere}, ${attendu} attendu(s)`);
     }
   }
 
@@ -237,8 +254,31 @@ async function main(): Promise<void> {
         global: noteGlobale(criteres, scoring.ponderations),
         criteres,
       },
+      ...(estArrondissement(c.codeInsee) ? { estArrondissement: true } : {}),
     };
   });
+
+  // Rattache chaque arrondissement de Paris/Lyon/Marseille à sa commune mère
+  // (fil d'Ariane) et embarque, sur la commune mère, la liste de ses
+  // arrondissements triée par note décroissante (hiérarchie Région >
+  // Département > Ville > Arrondissement).
+  const parCodeInsee = new Map(scorees.map((s) => [s.codeInsee, s]));
+  for (const s of scorees) {
+    if (!s.estArrondissement) continue;
+    const mere = parCodeInsee.get(communeParent(s.codeInsee));
+    if (!mere) continue;
+    s.communeMere = { slug: mere.slug, nom: mere.nom, codeInsee: mere.codeInsee };
+    (mere.arrondissements ??= []).push({
+      slug: s.slug,
+      nom: s.nom,
+      codeInsee: s.codeInsee,
+      population: s.population,
+      score: s.score,
+    });
+  }
+  for (const s of scorees) {
+    s.arrondissements?.sort((a, b) => b.score.global - a.score.global);
+  }
 
   console.log('▸ Émission des fichiers public/data/…');
   const gen = new Date().toISOString().slice(0, 10);

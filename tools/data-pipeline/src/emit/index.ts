@@ -147,6 +147,9 @@ export async function emitAll(
         population: c.population,
         ...(c.lat !== undefined && c.lon !== undefined ? { lat: c.lat, lon: c.lon } : {}),
         ...(c.prix ? { prix: c.prix } : {}),
+        ...(c.estArrondissement ? { estArrondissement: true } : {}),
+        ...(c.communeMere ? { communeMere: c.communeMere } : {}),
+        ...(c.arrondissements ? { arrondissements: c.arrondissements } : {}),
         score: c.score,
       })),
     };
@@ -154,10 +157,22 @@ export async function emitAll(
   }
 
   // ── departements.json ─────────────────────
+  // Agrégats (population, nbCommunes, noteMoyenne) calculés sur les COMMUNES
+  // RÉELLES uniquement : les arrondissements de Paris/Lyon/Marseille sont une
+  // subdivision de leur commune mère, pas des habitants supplémentaires — les
+  // compter aussi doublerait la population de ces départements.
+  const parDepartementReel = new Map<string, CommuneScoree[]>();
+  for (const commune of communes) {
+    if (commune.estArrondissement) continue;
+    const liste = parDepartementReel.get(commune.codeDepartement) ?? [];
+    liste.push(commune);
+    parDepartementReel.set(commune.codeDepartement, liste);
+  }
+
   // On conserve les totaux non arrondis (popTotale, Σ note×pop) pour repondérer
   // proprement au niveau région ensuite.
   const depAggregats: DepAggregat[] = codes.map((code) => {
-    const liste = parDepartement.get(code) as CommuneScoree[];
+    const liste = parDepartementReel.get(code) ?? [];
     const popTotale = liste.reduce((acc, c) => acc + c.population, 0);
     const sommeNotePonderee = liste.reduce((acc, c) => acc + c.score.global * c.population, 0);
     return {

@@ -1,5 +1,5 @@
 import { ensureCsv, forEachCsvRow, parseNumber, type SourceSpec } from './download.js';
-import { communeParent } from './insee-code.js';
+import { codesAccumulation } from './insee-code.js';
 
 /** Critères alimentés par la Base permanente des équipements (BPE, INSEE). */
 export const BPE_CRITERES = [
@@ -115,28 +115,31 @@ export function makeBpeAccumulator() {
 
       const brut = row[codeCol as string];
       if (!brut) return;
-      const code = communeParent(brut);
+      const codes = codesAccumulation(brut);
 
       if (mode === 'long') {
         const critere = typequToCritere(row[typeCol as string] ?? '');
         if (!critere) return;
         const nb = nbCol ? (parseNumber(row[nbCol]) ?? 0) : 1;
         if (nb <= 0) return;
-        const cur = map.get(code) ?? emptyCounts();
-        cur[critere] += nb;
-        map.set(code, cur);
+        for (const code of codes) {
+          const cur = map.get(code) ?? emptyCounts();
+          cur[critere] += nb;
+          map.set(code, cur);
+        }
         return;
       }
 
       // wide
-      let cur: BpeCounts | undefined;
       for (const { col, critere } of wideCols) {
         const nb = parseNumber(row[col]) ?? 0;
         if (nb <= 0) continue;
-        cur ??= map.get(code) ?? emptyCounts();
-        cur[critere] += nb;
+        for (const code of codes) {
+          const cur = map.get(code) ?? emptyCounts();
+          cur[critere] += nb;
+          map.set(code, cur);
+        }
       }
-      if (cur) map.set(code, cur);
     },
     result(): BpeMap {
       return map;

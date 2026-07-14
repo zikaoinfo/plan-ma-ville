@@ -96,8 +96,23 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
   (`scoring.config.json` `boost`, appliqué dans `rankNotes`) : `gamma < 1` relève
   et homogénéise les notes vers le haut pour les services de base très répandus
   (enseignement, sports = 0.5). Commune sans donnée → **note neutre 5**
-  (jamais 0). Arrondissements
-  Paris/Lyon/Marseille repliés sur la mère (`fetch/insee-code.ts`). Note globale =
+  (jamais 0). **Arrondissements Paris/Lyon/Marseille notés individuellement**
+  (`fetch/insee-code.ts` `codesAccumulation`/`estArrondissement`) : les 4
+  fetchers créditent CHAQUE ligne source à la fois sur la commune mère
+  (agrégat historique, ex. `75056`) et sur l'arrondissement lui-même (ex.
+  `75108`), classé au même rang percentile national que n'importe quelle
+  commune — hiérarchie **Région > Département > Ville > Arrondissement**.
+  `main.ts` relie ensuite chaque arrondissement à sa mère
+  (`CommuneDetail.communeMere`) et embarque sur la mère la liste triée de ses
+  arrondissements (`CommuneDetail.arrondissements`). `geo.ts` ne filtre donc
+  plus `type === 'arrondissement-municipal'` (exclusif à ces 45 communes).
+  `emit/index.ts` exclut les arrondissements des totaux
+  population/nbCommunes/noteMoyenne de `departements.json`/`regions.json`
+  (double comptage sinon — un arrondissement n'est pas un habitant
+  supplémentaire) mais les inclut PARTOUT ailleurs comme des communes à part
+  entière : `index.json`, `classement.json`, `geo-light.json`,
+  `dep/{code}.json`. Invariant 5 revu en conséquence (cohérence
+  mère ↔ arrondissements, comptes attendus 20/9/16). Note globale =
   Σ(note×poids)/Σ(poids).
 - **URLs résolues et validées en CI** (job « Validate open data » vert, PR #11) :
   BPE via dataset data.gouv `base-permanente-des-equipements` (CSV ensemble
@@ -146,7 +161,13 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
   DVF), variantes de tournures par hash INSEE (déterministe entre builds,
   anti scaled-content-abuse — cf. docs/SEO-PLAN.md). Onglets « Données
   officielles » / « Avis habitants » (`?onglet=avis` pour survivre au retour
-  OAuth).
+  OAuth). **Arrondissements (Paris/Lyon/Marseille)** : la fiche d'une commune
+  mère affiche une section « Ses arrondissements » (notes + population,
+  triés note ↓) ; la fiche d'un arrondissement affiche un lien « Ville » vers
+  sa mère dans le méta-en-tête et dans le fil d'Ariane JSON-LD (Région >
+  Département > Ville > Arrondissement). `commune-insights.ts`
+  `filtrerBassinVoisinage` retire mère/enfants du bassin « Communes aux
+  alentours » pour ne pas doublonner ces liens (pur, testé).
 - **Régions `/regions`** : classement des régions (grille, note ↓), drill-down.
   **Région `/region/:code`** : ses départements classés note ↓ → lien commune.
   Chaîne région → département → ville. Lu depuis `regions.json` (départements

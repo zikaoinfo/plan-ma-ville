@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { CommuneDetail, Critere } from '../../core/models/data.models';
 import {
   dvfTrendPct,
+  filtrerBassinVoisinage,
   haversineKm,
   nearestCommunes,
   noteHistory,
@@ -111,5 +112,34 @@ describe('nearestCommunes', () => {
 
   it('respecte la limite', () => {
     expect(nearestCommunes(lyon, [villeurbanne, caluire, affoux], 2)).toHaveLength(2);
+  });
+});
+
+describe('filtrerBassinVoisinage', () => {
+  const paris = {
+    ...commune('paris-75056', '75056', 7, { lat: 48.8566, lon: 2.3522, population: 2100000 }),
+    arrondissements: [{ slug: 'paris-1er-75101', nom: 'Paris 1er', codeInsee: '75101', population: 16000, score: { source: 'computed' as const, global: 8, criteres: lyon.score.criteres } }],
+  };
+  const paris1 = {
+    ...commune('paris-1er-75101', '75101', 8, { lat: 48.8606, lon: 2.3376, population: 16000 }),
+    communeMere: { slug: 'paris-75056', nom: 'Paris', codeInsee: '75056' },
+  };
+  const paris2 = {
+    ...commune('paris-2e-75102', '75102', 7.5, { lat: 48.8686, lon: 2.3425, population: 20000 }),
+    communeMere: { slug: 'paris-75056', nom: 'Paris', codeInsee: '75056' },
+  };
+
+  it('retire les arrondissements de la commune mère du bassin de voisinage de celle-ci', () => {
+    const res = filtrerBassinVoisinage(paris, [paris, paris1, paris2, villeurbanne]);
+    expect(res.map((c) => c.slug)).toEqual(['paris-75056', 'villeurbanne-69266']);
+  });
+
+  it("retire la commune mère du bassin de voisinage d'un arrondissement", () => {
+    const res = filtrerBassinVoisinage(paris1, [paris, paris1, paris2, villeurbanne]);
+    expect(res.map((c) => c.slug)).toEqual(['paris-1er-75101', 'paris-2e-75102', 'villeurbanne-69266']);
+  });
+
+  it("ne filtre rien pour une commune ordinaire sans lien de parenté", () => {
+    expect(filtrerBassinVoisinage(lyon, [villeurbanne, caluire])).toEqual([villeurbanne, caluire]);
   });
 });

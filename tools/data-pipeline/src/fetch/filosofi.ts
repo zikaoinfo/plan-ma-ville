@@ -1,5 +1,5 @@
 import { ensureCsv, parseNumber, readCsvRows, type SourceSpec } from './download.js';
-import { communeParent } from './insee-code.js';
+import { codesAccumulation } from './insee-code.js';
 
 /** codeInsee (commune mère) → revenu médian disponible par UC (Filosofi, INSEE). */
 export type FilosofiMap = Map<string, number>;
@@ -46,10 +46,12 @@ export function buildFilosofiMap(rows: Record<string, string>[], motif?: string)
     const brut = row[codeCol];
     const val = parseNumber(row[valueCol]);
     if (!brut || val === undefined) continue; // commune sous secret statistique → absente
-    // La médiane d'un arrondissement n'est pas sommable : on garde la 1re valeur
-    // rencontrée pour la commune mère (approximation acceptable, rare).
-    const code = communeParent(brut);
-    if (!map.has(code)) map.set(code, val);
+    // La médiane d'un arrondissement n'est pas sommable : pour la commune mère on
+    // garde la 1re valeur rencontrée (approximation acceptable, rare) ; l'arrondissement
+    // lui-même garde sa propre valeur (1 seule ligne par arrondissement en pratique).
+    for (const code of codesAccumulation(brut)) {
+      if (!map.has(code)) map.set(code, val);
+    }
   }
   return map;
 }

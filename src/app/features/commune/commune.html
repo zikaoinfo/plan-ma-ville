@@ -30,6 +30,9 @@
           <h1>{{ c.nom }}</h1>
           <p class="head__meta">
             <a [routerLink]="['/departement', depCode()]" class="head__dep">{{ depNom() }}</a>
+            @if (communeMere(); as mere) {
+              · <a [routerLink]="['/ville', mere.slug]" class="head__mere">{{ mere.nom }}</a>
+            }
             · {{ c.population | number: '1.0-0' }} habitants
             @if (c.codesPostaux.length) {
               · {{ c.codesPostaux[0] }}
@@ -206,6 +209,24 @@
                 Comparer {{ c.nom }} avec une autre commune →
               </a>
             </p>
+          </section>
+        }
+
+        <!-- Ses arrondissements (Paris/Lyon/Marseille uniquement) -->
+        @if (arrondissements().length) {
+          <section class="card card--arrondissements" aria-label="Arrondissements de {{ c.nom }}">
+            <h2 class="card__title">Ses arrondissements</h2>
+            <ul class="near">
+              @for (a of arrondissements(); track a.slug) {
+                <li>
+                  <a class="near__item" [routerLink]="['/ville', a.slug]">
+                    <span class="near__name">{{ a.nom }}</span>
+                    <span class="near__dist">{{ a.population | number: '1.0-0' }} hab.</span>
+                    <app-score-badge [score]="a.score.global" />
+                  </a>
+                </li>
+              }
+            </ul>
           </section>
         }
 

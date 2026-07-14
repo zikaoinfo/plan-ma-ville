@@ -60,7 +60,11 @@ Tests : 37 verts (Vitest). Lint clean. Build OK. Pipeline déterministe.
   - [x] `fetch/bpe.ts` — BPE, densité /1000 hab (F1/F2 sports, F3 culture).
   - [x] `fetch/securite.ts` — SSMSI, dernier millésime, taux /1000 hab inversé.
   - [x] `fetch/filosofi.ts` — revenu médian (auto-détection colonne `MED**`).
-  - [x] `fetch/insee-code.ts` — repli arrondissements Paris/Lyon/Marseille → mère.
+  - [x] `fetch/insee-code.ts` — arrondissements Paris/Lyon/Marseille notés
+        individuellement (`codesAccumulation`) EN PLUS du repli sur la mère
+        (`communeParent`, agrégat historique inchangé). Hiérarchie Région >
+        Département > Ville > Arrondissement ; `communeMere`/`arrondissements`
+        sur `CommuneDetail`, fiche dédiée par arrondissement (dashboard complet).
 - [x] `score/real.ts` — `computeRealScores(communes, DataMaps)` deux passes.
 - [x] URLs dans `sources.config.json`. Deps `adm-zip` + `csv-parse`.
 - [x] Rapport de run : couverture par source + histogramme des notes /tranche.

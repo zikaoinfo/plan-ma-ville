@@ -159,7 +159,10 @@ export interface ClassementEntry {
 2. `index.json.items` trié par `nn` croissant.
 3. Chaque `slug` est unique sur l'ensemble du territoire.
 4. Chaque `SearchIndexItem.i` existe dans exactement un `dep/{d}.json`.
-5. Pas d'arrondissements de Paris/Lyon/Marseille en double avec la commune mère.
+5. Cohérence commune mère ↔ arrondissements de Paris/Lyon/Marseille : chaque
+   `communeMere` référencé existe dans l'index, comptes attendus 20/9/16.
+   (Chaque arrondissement est désormais noté individuellement, en plus de la
+   commune mère qui garde sa note agrégée — cf. CLAUDE.md §Données.)
 6. Codes Corse : `2A` / `2B` — noms de fichiers valides tels quels.
 
 ---

@@ -42,12 +42,13 @@ describe('makeDvfAccumulator', () => {
     expect(acc.result().size).toBe(0);
   });
 
-  it('replie les arrondissements sur la commune mère', () => {
+  it("replie les arrondissements sur la commune mère ET garde le prix de l'arrondissement", () => {
     const acc = makeDvfAccumulator();
     acc.add(row('75101', '2025-S1', '11000'));
     const m = acc.result();
     expect(m.has('75056')).toBe(true);
     expect(m.get('75056')!.m2).toBe(11000);
+    expect(m.get('75101')!.m2).toBe(11000);
   });
 
   it('format « long » (colonne type de bien) : priorité au résidentiel combiné', () => {
