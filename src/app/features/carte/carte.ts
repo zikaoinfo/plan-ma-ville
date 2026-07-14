@@ -88,12 +88,22 @@ export class Carte {
     });
 
     // (Re)dessine les markers quand la carte est prête, que les données
-    // arrivent, ou que le filtre change. Petit debounce : le slider émet à
-    // chaque cran pendant le glissement, or chaque rendu reconstruit tout le
-    // jeu de markers (~25 000) — on ne reconstruit qu'une fois la main posée.
+    // arrivent, ou que le filtre change. Premier rendu immédiat ; les
+    // suivants sont débouncés : le slider émet à chaque cran pendant le
+    // glissement, or chaque rendu reconstruit tout le jeu de markers
+    // (~25 000) — on ne reconstruit qu'une fois la main posée.
+    let dejaRendu = false;
     effect((onCleanup) => {
       const visibles = this.#visibles();
       if (!this.#ready() || !this.#L || !this.#cluster) return;
+      if (!dejaRendu) {
+        // Rien à peindre tant que les données ne sont pas là : garder le
+        // rendu immédiat pour la VRAIE première fournée de markers.
+        if (visibles.length === 0) return;
+        dejaRendu = true;
+        this.#renderMarkers(visibles);
+        return;
+      }
       const timer = setTimeout(() => this.#renderMarkers(visibles), 150);
       onCleanup(() => clearTimeout(timer));
     });

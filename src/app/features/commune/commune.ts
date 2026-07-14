@@ -222,6 +222,7 @@ export class Commune {
           void this.#router.navigate(['/ville', canonique], {
             replaceUrl: true,
             queryParamsHandling: 'preserve',
+            preserveFragment: true, // ne pas avaler #access_token (retour OAuth)
           });
         });
       }
@@ -236,6 +237,9 @@ export class Commune {
         queryParams: { onglet: o === 'avis' ? 'avis' : null },
         queryParamsHandling: 'merge',
         replaceUrl: true,
+        // Le client Supabase (chargé en différé) lit #access_token dans l'URL
+        // au retour OAuth : cette réécriture ne doit JAMAIS l'avaler.
+        preserveFragment: true,
       });
     });
 

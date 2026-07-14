@@ -24,14 +24,21 @@ export class SupabaseService {
 
   /**
    * Client Supabase (créé au premier appel, partagé ensuite) ;
-   * `null` si Supabase n'est pas configuré.
+   * `null` si Supabase n'est pas configuré. Si le chargement du chunk échoue
+   * (réseau), résout `null` (dégradation) et RÉINITIALISE le cache pour
+   * retenter au prochain appel — jamais de promesse rejetée mémorisée.
    */
   getClient(): Promise<SupabaseClient | null> {
     if (!this.enabled) return Promise.resolve(null);
-    this.#clientPromise ??= import('@supabase/supabase-js').then(({ createClient }) =>
-      createClient(environment.supabaseUrl, environment.supabaseAnonKey, {
-        auth: { persistSession: true, autoRefreshToken: true },
-      }),
+    this.#clientPromise ??= import('@supabase/supabase-js').then(
+      ({ createClient }) =>
+        createClient(environment.supabaseUrl, environment.supabaseAnonKey, {
+          auth: { persistSession: true, autoRefreshToken: true },
+        }),
+      () => {
+        this.#clientPromise = null;
+        return null;
+      },
     );
     return this.#clientPromise;
   }
