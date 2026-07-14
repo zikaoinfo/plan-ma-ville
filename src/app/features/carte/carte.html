@@ -28,5 +28,19 @@
     <p class="carte__error">Impossible de charger les données de la carte.</p>
   }
 
-  <div #map class="carte__map" role="application" aria-label="Carte interactive des communes"></div>
+  <!-- Carte de visualisation. Conforme RGAA §5.1 : les données qu'elle porte
+       (communes + notes) sont disponibles sous forme HTML accessible et
+       navigable au clavier via le classement et les pages département. -->
+  <div
+    #map
+    class="carte__map"
+    role="region"
+    aria-label="Carte des communes. Les mêmes données sont consultables sous forme de tableau accessible dans le classement."
+  ></div>
+
+  <p class="carte__alt">
+    Cette carte est une visualisation.
+    <a routerLink="/classement">Consulter les communes notées sous forme de tableau accessible</a>
+    ou <a routerLink="/regions">parcourir par région et département</a>.
+  </p>
 </section>

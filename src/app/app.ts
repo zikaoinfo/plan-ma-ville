@@ -1,5 +1,16 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  PLATFORM_ID,
+  signal,
+} from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { Title } from '@angular/platform-browser';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { AuthService } from './core/services/auth.service';
 import { ThemeService, type ThemePref } from './core/services/theme.service';
 import { UpdateService } from './core/services/update.service';
@@ -29,6 +40,34 @@ export class App {
   protected readonly themeMenuOpen = signal(false);
 
   protected readonly themeOptions = THEME_OPTIONS;
+
+  // ── Accessibilité : focus + annonce au changement de route (RGAA 5.2) ──
+  readonly #doc = inject(DOCUMENT);
+  readonly #title = inject(Title);
+  readonly #estNavigateur = isPlatformBrowser(inject(PLATFORM_ID));
+  readonly #navigationTerminee = toSignal(
+    inject(Router).events.pipe(filter((e) => e instanceof NavigationEnd)),
+  );
+
+  constructor() {
+    // En SPA, changer de route ne bouge PAS le focus et n'annonce rien au
+    // lecteur d'écran. On déplace donc le focus sur <main> et on annonce le
+    // titre. Gardé au navigateur (le DOM serveur du prerender n'a pas focus()).
+    let premier = true;
+    effect(() => {
+      this.#navigationTerminee();
+      if (!this.#estNavigateur || premier) {
+        premier = false;
+        return; // pas de vol de focus au chargement initial (hydratation)
+      }
+      // Après le rendu de la nouvelle page (le titre est posé par son effect).
+      setTimeout(() => {
+        this.#doc.getElementById('contenu-principal')?.focus();
+        const region = this.#doc.getElementById('route-annonce');
+        if (region) region.textContent = this.#title.getTitle();
+      });
+    });
+  }
 
   protected toggleMenu(): void {
     this.themeMenuOpen.set(false);
