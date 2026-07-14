@@ -127,13 +127,23 @@ Tests : 37 verts (Vitest). Lint clean. Build OK. Pipeline déterministe.
       (8 sliders maison + textareas + upsert, 1 avis/user/commune, pré-remplissage).
 - [x] `auth-gate` (Google + magic-link) et `critere-slider` (shared).
 - [x] Dégradation gracieuse si Supabase non configuré (onglet « bientôt », pas de crash).
+- [x] **Avis en mode invité par défaut** (`SPEC-AVIS-INVITE.md`) : anonymous
+      sign-in silencieux au premier « Publier », email optionnel = conversion
+      du compte invité (avis conservés), connexion Google/magic-link en repli
+      (`linkIdentity` préserve les avis), pseudonyme stable « Habitant #XXXX »,
+      bouton « Supprimer mon avis », section RGPD dans la méthodologie.
 - **Pour activer (côté proprio)** :
-  1. Coller `docs/supabase-schema.sql` dans Supabase (SQL Editor).
+  1. Coller `docs/supabase-schema.sql` dans Supabase (SQL Editor) — base déjà
+     créée : `docs/supabase-migration-avis-invite.sql`.
   2. Activer le provider Google dans Supabase (magic-link email marche sans config).
-  3. Ajouter les secrets GitHub `SUPABASE_URL` + `SUPABASE_ANON_KEY`
+  3. Auth → Sign In / Up : activer **Allow anonymous sign-ins** ET
+     **Allow manual linking** (mode invité + conservation des avis au login).
+  4. Ajouter les secrets GitHub `SUPABASE_URL` + `SUPABASE_ANON_KEY`
      (le job `deploy.yml` les injecte dans `environment.ts` au build).
-  4. Dans Supabase → Auth → URL Configuration, autoriser
+  5. Dans Supabase → Auth → URL Configuration, autoriser
      `https://zikaoinfo.github.io/plan-ma-ville/` en redirect.
+  6. (option) pg_cron : purge hebdo des invités sans avis > 30 j (voir fin de
+     `supabase-schema.sql`).
 
 ### Phase 9 — Résumé IA
 - [ ] `workers/summarize/` (endpoints `/summarize` + `/quiz-match`, rate-limit KV).

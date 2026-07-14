@@ -47,11 +47,11 @@ retrouver et modifier vos avis depuis n'importe quel appareil. »*
   **prouve la possession** de l'adresse — plus fort et plus honnête que tout
   hash/fingerprint. Aucune table d'emails à maintenir, l'email ne vit que
   dans `auth.users`.
-- **Conflit** (email déjà pris) : Supabase renvoie `email_exists` → l'UI
-  propose « Cet email a déjà un compte — recevoir un lien de connexion ? »
-  (magic-link existant). Le formulaire garde ses valeurs en mémoire ; au
-  retour OAuth/magic-link (`?onglet=avis` déjà géré), l'avis est re-soumis
-  en upsert sur le compte connecté.
+- **Conflit** (email déjà pris) : Supabase renvoie `email_exists`. L'avis est
+  DÉJÀ publié (sous l'identité invitée) — l'UI le dit honnêtement et propose
+  « Recevoir un lien de connexion » (magic-link existant) pour retrouver son
+  compte. Pas de re-soumission automatique (elle créerait un doublon d'avis :
+  l'avis invité et celui du compte seraient deux `user_id` distincts).
 
 ### Connexion classique (secondaire)
 
@@ -78,10 +78,10 @@ retrouver et modifier vos avis depuis n'importe quel appareil. »*
 - `handle_new_user` : fonctionne déjà pour un anonyme (email NULL → base
   `citoyen`). Ajustement : si `NEW.is_anonymous`, pseudo technique
   `invite-<8 hex du user_id>` (pas de collision, pas d'appel aléatoire).
-- `force_avis_pseudo` : déjà correct (anonyme/sans nom → « Habitant » /
-  « Habitant anonyme »). **Touche déterministe sympa (optionnelle)** : pour un
-  invité non-anonyme-coché, dériver un pseudonyme lisible du `user_id`
-  (ex. « Habitant #4F2A ») — identifiant stable entre ses avis, zéro PII.
+- `force_avis_pseudo` : anonyme-coché → « Habitant anonyme » (inchangé) ;
+  compte SANS nom IdP (invité ou magic-link) → pseudonyme lisible et STABLE
+  dérivé du `user_id` (« Habitant #4F2A »), zéro PII — la continuité du
+  pseudonyme survit à la conversion invité → compte.
 - **Purge RGPD / hygiène** : job SQL documenté (à lancer via cron Supabase) :
   `DELETE FROM auth.users WHERE is_anonymous AND created_at < now() - interval '30 days' AND id NOT IN (SELECT user_id FROM avis);`
   (les anonymes AVEC avis sont conservés : ce sont des contributeurs actifs).
@@ -93,7 +93,7 @@ retrouver et modifier vos avis depuis n'importe quel appareil. »*
 | Fichier | Changement |
 |---|---|
 | `core/services/auth.service.ts` | `estAnonyme = computed(() => user()?.is_anonymous === true)` ; `ensureUser()` (session existante sinon `signInAnonymously`) ; `attacherEmail(email)` (`updateUser`, mappe `email_exists`) ; `lierGoogle()` (`linkIdentity` si anonyme, sinon OAuth). |
-| `commune-avis-form.ts` | Plus de dépendance à un user connecté : formulaire toujours rendu ; `submit()` appelle `ensureUser()` d'abord ; champ email optionnel + microcopie finalité (« pour retrouver vos avis… ») ; états : `ok` / `ok-verifier-email` / `email-pris` (bouton magic-link) ; brouillon conservé en signal pour re-soumission post-login. |
+| `commune-avis-form.ts` | Plus de dépendance à un user connecté : formulaire toujours rendu ; `submit()` appelle `ensureUser()` d'abord ; champ email optionnel + microcopie finalité (« pour retrouver vos avis… ») ; états : `ok` / `ok-verifier` / `email-pris` (bouton magic-link) / `lien-envoye` ; bouton « Supprimer mon avis » en mode existant. |
 | `commune.ts` (onglet avis) | Retirer l'auth-gate bloquante ; formulaire direct + lien repliable « Déjà un compte ? » qui affiche `app-auth-gate`. |
 | `shared/auth-gate` | Prop `message` adaptée (« Retrouvez vos avis sur tous vos appareils ») ; inchangée sinon. |
 | Header (menu compte) | Un anonyme ne doit PAS apparaître « connecté » : masquer le menu si `estAnonyme()` (ou afficher un badge « invité » + entrée « garder mes avis » → mini-form email). |

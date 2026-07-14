@@ -242,6 +242,20 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
 
 ## Supabase (Phase 7 — avis + auth)
 
+- **Avis en mode INVITÉ par défaut** (`docs/SPEC-AVIS-INVITE.md`) : le
+  formulaire est ouvert à tous ; au premier « Publier », `AuthService.ensureUser()`
+  crée une session **anonymous sign-in** silencieuse (UUID opaque, zéro PII,
+  session localStorage → 1 avis/commune/contributeur via l'UNIQUE existant).
+  Email **optionnel** dans le formulaire = `attacherEmail()` (`updateUser`)
+  APRÈS publication : conversion invité → compte permanent, même `user_id`
+  (avis conservés), unicité email native (`email_exists` → propose le
+  magic-link, PAS de re-soumission : doublon sinon). `loginWithGoogle()` d'un
+  invité passe par `linkIdentity` (avis conservés, repli OAuth classique).
+  Header : utiliser `connecteCompte()` (un invité ne s'affiche pas connecté).
+  Pseudo public des comptes sans nom IdP = « Habitant #XXXX » stable (dérivé
+  du user_id, trigger `force_avis_pseudo`). Dashboard requis : **Allow
+  anonymous sign-ins** + **Allow manual linking** ; purge pg_cron des invités
+  sans avis > 30 j (fin du schéma SQL).
 - **Dégradation gracieuse** : si `environment.supabaseUrl` n'est pas une vraie
   URL http (placeholder/vide), `SupabaseService.enabled=false`, `client=null`,
   toutes les méthodes renvoient `[]`/`null` → onglet avis « bientôt », pas de crash.
