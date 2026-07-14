@@ -1,7 +1,14 @@
 -- ════════════════════════════════════════════════════════════════════════
 -- ma ville, notée — schéma Supabase (features communautaires : avis + profils)
 -- À coller dans Supabase → SQL Editor → Run. Idempotent (IF NOT EXISTS).
--- Réf. : docs/SPEC-PHASES-7-12.md §2.
+-- Réf. : docs/SPEC-PHASES-7-12.md §2 et docs/SPEC-AVIS-INVITE.md.
+--
+-- Config dashboard REQUISE en plus de ce SQL (avis en mode invité) :
+--   1. Authentication → Sign In / Up → « Allow anonymous sign-ins » : ON.
+--   2. Authentication → Sign In / Up → « Allow manual linking » : ON
+--      (un invité qui se connecte à Google garde ses avis via linkIdentity).
+--   3. Rate limits par défaut (30 anonymes/h/IP) suffisants ; option v1.1 :
+--      CAPTCHA Cloudflare Turnstile (Auth → Attack protection).
 -- ════════════════════════════════════════════════════════════════════════
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
@@ -96,7 +103,10 @@ BEGIN
   SELECT p.nom_complet INTO nom FROM public.profiles p WHERE p.user_id = NEW.user_id;
   nom := trim(COALESCE(nom, ''));
   IF nom = '' THEN
-    NEW.pseudo := 'Habitant';
+    -- Sans nom IdP (invité anonyme ou compte magic-link) : pseudonyme lisible
+    -- et STABLE dérivé de l'id (zéro PII) — le même « Habitant #A3F2 » signe
+    -- tous les avis du contributeur, y compris après conversion invité → compte.
+    NEW.pseudo := 'Habitant #' || upper(left(replace(NEW.user_id::text, '-', ''), 4));
     RETURN NEW;
   END IF;
 
@@ -154,16 +164,23 @@ BEGIN
     NULLIF(NEW.raw_user_meta_data->>'name', '')
   );
 
-  -- Base : full_name / name renvoyés par l'IdP, sinon partie locale de l'email.
-  base_pseudo := COALESCE(
-    nom_complet_brut,
-    NULLIF(split_part(COALESCE(NEW.email, ''), '@', 1), ''),
-    'citoyen'
-  );
-  -- Normalisation : minuscules, alphanumérique + tirets.
-  base_pseudo := lower(regexp_replace(base_pseudo, '[^a-zA-Z0-9]+', '-', 'g'));
-  base_pseudo := NULLIF(trim(BOTH '-' FROM base_pseudo), '');
-  base_pseudo := COALESCE(base_pseudo, 'citoyen');
+  IF NEW.is_anonymous THEN
+    -- Invité (anonymous sign-in) : ni email ni métadonnées IdP. Pseudo
+    -- technique stable dérivé de l'id — jamais affiché tel quel
+    -- (force_avis_pseudo calcule le nom public « Habitant #XXXX »).
+    base_pseudo := 'invite-' || left(replace(NEW.id::text, '-', ''), 12);
+  ELSE
+    -- Base : full_name / name renvoyés par l'IdP, sinon partie locale de l'email.
+    base_pseudo := COALESCE(
+      nom_complet_brut,
+      NULLIF(split_part(COALESCE(NEW.email, ''), '@', 1), ''),
+      'citoyen'
+    );
+    -- Normalisation : minuscules, alphanumérique + tirets.
+    base_pseudo := lower(regexp_replace(base_pseudo, '[^a-zA-Z0-9]+', '-', 'g'));
+    base_pseudo := NULLIF(trim(BOTH '-' FROM base_pseudo), '');
+    base_pseudo := COALESCE(base_pseudo, 'citoyen');
+  END IF;
 
   -- Insertion avec suffixe anti-collision (gère aussi la course entre 2 signups
   -- grâce au retry sur unique_violation).
@@ -228,3 +245,16 @@ DROP POLICY IF EXISTS "profiles_select" ON profiles;
 CREATE POLICY "profiles_select" ON profiles FOR SELECT USING (auth.uid() = user_id);
 DROP POLICY IF EXISTS "profiles_update" ON profiles;
 CREATE POLICY "profiles_update" ON profiles FOR UPDATE USING (auth.uid() = user_id);
+
+-- ── Hygiène RGPD : purge des invités inactifs ──
+-- Un compte anonyme SANS avis de plus de 30 jours est une session perdue
+-- (localStorage vidé, visiteur reparti) : rien ne justifie de le conserver.
+-- Les invités AVEC avis sont gardés — ce sont des contributeurs actifs
+-- (les supprimer effacerait leurs avis, ON DELETE CASCADE).
+-- À planifier via l'extension pg_cron (Dashboard → Database → Extensions) :
+--   SELECT cron.schedule('purge-invites', '0 3 * * 0', $purge$
+--     DELETE FROM auth.users u
+--     WHERE u.is_anonymous
+--       AND u.created_at < now() - interval '30 days'
+--       AND NOT EXISTS (SELECT 1 FROM public.avis a WHERE a.user_id = u.id);
+--   $purge$);
