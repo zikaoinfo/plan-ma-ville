@@ -91,7 +91,10 @@
 
     @if (auth.disponible) {
       <div class="account">
-        @if (auth.connecte()) {
+        <!-- connecteCompte : une session invitée (anonymous sign-in) ne doit
+             pas s'afficher comme un compte — le bouton « Se connecter » reste,
+             et loginWithGoogle rattache alors l'identité au même user_id. -->
+        @if (auth.connecteCompte()) {
           <button
             type="button"
             class="account__btn"

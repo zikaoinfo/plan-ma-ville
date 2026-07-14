@@ -264,12 +264,16 @@
             </p>
           } @else {
             <app-commune-avis-list [codeInsee]="c.codeInsee" [version]="avisVersion()" />
-            @if (auth.connecte()) {
-              <app-commune-avis-form [codeInsee]="c.codeInsee" (submitted)="onAvisSubmitted()" />
-            } @else {
-              <app-auth-gate
-                message="Connectez-vous pour partager votre avis sur {{ c.nom }}."
-              />
+            <!-- Mode invité par défaut : le formulaire est ouvert à tous, la
+                 connexion (compte existant) n'est qu'un repli facultatif. -->
+            <app-commune-avis-form [codeInsee]="c.codeInsee" (submitted)="onAvisSubmitted()" />
+            @if (!auth.connecteCompte()) {
+              <details class="avis-login">
+                <summary>Déjà un compte&nbsp;? Se connecter</summary>
+                <app-auth-gate
+                  message="Retrouvez vos avis sur tous vos appareils en vous connectant."
+                />
+              </details>
             }
           }
         </section>

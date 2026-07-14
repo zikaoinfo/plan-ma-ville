@@ -1,4 +1,14 @@
-import { ChangeDetectionStrategy, Component, effect, inject, input, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 import { CRITERE_LABELS, CRITERES, type AvisInsert, type Critere } from '../../../core/models/data.models';
 import { AuthService } from '../../../core/services/auth.service';
 import { AvisService } from '../../../core/services/avis.service';
@@ -7,6 +17,8 @@ import { CritereSlider } from '../../../shared/critere-slider/critere-slider';
 const MIN_POSITIFS = 20;
 /** Borne haute (anti-abus) — à garder alignée avec le CHECK du schéma SQL. */
 const MAX_TEXTE = 2000;
+
+type Message = 'ok' | 'ok-verifier' | 'email-pris' | 'lien-envoye' | 'err' | 'court' | null;
 
 function notesParDefaut(): Record<Critere, number> {
   return Object.fromEntries(CRITERES.map((c) => [c, 5])) as Record<Critere, number>;
@@ -69,26 +81,81 @@ function notesParDefaut(): Record<Critere, number> {
         {{
           anonyme()
             ? 'Votre avis sera affiché sous « Habitant anonyme ».'
-            : 'Votre avis sera affiché avec votre prénom (ex. « Jean D. »).'
+            : invite()
+              ? 'Votre avis sera signé par un pseudonyme stable (ex. « Habitant #A3F2 »).'
+              : 'Votre avis sera affiché avec votre prénom (ex. « Jean D. »).'
         }}
       </p>
 
-      @if (message() === 'ok') {
-        <p class="form__msg form__msg--ok">Merci ! Votre avis a été enregistré.</p>
-      } @else if (message() === 'err') {
-        <p class="form__msg form__msg--err">Une erreur est survenue. Réessayez.</p>
-      } @else if (message() === 'court') {
-        <p class="form__msg form__msg--err">
-          Les « points positifs » doivent faire au moins {{ min }} caractères
-          ({{ positifs().trim().length }}/{{ min }}).
-        </p>
+      @if (invite()) {
+        <label class="form__field">
+          <span>Votre email <em>(optionnel)</em></span>
+          <input
+            type="email"
+            class="form__email"
+            autocomplete="email"
+            placeholder="votre@email.fr"
+            [value]="email()"
+            (input)="email.set($any($event.target).value)"
+          />
+          <small class="form__rgpd">
+            Uniquement pour retrouver et modifier vos avis depuis n'importe quel
+            appareil — jamais affiché, jamais partagé. Sans email, votre avis
+            est publié tout aussi bien.
+          </small>
+        </label>
+      }
+
+      @switch (message()) {
+        @case ('ok') {
+          <p class="form__msg form__msg--ok">Merci ! Votre avis a été enregistré.</p>
+        }
+        @case ('ok-verifier') {
+          <p class="form__msg form__msg--ok">
+            Merci ! Votre avis est publié. Un email de confirmation vous a été
+            envoyé — cliquez son lien pour retrouver vos avis sur tous vos
+            appareils.
+          </p>
+        }
+        @case ('email-pris') {
+          <div class="form__msg form__msg--info">
+            <p>
+              Votre avis est publié. Cet email est déjà associé à un compte —
+              connectez-vous avec pour retrouver vos avis.
+            </p>
+            <button type="button" class="form__lien" (click)="envoyerLien()" [disabled]="envoiLien()">
+              {{ envoiLien() ? 'Envoi…' : 'Recevoir un lien de connexion' }}
+            </button>
+          </div>
+        }
+        @case ('lien-envoye') {
+          <p class="form__msg form__msg--ok">
+            Lien de connexion envoyé à <strong>{{ email() }}</strong>.
+          </p>
+        }
+        @case ('err') {
+          <p class="form__msg form__msg--err">Une erreur est survenue. Réessayez.</p>
+        }
+        @case ('court') {
+          <p class="form__msg form__msg--err">
+            Les « points positifs » doivent faire au moins {{ min }} caractères
+            ({{ positifs().trim().length }}/{{ min }}).
+          </p>
+        }
       }
 
       <!-- Bouton toujours cliquable : la validation se fait au clic (pas de
            bouton grisé mystérieux). -->
-      <button type="submit" class="form__submit" [disabled]="submitting()">
-        {{ submitting() ? 'Envoi…' : existing() ? 'Mettre à jour' : 'Publier mon avis' }}
-      </button>
+      <div class="form__actions">
+        <button type="submit" class="form__submit" [disabled]="submitting()">
+          {{ submitting() ? 'Envoi…' : existing() ? 'Mettre à jour' : 'Publier mon avis' }}
+        </button>
+        @if (existing()) {
+          <button type="button" class="form__delete" (click)="supprimer()" [disabled]="submitting()">
+            Supprimer mon avis
+          </button>
+        }
+      </div>
     </form>
   `,
   styleUrl: './commune-avis-form.scss',
@@ -97,6 +164,7 @@ function notesParDefaut(): Record<Critere, number> {
 export class CommuneAvisForm {
   readonly #avis = inject(AvisService);
   readonly #auth = inject(AuthService);
+  readonly #doc = inject(DOCUMENT);
 
   readonly codeInsee = input.required<string>();
   readonly submitted = output<void>();
@@ -110,12 +178,18 @@ export class CommuneAvisForm {
   protected readonly positifs = signal('');
   protected readonly negatifs = signal('');
   protected readonly anonyme = signal(false);
+  protected readonly email = signal('');
   protected readonly existing = signal<boolean>(false);
   protected readonly submitting = signal(false);
-  protected readonly message = signal<'ok' | 'err' | 'court' | null>(null);
+  protected readonly envoiLien = signal(false);
+  protected readonly message = signal<Message>(null);
+
+  /** Contributeur sans compte email/Google : le champ email optionnel s'affiche. */
+  protected readonly invite = computed(() => !this.#auth.connecteCompte());
 
   constructor() {
-    // Pré-remplit avec l'avis existant de l'utilisateur, le cas échéant.
+    // Pré-remplit avec l'avis existant du contributeur (compte OU session
+    // invitée restaurée depuis localStorage), le cas échéant.
     effect(() => {
       const user = this.#auth.user();
       const code = this.codeInsee();
@@ -136,39 +210,79 @@ export class CommuneAvisForm {
       this.message.set('court');
       return;
     }
-    const user = this.#auth.user();
-    if (!user) return;
 
     this.submitting.set(true);
     this.message.set(null);
-    const n = this.notes();
-    const insert: AvisInsert = {
-      commune_insee: this.codeInsee(),
-      user_id: user.id,
-      pseudo: this.#auth.pseudo(),
-      anonyme: this.anonyme(),
-      positifs: this.positifs().trim().slice(0, MAX_TEXTE),
-      negatifs: this.negatifs().trim().slice(0, MAX_TEXTE) || null,
-      note_securite: n.securite,
-      note_sante: n.sante,
-      note_commerces: n.commerces,
-      note_enseignement: n.enseignement,
-      note_sports: n.sports,
-      note_culture: n.culture,
-      note_transports: n.transports,
-      note_niveau_vie: n.niveauVie,
-    };
-
     try {
+      // Mode invité par défaut : session anonyme créée à la volée si besoin.
+      const user = await this.#auth.ensureUser();
+      if (!user) throw new Error('authentification indisponible');
+      const n = this.notes();
+      const insert: AvisInsert = {
+        commune_insee: this.codeInsee(),
+        user_id: user.id,
+        pseudo: this.#auth.pseudo(),
+        anonyme: this.anonyme(),
+        positifs: this.positifs().trim().slice(0, MAX_TEXTE),
+        negatifs: this.negatifs().trim().slice(0, MAX_TEXTE) || null,
+        note_securite: n.securite,
+        note_sante: n.sante,
+        note_commerces: n.commerces,
+        note_enseignement: n.enseignement,
+        note_sports: n.sports,
+        note_culture: n.culture,
+        note_transports: n.transports,
+        note_niveau_vie: n.niveauVie,
+      };
       await this.#avis.submitAvis(insert);
       this.existing.set(true);
-      this.message.set('ok');
+      this.submitted.emit();
+      this.message.set(await this.#claimEmail());
+    } catch {
+      this.message.set('err');
+    } finally {
+      this.submitting.set(false);
+    }
+  }
+
+  /** L'email conflictuel a déjà un compte : envoie le magic-link classique. */
+  protected async envoyerLien(): Promise<void> {
+    this.envoiLien.set(true);
+    const res = await this.#auth.loginWithEmail(this.email().trim());
+    this.envoiLien.set(false);
+    this.message.set(res.ok ? 'lien-envoye' : 'err');
+  }
+
+  protected async supprimer(): Promise<void> {
+    const user = this.#auth.user();
+    if (!user || !this.#doc.defaultView?.confirm('Supprimer définitivement votre avis ?')) return;
+    this.submitting.set(true);
+    try {
+      await this.#avis.deleteAvis(user.id, this.codeInsee());
+      this.notes.set(notesParDefaut());
+      this.positifs.set('');
+      this.negatifs.set('');
+      this.existing.set(false);
+      this.message.set(null);
       this.submitted.emit();
     } catch {
       this.message.set('err');
     } finally {
       this.submitting.set(false);
     }
+  }
+
+  /**
+   * Rattache l'email optionnel au compte invité APRÈS la publication (l'avis
+   * n'est jamais bloqué par l'email) et choisit le message de confirmation.
+   * Échec non-conflit → l'avis est publié quand même, message « ok » simple.
+   */
+  async #claimEmail(): Promise<Message> {
+    const email = this.email().trim();
+    if (!email || !this.invite()) return 'ok';
+    const res = await this.#auth.attacherEmail(email);
+    if (res.ok) return 'ok-verifier';
+    return res.dejaPris ? 'email-pris' : 'ok';
   }
 
   async #prefill(userId: string, code: string): Promise<void> {
