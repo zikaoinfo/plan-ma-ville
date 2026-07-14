@@ -5,6 +5,8 @@ avis habitants). Concurrence ville-ideale.fr. **100 % statique (GitHub Pages)**,
 backend communautaire = **Supabase** uniquement.
 
 Specs : `docs/SPEC-DATA.md`, `docs/SPEC-PHASES-2-6.md`, `docs/SPEC-PHASES-7-12.md`.
+**Accessibilité : voir `ACCESSIBILITE-RGAA.md`** (Definition of Done a11y §1 à
+appliquer à toute création/modif d'UI ; socle focus/skip-link/live déjà en place).
 
 ## Stack & conventions (NON négociables)
 

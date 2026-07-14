@@ -1,3 +1,5 @@
+<a class="skip-link" href="#contenu-principal">Aller au contenu principal</a>
+
 <header class="topbar">
   <div class="container topbar__inner">
     <a routerLink="/" class="brand" aria-label="Ma ville, notée — accueil">
@@ -133,9 +135,13 @@
   </div>
 }
 
-<main class="page">
+<main id="contenu-principal" class="page" tabindex="-1">
   <router-outlet />
 </main>
+
+<!-- Annonce le titre de la nouvelle page aux lecteurs d'écran (crit. 8.5/7.5).
+     Mise à jour impérative par App (aucun contenu visible). -->
+<p id="route-annonce" class="sr-only" role="status" aria-live="polite"></p>
 
 <footer class="footer">
   <div class="container footer__inner">

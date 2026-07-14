@@ -71,3 +71,19 @@
   border-top: 1.5px solid var(--ink);
   z-index: 0;
 }
+
+/* Alternative accessible à la carte (RGAA §5.1) — lien vers les données
+   tabulaires. Visible et discrète sous la carte. */
+.carte__alt {
+  margin: 0;
+  padding: 0.7rem max(1.25rem, calc((100% - var(--container)) / 2));
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  background: var(--paper-soft);
+  border-top: 1.5px solid var(--line);
+}
+
+.carte__alt a {
+  color: var(--accent);
+  font-weight: 600;
+}
