@@ -35,8 +35,10 @@ import { scoreTier, TIER_BG, TIER_FG } from '../score-color';
     }
 
     .badge__den {
+      /* Pas d'opacité : sur le palier orange (texte sombre), l'atténuation
+         alpha se mélange au fond et repasse sous 4.5:1 (RGAA). La différence
+         de taille suffit à la hiérarchie visuelle. */
       font-size: 0.7em;
-      opacity: 0.8;
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
