@@ -71,6 +71,12 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
 
 - Sources (toutes URLs dans `sources.config.json`) :
   - `geo.api.gouv.fr` — périmètre communes, population, `centre` (lat/lng).
+    **Piège** : filtre par défaut `type=commune-actuelle` si le paramètre
+    `type` est omis de l'URL → les arrondissements de Paris/Lyon/Marseille ne
+    sont JAMAIS renvoyés sans `type=commune-actuelle,arrondissement-municipal`
+    explicite dans `geoCommunes` (`sources.config.json`) ; oubli détecté par
+    l'invariant 5 (0 arrondissement rattaché) lors de la 1re validation CI de
+    la note par arrondissement.
   - **BPE** (INSEE) — équipements → santé, commerces, enseignement, sports,
     culture, transports. `fetch/bpe.ts`, domaine = 1re lettre TYPEQU (F1/F2 sports,
     F3 culture).
