@@ -32,20 +32,45 @@ if (!reponse.ok) {
 const xml = await reponse.text();
 const urls = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
 if (urls.length === 0) {
-  console.error('✗ IndexNow : aucune URL dans le sitemap');
-  process.exit(1);
+  console.warn('::warning::IndexNow ignoré : aucune URL dans le sitemap.');
+  process.exit(0);
+}
+
+// Auto-vérification : IndexNow renvoie 403 si la clé n'est pas EXACTEMENT
+// servie à keyLocation. On la récupère et on compare AVANT de soumettre, pour
+// un diagnostic clair (fichier absent, HTTPS pas prêt, contenu inattendu) au
+// lieu d'un 403 opaque. Sur domaine neuf, le certificat/propagation peut ne
+// pas être prêt → on saute proprement (retry au prochain déploiement).
+const keyLocation = `${SITE}/${cle}.txt`;
+try {
+  const check = await fetch(keyLocation, { signal: AbortSignal.timeout(15000) });
+  const contenu = (await check.text()).trim();
+  if (!check.ok || contenu !== cle) {
+    console.warn(
+      `::warning::IndexNow ignoré : ${keyLocation} a répondu ${check.status} / contenu inattendu ` +
+        `(la clé n'est pas encore servie telle quelle — HTTPS/propagation en cours ?). Réessai au prochain déploiement.`,
+    );
+    process.exit(0);
+  }
+} catch (err) {
+  console.warn(`::warning::IndexNow ignoré : clé ${keyLocation} injoignable (${err.message}). Réessai au prochain déploiement.`);
+  process.exit(0);
 }
 
 // L'API accepte jusqu'à 10 000 URLs par appel.
 const res = await fetch('https://api.indexnow.org/indexnow', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json; charset=utf-8' },
-  body: JSON.stringify({
-    host: 'planmaville.fr',
-    key: cle,
-    keyLocation: `${SITE}/${cle}.txt`,
-    urlList: urls,
-  }),
+  body: JSON.stringify({ host: 'planmaville.fr', key: cle, keyLocation, urlList: urls }),
 });
-console.log(`IndexNow : ${urls.length} URLs soumises → HTTP ${res.status}`);
-if (!res.ok && res.status !== 202) process.exit(1);
+if (res.ok || res.status === 202) {
+  console.log(`✓ IndexNow : ${urls.length} URLs soumises → HTTP ${res.status}`);
+} else {
+  // Best-effort (Bing/Yandex uniquement — Google n'utilise pas IndexNow) :
+  // un 403 sur domaine neuf est fréquent (clé pas encore validée côté moteur)
+  // et se résout aux déploiements suivants. On n'échoue jamais le pipeline.
+  console.warn(
+    `::warning::IndexNow : ${urls.length} URLs soumises → HTTP ${res.status} (non bloquant ; ` +
+      `${res.status === 403 ? 'validation de clé en attente côté moteur, ' : ''}Google passe de toute façon par GSC + sitemap).`,
+  );
+}
