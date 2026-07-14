@@ -18,7 +18,15 @@ const MIN_POSITIFS = 20;
 /** Borne haute (anti-abus) — à garder alignée avec le CHECK du schéma SQL. */
 const MAX_TEXTE = 2000;
 
-type Message = 'ok' | 'ok-verifier' | 'email-pris' | 'lien-envoye' | 'err' | 'court' | null;
+type Message =
+  | 'ok'
+  | 'ok-verifier'
+  | 'email-pris'
+  | 'lien-envoye'
+  | 'err'
+  | 'court'
+  | 'invite-off'
+  | null;
 
 function notesParDefaut(): Record<Critere, number> {
   return Object.fromEntries(CRITERES.map((c) => [c, 5])) as Record<Critere, number>;
@@ -136,6 +144,13 @@ function notesParDefaut(): Record<Critere, number> {
         @case ('err') {
           <p class="form__msg form__msg--err">Une erreur est survenue. Réessayez.</p>
         }
+        @case ('invite-off') {
+          <p class="form__msg form__msg--err">
+            La publication sans compte n'est pas encore activée sur ce site.
+            Connectez-vous ci-dessous (« Déjà un compte ? ») pour publier votre
+            avis.
+          </p>
+        }
         @case ('court') {
           <p class="form__msg form__msg--err">
             Les « points positifs » doivent faire au moins {{ min }} caractères
@@ -238,8 +253,12 @@ export class CommuneAvisForm {
       this.existing.set(true);
       this.submitted.emit();
       this.message.set(await this.#claimEmail());
-    } catch {
-      this.message.set('err');
+    } catch (e) {
+      // La cause réelle (RLS, trigger, réseau, toggle dashboard manquant…)
+      // est en console : le message à l'écran reste actionnable sans jargon.
+      console.error('[avis] publication échouée', e);
+      const code = (e as { code?: string } | null)?.code;
+      this.message.set(code === 'anonymous_provider_disabled' ? 'invite-off' : 'err');
     } finally {
       this.submitting.set(false);
     }
