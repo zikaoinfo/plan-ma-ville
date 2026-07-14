@@ -39,6 +39,11 @@ export interface CommuneSource {
  * qu'une commune (hiérarchie Région > Département > Ville > Arrondissement,
  * cf. `fetch/insee-code.ts`), en plus de la commune mère qui garde sa note
  * agrégée.
+ *
+ * **Piège** : l'API geo.api.gouv.fr filtre par défaut sur `type=commune-actuelle`
+ * quand le paramètre `type` est omis — les arrondissements municipaux ne sont
+ * JAMAIS renvoyés sans `type=commune-actuelle,arrondissement-municipal`
+ * explicite dans l'URL (`sources.config.json`). Ne pas retirer ce paramètre.
  */
 export async function fetchCommunes(url: string, cacheDir: string): Promise<CommuneSource[]> {
   const cacheFile = path.join(cacheDir, 'geo.json');

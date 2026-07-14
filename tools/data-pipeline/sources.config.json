@@ -1,6 +1,6 @@
 {
   "_readme": "URLs open data. geoCommunes = URL directe. BPE/SSMSI/Filosofi : résolution via l'API data.gouv.fr (slug `dataset` + `resource`/`resourceExclude`/`format`). Chaque run logge l'inventaire des ressources (job CI « Validate open data ») pour affiner les motifs. Réseau bloqué en sandbox → validation en CI. Voir docs/TODO.md §Phase 5.",
-  "geoCommunes": "https://geo.api.gouv.fr/communes?fields=nom,code,codesPostaux,codeDepartement,population,centre&format=json",
+  "geoCommunes": "https://geo.api.gouv.fr/communes?fields=nom,code,codesPostaux,codeDepartement,population,centre&type=commune-actuelle,arrondissement-municipal&format=json",
   "bpe": {
     "dataset": "base-permanente-des-equipements",
     "format": "csv",
