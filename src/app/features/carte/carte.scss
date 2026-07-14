@@ -72,6 +72,10 @@
   z-index: 0;
 }
 
+.carte__map--placeholder {
+  background: var(--paper-soft);
+}
+
 /* Alternative accessible à la carte (RGAA §5.1) — lien vers les données
    tabulaires. Visible et discrète sous la carte. */
 .carte__alt {

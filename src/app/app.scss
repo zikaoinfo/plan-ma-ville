@@ -36,8 +36,10 @@
   height: 2.3rem;
   border: 2px solid var(--ink);
   border-radius: 50% 50% 50% 6px;
-  background: var(--accent-strong);
-  color: var(--paper);
+  background: var(--accent);
+  /* --paper échouait le contraste (2.85-2.88:1 sur --accent) : encre sombre,
+     ≥ 5.19:1 dans les deux thèmes. */
+  color: var(--on-accent);
   font-family: var(--font-display);
   font-size: 1.05rem;
   font-weight: 700;
@@ -224,7 +226,7 @@
 
 .account__avatar--initiales {
   background: var(--accent);
-  color: var(--paper);
+  color: var(--on-accent);
   font-size: 0.75rem;
   font-weight: 700;
 }

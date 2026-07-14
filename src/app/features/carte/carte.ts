@@ -2,7 +2,6 @@ import { DecimalPipe, DOCUMENT } from '@angular/common';
 import { baseUri, dataUrl } from '../../core/data-url';
 import { httpResource } from '@angular/common/http';
 import {
-  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
@@ -11,6 +10,7 @@ import {
   ElementRef,
   inject,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
@@ -30,7 +30,8 @@ export class Carte {
   readonly #doc = inject(DOCUMENT);
   readonly #meta = inject(MetaService);
 
-  private readonly mapEl = viewChild.required<ElementRef<HTMLElement>>('map');
+  // Optionnel : n'existe qu'une fois le bloc @defer résolu (jamais côté SSR).
+  private readonly mapEl = viewChild<ElementRef<HTMLElement>>('map');
 
   readonly #geo = httpResource<GeoLightFile>(
     () => dataUrl(this.#doc, 'geo-light.json'),
@@ -59,32 +60,12 @@ export class Carte {
       canonicalPath: '/carte',
     });
 
-    // Leaflet ne s'initialise que dans le navigateur (accès au DOM).
-    afterNextRender(async () => {
-      const mod = await import('leaflet');
-      // Le plugin markercluster augmente l'objet Leaflet runtime (module CJS).
-      // Avec un import ESM, le namespace est figé à l'import : la méthode
-      // `markerClusterGroup` n'apparaît que sur l'objet réel (`.default`).
-      await import('leaflet.markercluster');
-      const leaflet = ((mod as { default?: typeof L }).default ?? mod) as typeof L;
-      this.#L = leaflet;
-
-      const map = leaflet.map(this.mapEl().nativeElement, {
-        center: [46.7, 2.4], // centre de la France
-        zoom: 6,
-        scrollWheelZoom: true,
-      });
-      leaflet
-        .tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '© OpenStreetMap',
-          maxZoom: 18,
-        })
-        .addTo(map);
-
-      this.#cluster = leaflet.markerClusterGroup({ chunkedLoading: true });
-      map.addLayer(this.#cluster);
-      this.#map = map;
-      this.#ready.set(true);
+    // Leaflet ne s'initialise que dans le navigateur, une fois le bloc
+    // @defer résolu (mapEl() reste undefined côté SSR : jamais exécuté).
+    effect(() => {
+      const el = this.mapEl();
+      if (!el || this.#map) return;
+      untracked(() => this.#initMap(el));
     });
 
     // (Re)dessine les markers quand la carte est prête, que les données
@@ -110,6 +91,33 @@ export class Carte {
 
     // Libère la carte Leaflet en quittant la page.
     inject(DestroyRef).onDestroy(() => this.#map?.remove());
+  }
+
+  async #initMap(el: ElementRef<HTMLElement>): Promise<void> {
+    const mod = await import('leaflet');
+    // Le plugin markercluster augmente l'objet Leaflet runtime (module CJS).
+    // Avec un import ESM, le namespace est figé à l'import : la méthode
+    // `markerClusterGroup` n'apparaît que sur l'objet réel (`.default`).
+    await import('leaflet.markercluster');
+    const leaflet = ((mod as { default?: typeof L }).default ?? mod) as typeof L;
+    this.#L = leaflet;
+
+    const map = leaflet.map(el.nativeElement, {
+      center: [46.7, 2.4], // centre de la France
+      zoom: 6,
+      scrollWheelZoom: true,
+    });
+    leaflet
+      .tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap',
+        maxZoom: 18,
+      })
+      .addTo(map);
+
+    this.#cluster = leaflet.markerClusterGroup({ chunkedLoading: true });
+    map.addLayer(this.#cluster);
+    this.#map = map;
+    this.#ready.set(true);
   }
 
   #renderMarkers(items: readonly GeoLightItem[]): void {

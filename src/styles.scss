@@ -4,6 +4,48 @@
    accent corail, vert note. Typo : Fraunces (display) + Outfit.
    ════════════════════════════════════════════════════════════ */
 
+/* Polices auto-hébergées (fini fonts.gstatic.com — CLS causé par le swap
+   tardif). Fichiers variables (axe wght) téléchargés une fois pour toutes
+   les graisses utilisées dans le code : Fraunces 500/600/700, Outfit
+   400/500/600/700, sous-ensemble latin (couvre les accents français). */
+@font-face {
+  font-family: 'Fraunces';
+  src: url('/fonts/fraunces-variable-latin.woff2') format('woff2');
+  font-weight: 500 700;
+  font-style: normal;
+  font-display: optional;
+}
+
+@font-face {
+  font-family: 'Outfit';
+  src: url('/fonts/outfit-variable-latin.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: optional;
+}
+
+/* Polices de repli aux métriques ajustées (générées avec fontaine à partir
+   des .woff2 ci-dessus — ascent/descent/size-adjust calibrés, PAS inventés)
+   pour qu'Arial occupe exactement la même place que la police finale : plus
+   de reflow au chargement, donc plus de CLS. */
+@font-face {
+  font-family: 'Fraunces Fallback';
+  src: local('Arial');
+  size-adjust: 100%;
+  ascent-override: 97.8%;
+  descent-override: 25.5%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Outfit Fallback';
+  src: local('Arial');
+  size-adjust: 100%;
+  ascent-override: 100%;
+  descent-override: 26%;
+  line-gap-override: 0%;
+}
+
 :root {
   /* Couleurs */
   --paper: #faf6ef;
@@ -12,13 +54,18 @@
   --ink-soft: #4a5270;
   --accent: #ff5a3c;
   --accent-soft: #ffd9d0;
-  --good: #1d8a63;
+  --good: #1a7c59; /* aligné TIER_BG.good (score-color.ts) — 5.16:1 en blanc */
   --good-soft: #d2efe3;
   --warn: #d9a514;
   --bad: #c93a2e;
   --line: #d9d2c3;
   --topbar-bg: rgb(250 246 239 / 0.85);
-  --on-accent: #fff; /* texte posé sur --accent / --bad (fonds saturés) */
+  /* Texte posé sur --accent (fonds saturés mais clairs : 2.85-2.88:1 en
+     blanc, échec WCAG AA) → encre sombre, 5.19:1 (clair) / 6.41:1 (sombre). */
+  --on-accent: #181022;
+  /* Texte posé sur --bad : blanc en clair (5.09:1), encre sombre en sombre
+     (--bad s'éclaircit à #e5675b, le blanc y tombe à 3.27:1). */
+  --on-bad: #ffffff;
   --scrim: rgb(0 0 0 / 0.25); /* voile derrière les panneaux/menus */
 
   /* Variantes « texte-safe » (RGAA §1.5, contraste ≥ 4.5:1 sur --paper /
@@ -28,12 +75,11 @@
      servent de `color` (liens, libellés) ou de fond pour du texte clair
      (--paper/--on-accent dessus). */
   --accent-text: #a83a1f;
-  --accent-strong: #a83a1f;
   --good-text: #157050;
 
   /* Typo */
-  --font-display: 'Fraunces', 'Georgia', serif;
-  --font-body: 'Outfit', system-ui, -apple-system, sans-serif;
+  --font-display: 'Fraunces', 'Fraunces Fallback', 'Georgia', serif;
+  --font-body: 'Outfit', 'Outfit Fallback', system-ui, -apple-system, sans-serif;
 
   /* Rythme */
   --radius: 14px;
@@ -62,7 +108,8 @@
   --bad: #e5675b;
   --line: #333c5c;
   --topbar-bg: rgb(20 26 46 / 0.85);
-  --on-accent: #fff;
+  --on-accent: #181022; /* 6.41:1 sur --accent sombre */
+  --on-bad: #181022; /* --bad s'éclaircit en sombre (#e5675b) : encre, 5.65:1 */
   --scrim: rgb(0 0 0 / 0.5);
   --shadow: 0 2px 0 #05070f;
   --shadow-lift: 0 6px 0 rgb(0 0 0 / 0.35);
@@ -70,7 +117,6 @@
   /* En sombre, --accent/--good sont déjà assez clairs pour servir de texte
      sur le fond nuit (--paper) — pas besoin de les assombrir davantage. */
   --accent-text: var(--accent);
-  --accent-strong: var(--accent);
   --good-text: var(--good);
 
   color-scheme: dark;
