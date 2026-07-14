@@ -57,6 +57,22 @@ function notesParDefaut(): Record<Critere, number> {
         ></textarea>
       </label>
 
+      <label class="form__anonyme">
+        <input
+          type="checkbox"
+          [checked]="anonyme()"
+          (change)="anonyme.set($any($event.target).checked)"
+        />
+        <span>Publier anonymement</span>
+      </label>
+      <p class="form__hint">
+        {{
+          anonyme()
+            ? 'Votre avis sera affiché sous « Habitant anonyme ».'
+            : 'Votre avis sera affiché avec votre prénom (ex. « Jean D. »).'
+        }}
+      </p>
+
       @if (message() === 'ok') {
         <p class="form__msg form__msg--ok">Merci ! Votre avis a été enregistré.</p>
       } @else if (message() === 'err') {
@@ -93,6 +109,7 @@ export class CommuneAvisForm {
   protected readonly notes = signal<Record<Critere, number>>(notesParDefaut());
   protected readonly positifs = signal('');
   protected readonly negatifs = signal('');
+  protected readonly anonyme = signal(false);
   protected readonly existing = signal<boolean>(false);
   protected readonly submitting = signal(false);
   protected readonly message = signal<'ok' | 'err' | 'court' | null>(null);
@@ -129,6 +146,7 @@ export class CommuneAvisForm {
       commune_insee: this.codeInsee(),
       user_id: user.id,
       pseudo: this.#auth.pseudo(),
+      anonyme: this.anonyme(),
       positifs: this.positifs().trim().slice(0, MAX_TEXTE),
       negatifs: this.negatifs().trim().slice(0, MAX_TEXTE) || null,
       note_securite: n.securite,
@@ -155,7 +173,11 @@ export class CommuneAvisForm {
 
   async #prefill(userId: string, code: string): Promise<void> {
     const avis = await this.#avis.getUserAvis(userId, code);
-    if (!avis) return;
+    if (!avis) {
+      // Nouvel avis : reprend le dernier choix "anonyme" de l'utilisateur.
+      this.anonyme.set(await this.#avis.getAnonymeDefaut(userId));
+      return;
+    }
     this.notes.set({
       securite: avis.note_securite,
       sante: avis.note_sante,
@@ -168,6 +190,7 @@ export class CommuneAvisForm {
     });
     this.positifs.set(avis.positifs);
     this.negatifs.set(avis.negatifs ?? '');
+    this.anonyme.set(avis.anonyme);
     this.existing.set(true);
   }
 }

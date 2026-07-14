@@ -74,6 +74,18 @@ export class AvisService {
     return (data as Avis | null) ?? null;
   }
 
+  /** Dernier choix "publier anonymement" de l'utilisateur (défaut du formulaire). */
+  async getAnonymeDefaut(userId: string): Promise<boolean> {
+    const client = await this.#sb.getClient();
+    if (!client) return false;
+    const { data } = await client
+      .from('profiles')
+      .select('anonyme_defaut')
+      .eq('user_id', userId)
+      .maybeSingle();
+    return (data as { anonyme_defaut: boolean } | null)?.anonyme_defaut ?? false;
+  }
+
   /** Crée ou met à jour l'avis (1 par user par commune). */
   async submitAvis(avis: AvisInsert): Promise<void> {
     const client = await this.#sb.getClient();
@@ -82,5 +94,8 @@ export class AvisService {
       onConflict: 'user_id,commune_insee',
     });
     if (error) throw error;
+    // Best-effort (erreur ignorée) : mémorise le choix anonyme comme défaut
+    // du prochain avis. Le pseudo réel reste calculé côté serveur (force_avis_pseudo).
+    await client.from('profiles').update({ anonyme_defaut: avis.anonyme }).eq('user_id', avis.user_id);
   }
 }
