@@ -12,11 +12,16 @@ export function scoreTier(score: number): ScoreTier {
   return 'good';
 }
 
+/**
+ * Source de vérité UNIQUE des couleurs de note : badges, barres, sliders,
+ * comparateur ET markers de la carte (marker-style.ts). Alignée sur les
+ * tokens --bad / --warn / --good de styles.scss.
+ */
 export const TIER_BG: Record<ScoreTier, string> = {
-  bad: '#e74c3c',
+  bad: '#c93a2e',
   mid: '#e67e22',
-  warn: '#f1c40f',
-  good: '#27ae60',
+  warn: '#d9a514',
+  good: '#1d8a63',
 };
 
 /** Texte sombre uniquement sur le jaune, pour le contraste. */

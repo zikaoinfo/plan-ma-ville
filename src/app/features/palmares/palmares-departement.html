@@ -8,7 +8,12 @@
     }
   </header>
 
-  @if (!charge()) {
+  @if (erreur()) {
+    <app-error-message
+      message="Département introuvable ou données indisponibles. Vérifiez le code du département ou réessayez."
+      [retry]="reload"
+    />
+  } @else if (!charge()) {
     <div class="loading" role="status">
       <span class="spinner" aria-hidden="true"></span> Chargement du classement…
     </div>

@@ -6,9 +6,11 @@ export type ThemePref = 'light' | 'dark' | 'system';
 
 export const THEME_STORAGE_KEY = 'mvn-theme';
 
-/** Couleur de la barre navigateur (`<meta name="theme-color">`) par thème. */
+/** Couleur de la barre navigateur (`<meta name="theme-color">`) par thème —
+ *  alignée sur le fond de la topbar (crème / nuit), et sur le script
+ *  anti-flash d'index.html. */
 const META_THEME_COLOR: Record<'light' | 'dark', string> = {
-  light: '#18203a',
+  light: '#faf6ef',
   dark: '#10152a',
 };
 

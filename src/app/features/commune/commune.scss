@@ -253,6 +253,12 @@
   border: 0;
 }
 
+/* Mode sombre : l'iframe OSM (cross-origin, non stylable de l'intérieur)
+   est inversée pour ne pas laisser un pavé blanc dans la fiche sombre. */
+:host-context([data-theme='dark']) .map {
+  filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9) saturate(0.6);
+}
+
 .map__link {
   position: absolute;
   right: 0.6rem;

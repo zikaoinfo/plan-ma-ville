@@ -68,6 +68,9 @@ export class SearchIndexService {
   /** État brut de la ressource d'index (idle | loading | resolved | error). */
   readonly indexStatus = this.#index.status;
 
+  /** État brut de la ressource départements (idle | loading | resolved | error). */
+  readonly departementsStatus = this.#departements.status;
+
   /** Items de l'index ; `[]` tant que non résolu. */
   readonly items = computed(() => this.#index.value()?.items ?? []);
 

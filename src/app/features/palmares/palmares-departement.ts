@@ -6,6 +6,7 @@ import { CommuneDataService } from '../../core/services/commune-data.service';
 import { JsonLdService } from '../../core/services/json-ld.service';
 import { MetaService } from '../../core/services/meta.service';
 import { SearchIndexService } from '../../core/services/search-index.service';
+import { ErrorMessage } from '../../shared/error-message/error-message';
 import { ScoreBadge } from '../../shared/score-badge/score-badge';
 import { introPrix, introSecurite, topPrix, topSecurite } from './palmares-logic';
 
@@ -18,7 +19,7 @@ export type TypePalmares = 'securite' | 'prix';
  */
 @Component({
   selector: 'app-palmares-departement',
-  imports: [RouterLink, ScoreBadge, DecimalPipe],
+  imports: [RouterLink, ScoreBadge, DecimalPipe, ErrorMessage],
   templateUrl: './palmares-departement.html',
   styleUrl: './palmares.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -32,10 +33,16 @@ export class PalmaresDepartement {
   readonly code = input.required<string>();
   readonly type = input.required<TypePalmares>();
 
-  readonly #file = this.#data.loadDep(this.code);
+  /** Code normalisé : les données utilisent `2A`/`2B` en majuscules. */
+  readonly #code = computed(() => this.code().toUpperCase());
+
+  readonly #dep = this.#data.loadDep(this.#code);
+  readonly #file = this.#dep.file;
+  protected readonly erreur = this.#dep.erreur;
+  protected readonly reload = this.#dep.reload;
 
   protected readonly nom = computed(
-    () => this.#file()?.nom ?? this.#search.departementName(this.code()) ?? this.code(),
+    () => this.#file()?.nom ?? this.#search.departementName(this.#code()) ?? this.code(),
   );
   protected readonly charge = computed(() => this.#file() !== undefined);
 
@@ -66,24 +73,26 @@ export class PalmaresDepartement {
 
   constructor() {
     effect(() => {
-      const chemin = `/palmares/${this.type()}/${this.code()}`;
+      const code = this.#code();
+      const chemin = `/palmares/${this.type()}/${code}`;
       this.#meta.setPage({
-        title: `${this.titre()} (${this.code()}) — ma ville, notée`,
+        title: `${this.titre()} (${code}) — ma ville, notée`,
         description:
           this.type() === 'securite'
-            ? `Classement des communes les plus sûres du ${this.nom()} (${this.code()}), d'après les faits de délinquance enregistrés (SSMSI) rapportés à la population.`
-            : `Les communes du ${this.nom()} (${this.code()}) au prix au m² le plus accessible, d'après les ventes immobilières réelles (base DVF).`,
+            ? `Classement des communes les plus sûres du ${this.nom()} (${code}), d'après les faits de délinquance enregistrés (SSMSI) rapportés à la population.`
+            : `Les communes du ${this.nom()} (${code}) au prix au m² le plus accessible, d'après les ventes immobilières réelles (base DVF).`,
         canonicalPath: chemin,
+        noindex: !this.charge(), // chargement ou erreur : rien d'indexable
       });
 
       const top = this.top();
       if (top.length) {
-        const region = this.#search.regionForDepartement(this.code());
+        const region = this.#search.regionForDepartement(code);
         this.#jsonLd.set([
           schemaBreadcrumb([
             { nom: 'Accueil', path: '/' },
             ...(region ? [{ nom: region.nom, path: `/region/${region.code}` }] : []),
-            { nom: `${this.nom()} (${this.code()})`, path: `/departement/${this.code()}` },
+            { nom: `${this.nom()} (${code})`, path: `/departement/${code}` },
             { nom: this.titre() },
           ]),
           schemaItemList(

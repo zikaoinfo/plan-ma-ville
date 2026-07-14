@@ -18,7 +18,7 @@ export class AvisService {
 
   /** Page d'avis d'une commune (10 par page, plus récents d'abord). */
   async loadAvis(codeInsee: string, page = 0): Promise<Avis[]> {
-    const client = this.#sb.client;
+    const client = await this.#sb.getClient();
     if (!client) return [];
     const { data, error } = await client
       .from('avis')
@@ -32,7 +32,7 @@ export class AvisService {
 
   /** Stats agrégées (note habitants, nb avis) — null si aucune. */
   async loadStats(codeInsee: string): Promise<CommuneStats | null> {
-    const client = this.#sb.client;
+    const client = await this.#sb.getClient();
     if (!client) return null;
     const { data } = await client
       .from('communes_stats')
@@ -44,7 +44,7 @@ export class AvisService {
 
   /** Stats de plusieurs communes d'un coup (classement / comparateur). */
   async loadStatsBatch(codesInsee: string[]): Promise<Map<string, CommuneStats>> {
-    const client = this.#sb.client;
+    const client = await this.#sb.getClient();
     const map = new Map<string, CommuneStats>();
     if (!client || codesInsee.length === 0) return map;
     const { data } = await client
@@ -63,7 +63,7 @@ export class AvisService {
 
   /** Avis de l'utilisateur pour cette commune (pour pré-remplir le formulaire). */
   async getUserAvis(userId: string, codeInsee: string): Promise<Avis | null> {
-    const client = this.#sb.client;
+    const client = await this.#sb.getClient();
     if (!client) return null;
     const { data } = await client
       .from('avis')
@@ -76,7 +76,7 @@ export class AvisService {
 
   /** Crée ou met à jour l'avis (1 par user par commune). */
   async submitAvis(avis: AvisInsert): Promise<void> {
-    const client = this.#sb.client;
+    const client = await this.#sb.getClient();
     if (!client) throw new Error('Supabase non configuré');
     const { error } = await client.from('avis').upsert(avis, {
       onConflict: 'user_id,commune_insee',

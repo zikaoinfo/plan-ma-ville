@@ -17,6 +17,8 @@
       <button
         type="button"
         role="tab"
+        id="tab-top"
+        aria-controls="classement-panel"
         class="tab"
         [class.tab--active]="tab() === 'top'"
         [attr.aria-selected]="tab() === 'top'"
@@ -27,6 +29,8 @@
       <button
         type="button"
         role="tab"
+        id="tab-flop"
+        aria-controls="classement-panel"
         class="tab"
         [class.tab--active]="tab() === 'flop'"
         [attr.aria-selected]="tab() === 'flop'"
@@ -61,7 +65,12 @@
       <app-error-message message="Impossible de charger le classement." [retry]="reload" />
     }
     @default {
-      <div class="table-wrap">
+      <div
+        class="table-wrap"
+        id="classement-panel"
+        role="tabpanel"
+        [attr.aria-labelledby]="tab() === 'top' ? 'tab-top' : 'tab-flop'"
+      >
         <table class="table">
             <caption class="sr-only">Classement des communes de France par note globale sur 10.</caption>
           <thead>

@@ -88,11 +88,14 @@ export class Carte {
     });
 
     // (Re)dessine les markers quand la carte est prête, que les données
-    // arrivent, ou que le filtre change.
-    effect(() => {
+    // arrivent, ou que le filtre change. Petit debounce : le slider émet à
+    // chaque cran pendant le glissement, or chaque rendu reconstruit tout le
+    // jeu de markers (~25 000) — on ne reconstruit qu'une fois la main posée.
+    effect((onCleanup) => {
       const visibles = this.#visibles();
       if (!this.#ready() || !this.#L || !this.#cluster) return;
-      this.#renderMarkers(visibles);
+      const timer = setTimeout(() => this.#renderMarkers(visibles), 150);
+      onCleanup(() => clearTimeout(timer));
     });
 
     // Libère la carte Leaflet en quittant la page.

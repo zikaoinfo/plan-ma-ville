@@ -71,15 +71,17 @@ export class CommuneDataService {
 
     // Alimente le cache singleton dès qu'un fichier est résolu.
     effect(() => {
-      const file = depRes.value();
+      const file = depRes.hasValue() ? depRes.value() : undefined;
       if (file) this.#fileCache.set(file.code, file);
     });
 
     // Fichier du département (cache ou ressource) — partagé pour les voisins,
     // afin de n'émettre qu'une seule requête par département.
+    // NB : `value()` LÈVE en état d'erreur → toujours passer par hasValue().
     const depFile = computed(() => {
       const code = depCode();
-      return code ? (this.#fileCache.get(code) ?? depRes.value()) : undefined;
+      if (!code) return undefined;
+      return this.#fileCache.get(code) ?? (depRes.hasValue() ? depRes.value() : undefined);
     });
 
     const state = computed(() =>
@@ -97,9 +99,16 @@ export class CommuneDataService {
 
   /**
    * Charge le fichier détaillé d'un département (Phase 4).
-   * `undefined` tant que non résolu ; sert le cache si déjà chargé.
+   * `file` reste `undefined` tant que non résolu (sert le cache si déjà
+   * chargé) ; `erreur` passe à `true` si la requête échoue (code inconnu,
+   * réseau) pour que la page affiche un état d'erreur au lieu d'un spinner
+   * infini ; `reload` relance la requête.
    */
-  loadDep(code: Signal<string>): Signal<DepartementDetailFile | undefined> {
+  loadDep(code: Signal<string>): {
+    file: Signal<DepartementDetailFile | undefined>;
+    erreur: Signal<boolean>;
+    reload: () => void;
+  } {
     const depRes = httpResource<DepartementDetailFile>(() => {
       const c = code();
       if (!c || this.#fileCache.has(c)) return undefined;
@@ -107,11 +116,18 @@ export class CommuneDataService {
     });
 
     effect(() => {
-      const file = depRes.value();
+      const file = depRes.hasValue() ? depRes.value() : undefined;
       if (file) this.#fileCache.set(file.code, file);
     });
 
-    return computed(() => this.#fileCache.get(code()) ?? depRes.value());
+    return {
+      // NB : `value()` LÈVE en état d'erreur → toujours passer par hasValue().
+      file: computed(
+        () => this.#fileCache.get(code()) ?? (depRes.hasValue() ? depRes.value() : undefined),
+      ),
+      erreur: computed(() => !this.#fileCache.has(code()) && depRes.status() === 'error'),
+      reload: () => depRes.reload(),
+    };
   }
 
   #url(code: string): string {

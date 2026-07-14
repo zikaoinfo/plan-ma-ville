@@ -22,7 +22,8 @@ import { scoreTier, TIER_BG, TIER_FG } from '../score-color';
       gap: 0.1rem;
       padding: 0.25rem 0.6rem;
       border-radius: 999px;
-      border: 1.5px solid rgb(0 0 0 / 0.15);
+      /* Liseré dérivé de l'encre : visible dans les deux thèmes. */
+      border: 1.5px solid color-mix(in srgb, var(--ink) 20%, transparent);
       font-family: var(--font-display);
       font-weight: 600;
       line-height: 1;

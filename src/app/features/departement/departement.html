@@ -44,65 +44,50 @@
           <caption class="sr-only">Communes du département, notées sur 10 et classables par critère.</caption>
         <thead>
           <tr>
-            <th
-              scope="col"
-              class="th th--sortable"
-              [attr.aria-sort]="ariaSort('nom')"
-              (click)="sortBy('nom')"
-            >
-              Commune <span class="arrow">{{ sortField() === 'nom' ? (sortOrder() === 1 ? '↑' : '↓') : '' }}</span>
+            <th scope="col" class="th th--sortable" [attr.aria-sort]="ariaSort('nom')">
+              <button type="button" class="th__btn" (click)="sortBy('nom')">
+                Commune <span class="arrow" aria-hidden="true">{{ sortField() === 'nom' ? (sortOrder() === 1 ? '↑' : '↓') : '' }}</span>
+              </button>
             </th>
-            <th
-              scope="col"
-              class="th th--sortable th--num"
-              [attr.aria-sort]="ariaSort('population')"
-              (click)="sortBy('population')"
-            >
-              Population <span class="arrow">{{ sortField() === 'population' ? (sortOrder() === 1 ? '↑' : '↓') : '' }}</span>
+            <th scope="col" class="th th--sortable th--num" [attr.aria-sort]="ariaSort('population')">
+              <button type="button" class="th__btn" (click)="sortBy('population')">
+                Population <span class="arrow" aria-hidden="true">{{ sortField() === 'population' ? (sortOrder() === 1 ? '↑' : '↓') : '' }}</span>
+              </button>
             </th>
-            <th
-              scope="col"
-              class="th th--sortable th--num"
-              [attr.aria-sort]="ariaSort('global')"
-              (click)="sortBy('global')"
-            >
-              Note <span class="arrow">{{ sortField() === 'global' ? (sortOrder() === 1 ? '↑' : '↓') : '' }}</span>
+            <th scope="col" class="th th--sortable th--num" [attr.aria-sort]="ariaSort('global')">
+              <button type="button" class="th__btn" (click)="sortBy('global')">
+                Note <span class="arrow" aria-hidden="true">{{ sortField() === 'global' ? (sortOrder() === 1 ? '↑' : '↓') : '' }}</span>
+              </button>
             </th>
             @if (ponderation.actif()) {
-              <th
-                scope="col"
-                class="th th--sortable th--num th--perso"
-                [attr.aria-sort]="ariaSort('perso')"
-                (click)="sortBy('perso')"
-              >
-                Pour vous <span class="arrow">{{ sortField() === 'perso' ? (sortOrder() === 1 ? '↑' : '↓') : '' }}</span>
+              <th scope="col" class="th th--sortable th--num th--perso" [attr.aria-sort]="ariaSort('perso')">
+                <button type="button" class="th__btn" (click)="sortBy('perso')">
+                  Pour vous <span class="arrow" aria-hidden="true">{{ sortField() === 'perso' ? (sortOrder() === 1 ? '↑' : '↓') : '' }}</span>
+                </button>
               </th>
             }
             @for (critere of criteres; track critere) {
-              <th
-                scope="col"
-                class="th th--sortable th--num th--critere"
-                [attr.aria-sort]="ariaSort(critere)"
-                (click)="sortBy(critere)"
-              >
-                {{ labels[critere] }} <span class="arrow">{{ sortField() === critere ? (sortOrder() === 1 ? '↑' : '↓') : '' }}</span>
+              <th scope="col" class="th th--sortable th--num th--critere" [attr.aria-sort]="ariaSort(critere)">
+                <button type="button" class="th__btn" (click)="sortBy(critere)">
+                  {{ labels[critere] }} <span class="arrow" aria-hidden="true">{{ sortField() === critere ? (sortOrder() === 1 ? '↑' : '↓') : '' }}</span>
+                </button>
               </th>
             }
           </tr>
         </thead>
         <tbody>
-          @for (c of list; track c.slug) {
+          @for (row of list; track row.c.slug) {
             <tr>
               <td class="td td--nom">
-                <a [routerLink]="['/ville', c.slug]">{{ c.nom }}</a>
+                <a [routerLink]="['/ville', row.c.slug]">{{ row.c.nom }}</a>
               </td>
-              <td class="td td--num">{{ c.population | number: '1.0-0' }}</td>
-              <td class="td td--num td--note">{{ c.score.global.toFixed(1) }}</td>
+              <td class="td td--num">{{ row.c.population | number: '1.0-0' }}</td>
+              <td class="td td--num td--note">{{ row.c.score.global.toFixed(1) }}</td>
               @if (ponderation.actif()) {
-                <td class="td td--num td--note td--perso">{{ notePerso(c.score.criteres).toFixed(1) }}</td>
+                <td class="td td--num td--note td--perso">{{ row.perso.toFixed(1) }}</td>
               }
               @for (critere of criteres; track critere) {
-                <td class="td td--num td--critere">{{ c.score.criteres[critere].toFixed(1) }}</td>
+                <td class="td td--num td--critere">{{ row.c.score.criteres[critere].toFixed(1) }}</td>
               }
             </tr>
           } @empty {
@@ -115,6 +100,11 @@
         </tbody>
       </table>
     </div>
+  } @else if (erreur()) {
+    <app-error-message
+      message="Département introuvable ou données indisponibles. Vérifiez le code du département ou réessayez."
+      [retry]="reload"
+    />
   } @else {
     <div class="loading" role="status">
       <span class="spinner" aria-hidden="true"></span> Chargement du département…

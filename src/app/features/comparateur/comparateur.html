@@ -18,9 +18,11 @@
         (input)="query.set($any($event.target).value)"
       />
       @if (suggestions().length) {
-        <ul class="add__list" role="listbox" aria-label="Suggestions">
+        <!-- Simple liste de boutons (pas de rôle listbox : les options
+             seraient orphelines sans vrai motif combobox). -->
+        <ul class="add__list" aria-label="Suggestions de communes">
           @for (item of suggestions(); track item.s) {
-            <li role="option" aria-selected="false">
+            <li>
               <button type="button" class="add__opt" (click)="addVille(item.s)">
                 <span>{{ item.n }}</span>
                 <span class="add__dep">dép. {{ item.d }}</span>
@@ -47,9 +49,9 @@
                   type="button"
                   class="cmp__remove"
                   (click)="removeVille(col.index)"
-                  [attr.aria-label]="'Retirer ' + col.slug"
+                  [attr.aria-label]="'Retirer ' + (communeAt($index)?.nom ?? col.slug)"
                 >
-                  ×
+                  <span aria-hidden="true">×</span>
                 </button>
                 @if (communeAt($index); as c) {
                   <a [routerLink]="['/ville', c.slug]" class="cmp__nom">{{ c.nom }}</a>

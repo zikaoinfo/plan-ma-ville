@@ -11,10 +11,11 @@
        quand la variable de dépôt SITE_INDEXABLE vaut "true". Un robots.txt ne
        suffirait pas : sur un site projet Pages il devrait vivre à la racine de
        zikaoinfo.github.io, hors de notre contrôle. -->
-  <meta name="robots" content="noindex, nofollow">
-  <meta name="theme-color" content="#18203a">
-  <!-- Anti-flash : pose data-theme AVANT le chargement d'Angular.
-       Doit rester aligné avec ThemeService (clé mvn-theme, défaut system). -->
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#faf6ef">
+  <!-- Anti-flash : pose data-theme ET la theme-color AVANT le chargement
+       d'Angular. Doit rester aligné avec ThemeService (clé mvn-theme,
+       défaut system, couleurs META_THEME_COLOR). -->
   <script>
     (function () {
       var theme = 'light';
@@ -24,6 +25,8 @@
         theme = pref === 'dark' || (pref !== 'light' && systemDark) ? 'dark' : 'light';
       } catch (e) { /* stockage/matchMedia indisponibles : clair */ }
       document.documentElement.dataset.theme = theme;
+      var meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute('content', theme === 'dark' ? '#10152a' : '#faf6ef');
     })();
   </script>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">

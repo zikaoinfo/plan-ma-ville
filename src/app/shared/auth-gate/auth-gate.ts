@@ -23,6 +23,8 @@ import { AuthService } from '../../core/services/auth.service';
             type="email"
             class="gate__input"
             placeholder="votre@email.fr"
+            aria-label="Adresse email pour recevoir le lien de connexion"
+            autocomplete="email"
             [value]="email()"
             (input)="email.set($any($event.target).value)"
             required
@@ -98,7 +100,7 @@ import { AuthService } from '../../core/services/auth.service';
       border: none;
       border-radius: 10px;
       background: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
       font: inherit;
       font-weight: 600;
       cursor: pointer;

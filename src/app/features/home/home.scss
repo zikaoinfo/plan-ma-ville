@@ -22,6 +22,7 @@
 
 /* ── Champ de recherche ───────────────────── */
 .search {
+  position: relative; /* ancre du panneau de suggestions en superposition */
   max-width: 38rem;
   margin: 2.5rem auto 0;
   text-align: left;
@@ -84,15 +85,27 @@
   outline: none;
 }
 
-/* ── Résultats ────────────────────────────── */
-.results {
-  list-style: none;
-  margin: 0.8rem 0 0;
-  padding: 0.4rem;
+/* ── Panneau de suggestions (superposition) ──
+   Position absolue sous le champ : la grille des départements ne bouge
+   jamais (pas de layout shift). */
+.search__panel {
+  position: absolute;
+  inset-inline: 0;
+  top: calc(100% + 0.5rem);
+  z-index: 40;
+  max-height: min(55vh, 26rem);
+  overflow-y: auto;
   background: var(--paper);
   border: 1.5px solid var(--line);
   border-radius: 16px;
   box-shadow: var(--shadow-lift);
+}
+
+/* ── Résultats ────────────────────────────── */
+.results {
+  list-style: none;
+  margin: 0;
+  padding: 0.4rem;
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
@@ -111,7 +124,8 @@
 }
 
 .result:hover,
-.result:focus-visible {
+.result:focus-visible,
+.result--active {
   background: var(--paper-soft);
   outline: none;
 }
@@ -140,13 +154,19 @@
   align-items: center;
   justify-content: center;
   gap: 0.6rem;
-  margin-top: 1rem;
+  margin: 0;
+  padding: 1rem;
   color: var(--ink-soft);
   font-size: 0.95rem;
 }
 
 .state--empty {
   font-style: italic;
+}
+
+/* Variante hors panneau (grille départements) : espacement en flux normal. */
+.state--flow {
+  padding: 1.5rem 0;
 }
 
 .spinner {

@@ -35,9 +35,11 @@ CREATE TABLE IF NOT EXISTS avis (
     (note_securite * 1.5 + note_sante * 1.2 + note_commerces + note_enseignement +
      note_sports * 0.8 + note_culture * 0.8 + note_transports * 1.2 + note_niveau_vie) / 8.5
   ) STORED,
-  positifs TEXT NOT NULL CHECK (length(positifs) >= 20),
-  negatifs TEXT,
-  pseudo TEXT NOT NULL,
+  -- bornes hautes anti-abus (la clé anon est publique : le formulaire n'est
+  -- pas une frontière de confiance) — alignées avec MAX_TEXTE côté client
+  positifs TEXT NOT NULL CHECK (length(positifs) BETWEEN 20 AND 2000),
+  negatifs TEXT CHECK (negatifs IS NULL OR length(negatifs) <= 2000),
+  pseudo TEXT NOT NULL CHECK (length(pseudo) <= 80),
   UNIQUE (user_id, commune_insee)  -- 1 avis par utilisateur par commune
 );
 
@@ -67,6 +69,27 @@ DROP TRIGGER IF EXISTS trg_avis_stats ON avis;
 CREATE TRIGGER trg_avis_stats
   AFTER INSERT OR UPDATE OR DELETE ON avis
   FOR EACH ROW EXECUTE FUNCTION sync_commune_stats();
+
+-- ── Trigger : pseudo dérivé CÔTÉ SERVEUR (anti-usurpation) ──
+-- La clé anon est publique : un client direct (hors formulaire) pourrait
+-- envoyer n'importe quel pseudo et usurper un nom. On écrase donc TOUJOURS
+-- le pseudo fourni par le client avec celui du profil de l'utilisateur
+-- authentifié (créé à l'inscription par handle_new_user).
+CREATE OR REPLACE FUNCTION public.force_avis_pseudo() RETURNS TRIGGER
+LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  SELECT p.pseudo INTO NEW.pseudo FROM public.profiles p WHERE p.user_id = NEW.user_id;
+  NEW.pseudo := COALESCE(NEW.pseudo, 'citoyen');
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_avis_pseudo ON avis;
+CREATE TRIGGER trg_avis_pseudo
+  BEFORE INSERT OR UPDATE ON avis
+  FOR EACH ROW EXECUTE FUNCTION public.force_avis_pseudo();
 
 -- ── Profils (pseudo + villes suivies) ──
 CREATE TABLE IF NOT EXISTS profiles (
@@ -159,7 +182,11 @@ DROP POLICY IF EXISTS "communes_stats_select" ON communes_stats;
 CREATE POLICY "communes_stats_select" ON communes_stats FOR SELECT USING (true);
 -- communes_stats n'est modifiée que par le trigger (SECURITY DEFINER).
 
+-- Lecture restreinte au propriétaire : l'app publique n'interroge jamais
+-- profiles (le pseudo affiché voyage avec chaque avis), et villes_suivies
+-- est une donnée personnelle qui n'a pas à être énumérable par tous.
+-- (À rouvrir de façon ciblée si la Phase 12 expose des profils publics.)
 DROP POLICY IF EXISTS "profiles_select" ON profiles;
-CREATE POLICY "profiles_select" ON profiles FOR SELECT USING (true);
+CREATE POLICY "profiles_select" ON profiles FOR SELECT USING (auth.uid() = user_id);
 DROP POLICY IF EXISTS "profiles_update" ON profiles;
 CREATE POLICY "profiles_update" ON profiles FOR UPDATE USING (auth.uid() = user_id);

@@ -1,3 +1,4 @@
+import { fmtEntier, fmtNote } from '../../core/format';
 import { CRITERE_LABELS, type CommuneDetail, type Critere } from '../../core/models/data.models';
 import { dvfTrendPct } from './commune-insights';
 
@@ -31,10 +32,6 @@ function hash(str: string): number {
 function variante(insee: string, slot: string, options: readonly string[]): string {
   return options[hash(`${insee}:${slot}`) % options.length];
 }
-
-// ── Formats français ──────────────────────────
-const fmtEntier = (n: number): string => n.toLocaleString('fr-FR');
-const fmtNote = (n: number): string => n.toFixed(1).replace('.', ',');
 
 /** Qualificatif d'une note /10 (registre neutre, factuel). */
 export function qualificatif(note: number): string {

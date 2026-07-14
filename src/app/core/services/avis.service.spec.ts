@@ -8,10 +8,10 @@ import { SupabaseService } from './supabase.service';
 describe('Supabase désactivé (non configuré)', () => {
   beforeEach(() => TestBed.configureTestingModule({}));
 
-  it('SupabaseService : enabled=false, client=null', () => {
+  it('SupabaseService : enabled=false, client=null', async () => {
     const sb = TestBed.inject(SupabaseService);
     expect(sb.enabled).toBe(false);
-    expect(sb.client).toBeNull();
+    expect(await sb.getClient()).toBeNull();
   });
 
   it('AvisService : se dégrade en [] / null / map vide', async () => {
