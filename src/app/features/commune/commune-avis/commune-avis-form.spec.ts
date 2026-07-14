@@ -38,4 +38,19 @@ describe('CommuneAvisForm', () => {
 
     expect(el.querySelector('.form__msg--err')?.textContent).toContain('20');
   });
+
+  it('la case « Publier anonymement » met à jour le message d\'aide', () => {
+    const fixture = mount();
+    const el = fixture.nativeElement as HTMLElement;
+    const checkbox = el.querySelector('.form__anonyme input') as HTMLInputElement;
+
+    expect(checkbox.checked).toBe(false);
+    expect(el.querySelector('.form__hint')?.textContent).toContain('prénom');
+
+    checkbox.checked = true;
+    checkbox.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    expect(el.querySelector('.form__hint')?.textContent).toContain('Habitant anonyme');
+  });
 });

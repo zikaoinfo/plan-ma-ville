@@ -40,6 +40,8 @@ CREATE TABLE IF NOT EXISTS avis (
   positifs TEXT NOT NULL CHECK (length(positifs) BETWEEN 20 AND 2000),
   negatifs TEXT CHECK (negatifs IS NULL OR length(negatifs) <= 2000),
   pseudo TEXT NOT NULL CHECK (length(pseudo) <= 80),
+  -- avis publié sans nom (affiché "Habitant anonyme") — voir force_avis_pseudo
+  anonyme BOOLEAN NOT NULL DEFAULT false,
   UNIQUE (user_id, commune_insee)  -- 1 avis par utilisateur par commune
 );
 
@@ -72,16 +74,38 @@ CREATE TRIGGER trg_avis_stats
 
 -- ── Trigger : pseudo dérivé CÔTÉ SERVEUR (anti-usurpation) ──
 -- La clé anon est publique : un client direct (hors formulaire) pourrait
--- envoyer n'importe quel pseudo et usurper un nom. On écrase donc TOUJOURS
--- le pseudo fourni par le client avec celui du profil de l'utilisateur
--- authentifié (créé à l'inscription par handle_new_user).
+-- envoyer n'importe quel pseudo et usurper un nom, ou mentir sur `anonyme`.
+-- On calcule donc TOUJOURS le pseudo affiché côté serveur : soit "Habitant
+-- anonyme" si l'utilisateur a coché anonyme, soit "Prénom I." dérivé du nom
+-- complet renvoyé par l'IdP (profiles.nom_complet) — jamais le slug technique
+-- `profiles.pseudo` (illisible, ex. "jean-dupont-3").
 CREATE OR REPLACE FUNCTION public.force_avis_pseudo() RETURNS TRIGGER
 LANGUAGE plpgsql SECURITY DEFINER
 SET search_path = public
 AS $$
+DECLARE
+  nom TEXT;
+  prenom TEXT;
+  reste TEXT;
 BEGIN
-  SELECT p.pseudo INTO NEW.pseudo FROM public.profiles p WHERE p.user_id = NEW.user_id;
-  NEW.pseudo := COALESCE(NEW.pseudo, 'citoyen');
+  IF NEW.anonyme THEN
+    NEW.pseudo := 'Habitant anonyme';
+    RETURN NEW;
+  END IF;
+
+  SELECT p.nom_complet INTO nom FROM public.profiles p WHERE p.user_id = NEW.user_id;
+  nom := trim(COALESCE(nom, ''));
+  IF nom = '' THEN
+    NEW.pseudo := 'Habitant';
+    RETURN NEW;
+  END IF;
+
+  prenom := split_part(nom, ' ', 1);
+  reste := trim(substring(nom FROM length(prenom) + 1));
+  NEW.pseudo := CASE
+    WHEN reste = '' THEN prenom
+    ELSE prenom || ' ' || upper(left(reste, 1)) || '.'
+  END;
   RETURN NEW;
 END;
 $$;
@@ -95,6 +119,13 @@ CREATE TRIGGER trg_avis_pseudo
 CREATE TABLE IF NOT EXISTS profiles (
   user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   pseudo TEXT UNIQUE NOT NULL,
+  -- nom complet BRUT renvoyé par l'IdP (non slugifié) — source du pseudo
+  -- affiché "Prénom I." dans force_avis_pseudo. Absent pour un compte
+  -- magic-link (l'email n'est pas un nom).
+  nom_complet TEXT,
+  -- dernier choix "publier anonymement" de l'utilisateur, réappliqué comme
+  -- valeur par défaut du formulaire à son prochain avis.
+  anonyme_defaut BOOLEAN NOT NULL DEFAULT false,
   villes_suivies TEXT[] DEFAULT '{}'
 );
 
@@ -113,12 +144,19 @@ AS $$
 DECLARE
   base_pseudo TEXT;
   final_pseudo TEXT;
+  nom_complet_brut TEXT;
   n INT := 0;
 BEGIN
+  -- Nom complet brut (non slugifié) : NULL pour un compte magic-link, l'IdP
+  -- ne renvoyant alors aucun nom — utilisé par force_avis_pseudo.
+  nom_complet_brut := COALESCE(
+    NULLIF(NEW.raw_user_meta_data->>'full_name', ''),
+    NULLIF(NEW.raw_user_meta_data->>'name', '')
+  );
+
   -- Base : full_name / name renvoyés par l'IdP, sinon partie locale de l'email.
   base_pseudo := COALESCE(
-    NULLIF(NEW.raw_user_meta_data->>'full_name', ''),
-    NULLIF(NEW.raw_user_meta_data->>'name', ''),
+    nom_complet_brut,
     NULLIF(split_part(COALESCE(NEW.email, ''), '@', 1), ''),
     'citoyen'
   );
@@ -132,8 +170,8 @@ BEGIN
   final_pseudo := base_pseudo;
   LOOP
     BEGIN
-      INSERT INTO public.profiles (user_id, pseudo)
-      VALUES (NEW.id, final_pseudo);
+      INSERT INTO public.profiles (user_id, pseudo, nom_complet)
+      VALUES (NEW.id, final_pseudo, nom_complet_brut);
       EXIT; -- succès
     EXCEPTION
       WHEN unique_violation THEN

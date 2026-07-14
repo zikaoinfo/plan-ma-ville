@@ -231,7 +231,10 @@ export interface Avis {
   note_globale: number; // calculé côté Supabase (GENERATED STORED)
   positifs: string;
   negatifs: string | null;
+  /** Affiché tel quel : "Habitant anonyme" ou "Prénom I." — calculé côté serveur. */
   pseudo: string;
+  /** Avis publié sans nom (pseudo forcé à "Habitant anonyme" côté serveur). */
+  anonyme: boolean;
   resume_ia?: string;
 }
 

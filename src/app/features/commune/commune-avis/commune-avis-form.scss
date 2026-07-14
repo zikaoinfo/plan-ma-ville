@@ -53,6 +53,19 @@
   color: var(--bad);
 }
 
+.form__anonyme {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.form__anonyme input {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
 .form__msg {
   margin: 0;
   font-weight: 500;
