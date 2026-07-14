@@ -6,6 +6,7 @@ import { SupabaseService } from './supabase.service';
 /**
  * Authentification Supabase (Google OAuth + lien magique email).
  * Sans configuration Supabase, `user` reste null et les actions no-op.
+ * Le client Supabase est chargé en différé (voir SupabaseService).
  */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -18,11 +19,16 @@ export class AuthService {
   readonly disponible = this.#sb.enabled;
 
   constructor() {
-    const client = this.#sb.client;
+    if (this.disponible) void this.#init();
+  }
+
+  async #init(): Promise<void> {
+    const client = await this.#sb.getClient();
     if (!client) return;
     // Les callbacks Supabase sont hors zone : en zoneless, un set() de signal
     // déclenche la détection de changement — pas besoin de NgZone.
-    client.auth.getSession().then(({ data }) => this.user.set(data.session?.user ?? null));
+    const { data } = await client.auth.getSession();
+    this.user.set(data.session?.user ?? null);
     client.auth.onAuthStateChange((_evt, session) => this.user.set(session?.user ?? null));
   }
 
@@ -53,8 +59,9 @@ export class AuthService {
     return p ? p.slice(0, 2).toUpperCase() : '?';
   }
 
-  loginWithGoogle() {
-    return this.#sb.client?.auth.signInWithOAuth({
+  async loginWithGoogle(): Promise<void> {
+    const client = await this.#sb.getClient();
+    await client?.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: this.#doc.location.href },
     });
@@ -62,7 +69,7 @@ export class AuthService {
 
   /** Envoie un lien magique. Renvoie l'erreur Supabase réelle si l'envoi échoue. */
   async loginWithEmail(email: string): Promise<{ ok: boolean; error?: string }> {
-    const client = this.#sb.client;
+    const client = await this.#sb.getClient();
     if (!client) return { ok: false, error: 'Authentification indisponible (Supabase non configuré).' };
     const { error } = await client.auth.signInWithOtp({
       email,
@@ -71,7 +78,8 @@ export class AuthService {
     return error ? { ok: false, error: error.message } : { ok: true };
   }
 
-  logout() {
-    return this.#sb.client?.auth.signOut();
+  async logout(): Promise<void> {
+    const client = await this.#sb.getClient();
+    await client?.auth.signOut();
   }
 }

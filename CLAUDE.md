@@ -61,7 +61,7 @@ src/app/
 │       └── avis.service.ts          stats/liste/upsert (dégrade en []/null)
 ├── features/{home,commune,departement,classement,carte,comparateur,methodologie}/
 │   └── commune/commune-avis/{commune-avis-list,commune-avis-form}
-└── shared/{note-bar,score-badge,score-color,page-skeleton,error-message,
+└── shared/{note-bar,score-badge,score-color,error-message,
             critere-slider,auth-gate}
 tools/data-pipeline/                 tsx (pas de build), fixture .cache/geo.json
 docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)

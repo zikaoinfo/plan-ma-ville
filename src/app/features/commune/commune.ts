@@ -76,11 +76,15 @@ export class Commune {
 
   readonly slug = input.required<string>();
 
+  /** Slug canonique (minuscules) : les données/URL sont résolues avec lui,
+   *  même si l'URL saisie contient des majuscules. */
+  readonly #slug = computed(() => this.slug().toLowerCase());
+
   protected readonly criteres = CRITERES;
   protected readonly labels = CRITERE_LABELS;
   protected readonly icons = ICONS;
 
-  readonly #commune = this.#data.getCommuneBySlug(this.slug);
+  readonly #commune = this.#data.getCommuneBySlug(this.#slug);
   readonly #state = this.#commune.state;
 
   protected readonly status = computed(() =>
@@ -99,7 +103,7 @@ export class Commune {
     return c ? this.ponderation.note(c.score.criteres) : null;
   });
 
-  protected readonly depCode = computed(() => this.#search.findBySlug(this.slug())?.d ?? '');
+  protected readonly depCode = computed(() => this.#search.findBySlug(this.#slug())?.d ?? '');
   protected readonly depNom = computed(
     () => this.#search.departementName(this.depCode()) ?? this.depCode(),
   );
@@ -205,6 +209,24 @@ export class Commune {
   });
 
   constructor() {
+    // URL canonique : les slugs de l'index sont en minuscules. Une URL avec
+    // majuscules (/ville/Lyon-69123) est réécrite vers la forme canonique
+    // (les données, elles, sont déjà résolues via #slug — la réécriture est
+    // cosmétique/SEO). setTimeout : sortir du cycle de navigation en cours,
+    // sinon le navigate est avalé par la navigation initiale.
+    effect(() => {
+      const brut = this.slug();
+      const canonique = this.#slug();
+      if (brut !== canonique) {
+        setTimeout(() => {
+          void this.#router.navigate(['/ville', canonique], {
+            replaceUrl: true,
+            queryParamsHandling: 'preserve',
+          });
+        });
+      }
+    });
+
     // Reflète l'onglet dans l'URL (?onglet=avis) : la redirection OAuth revient
     // sur cette URL, donc on retrouve l'onglet « Avis habitants » après login.
     effect(() => {
@@ -223,13 +245,15 @@ export class Commune {
         this.#meta.setPage({
           title: 'Chargement… — ma ville, notée',
           description: 'Chargement de la fiche commune.',
-          canonicalPath: `/ville/${this.slug()}`,
+          canonicalPath: `/ville/${this.#slug()}`,
+          noindex: true, // état transitoire, jamais indexable
         });
       } else if (s === 'not-found') {
         this.#meta.setPage({
           title: 'Commune introuvable — ma ville, notée',
           description: "Cette commune n'existe pas dans notre base.",
-          canonicalPath: `/ville/${this.slug()}`,
+          canonicalPath: `/ville/${this.#slug()}`,
+          noindex: true, // soft-404 : ne pas indexer
         });
       } else {
         const cr = s.score.criteres;

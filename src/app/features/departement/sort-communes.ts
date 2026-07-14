@@ -5,10 +5,10 @@ import { noteGlobalePonderee, POIDS_OFFICIELS, type Poids } from '../../core/pon
 export type SortField = Critere | 'nom' | 'population' | 'global' | 'perso';
 export type SortOrder = 1 | -1;
 
-function valeur(commune: CommuneDetail, field: SortField, poids: Poids): number | string {
+function valeur(commune: CommuneDetail, field: SortField, poids: Poids, nn: string): number | string {
   switch (field) {
     case 'nom':
-      return normaliseNom(commune.nom);
+      return nn;
     case 'population':
       return commune.population;
     case 'global':
@@ -24,6 +24,10 @@ function valeur(commune: CommuneDetail, field: SortField, poids: Poids): number 
  * Filtre (sous-chaîne sur le nom normalisé) puis trie une liste de communes.
  * Fonction pure — ne mute pas l'entrée. `poids` n'est utilisé que pour le
  * tri `perso` (note repondérée côté client).
+ *
+ * Nom normalisé et clé de tri précalculés une fois par commune
+ * (décorer-trier-retirer) : `normaliseNom` (NFD + regex) ne tourne plus
+ * O(n log n) fois dans le comparateur sur les ~800 communes d'un département.
  */
 export function filterAndSortCommunes(
   communes: readonly CommuneDetail[],
@@ -33,16 +37,17 @@ export function filterAndSortCommunes(
   poids: Poids = POIDS_OFFICIELS,
 ): CommuneDetail[] {
   const q = normaliseNom(filter);
-  const filtered = q
-    ? communes.filter((c) => normaliseNom(c.nom).includes(q))
-    : [...communes];
+  const decorated = communes
+    .map((c) => ({ c, nn: normaliseNom(c.nom) }))
+    .filter((d) => !q || d.nn.includes(q))
+    .map((d) => ({ ...d, v: valeur(d.c, field, poids, d.nn) }));
 
-  return filtered.sort((a, b) => {
-    const va = valeur(a, field, poids);
-    const vb = valeur(b, field, poids);
-    if (va < vb) return -order;
-    if (va > vb) return order;
+  decorated.sort((a, b) => {
+    if (a.v < b.v) return -order;
+    if (a.v > b.v) return order;
     // départage stable par nom pour un ordre déterministe
-    return normaliseNom(a.nom).localeCompare(normaliseNom(b.nom));
+    return a.nn.localeCompare(b.nn);
   });
+
+  return decorated.map((d) => d.c);
 }

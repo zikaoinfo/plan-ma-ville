@@ -8,6 +8,8 @@ import { PonderationService } from '../../core/services/ponderation.service';
  * Jeune actif, Retraité, Perso) + panneau de sliders par critère. Écrit
  * directement dans PonderationService (persisté) — aucune sortie.
  */
+let instances = 0;
+
 @Component({
   selector: 'app-profil-picker',
   templateUrl: './profil-picker.html',
@@ -16,6 +18,9 @@ import { PonderationService } from '../../core/services/ponderation.service';
 })
 export class ProfilPicker {
   protected readonly ponderation = inject(PonderationService);
+
+  /** id unique par instance : deux pickers sur une même page resteraient valides. */
+  protected readonly panelId = `poids-panel-${++instances}`;
 
   protected readonly criteres = CRITERES;
   protected readonly labels = CRITERE_LABELS;

@@ -1,3 +1,4 @@
+import { DOCUMENT } from '@angular/common';
 import { computed, inject, Injectable } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { SwUpdate } from '@angular/service-worker';
@@ -11,6 +12,7 @@ import { SwUpdate } from '@angular/service-worker';
 @Injectable({ providedIn: 'root' })
 export class UpdateService {
   readonly #sw = inject(SwUpdate);
+  readonly #doc = inject(DOCUMENT);
 
   readonly #dernierEvenement = toSignal(this.#sw.versionUpdates, { initialValue: null });
 
@@ -19,6 +21,6 @@ export class UpdateService {
 
   /** Applique la mise à jour : un rechargement suffit (SW déjà prêt). */
   recharger(): void {
-    document.location.reload();
+    this.#doc.location.reload();
   }
 }

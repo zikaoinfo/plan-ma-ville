@@ -21,14 +21,14 @@
       class="picker__toggle"
       (click)="reglages.set(!reglages())"
       [attr.aria-expanded]="reglages()"
-      aria-controls="poids-panel"
+      [attr.aria-controls]="reglages() ? panelId : null"
     >
       {{ reglages() ? 'Masquer les réglages' : 'Régler les critères' }}
     </button>
   </div>
 
   @if (reglages()) {
-    <div id="poids-panel" class="poids">
+    <div [id]="panelId" class="poids">
       @for (critere of criteres; track critere) {
         <label class="poids__row">
           <span class="poids__nom">{{ labels[critere] }}</span>

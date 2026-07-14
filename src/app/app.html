@@ -100,7 +100,15 @@
             aria-haspopup="menu"
           >
             @if (auth.avatarUrl(); as photo) {
-              <img class="account__avatar" [src]="photo" alt="" referrerpolicy="no-referrer" />
+              <img
+                class="account__avatar"
+                [src]="photo"
+                alt=""
+                width="30"
+                height="30"
+                decoding="async"
+                referrerpolicy="no-referrer"
+              />
             } @else {
               <span class="account__avatar account__avatar--initiales">{{ auth.initiales() }}</span>
             }

@@ -62,8 +62,12 @@ h1 {
 }
 
 .add__input:focus {
-  outline: none;
   transform: translateY(-1px);
+}
+
+/* Anneau accent global conservé au clavier (:focus-visible, styles.scss). */
+.add__input:focus:not(:focus-visible) {
+  outline: none;
 }
 
 .add__list {
@@ -169,8 +173,10 @@ h1 {
   position: absolute;
   top: 0.3rem;
   right: 0.3rem;
-  width: 1.5rem;
-  height: 1.5rem;
+  display: grid;
+  place-items: center;
+  width: 1.7rem;
+  height: 1.7rem;
   border: 1px solid var(--line);
   border-radius: 50%;
   background: var(--paper);
@@ -179,9 +185,17 @@ h1 {
   line-height: 1;
 }
 
+/* Zone tactile élargie (~44px) sans grossir le bouton visuellement. */
+.cmp__remove::after {
+  content: '';
+  position: absolute;
+  inset: -0.6rem;
+  border-radius: 50%;
+}
+
 .cmp__remove:hover {
   background: var(--bad);
-  color: #fff;
+  color: var(--on-accent);
   border-color: var(--bad);
 }
 

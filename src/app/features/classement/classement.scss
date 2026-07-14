@@ -99,8 +99,12 @@
 }
 
 .dep-filter__select:focus {
-  outline: none;
   box-shadow: var(--shadow);
+}
+
+/* Anneau accent global conservé au clavier (:focus-visible, styles.scss). */
+.dep-filter__select:focus:not(:focus-visible) {
+  outline: none;
 }
 
 /* ── Tableau ──────────────────────────────── */

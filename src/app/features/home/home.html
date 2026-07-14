@@ -6,7 +6,7 @@
     de la sécurité au niveau de vie.
   </p>
 
-  <div class="search">
+  <div class="search" (focusout)="onFocusOut($event)">
     <label class="search__label" for="q">Rechercher une commune</label>
     <div class="search__field">
       <svg class="search__icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -19,42 +19,62 @@
         type="search"
         autocomplete="off"
         placeholder="Lyon, Saint-Étienne, 69001…"
-        aria-label="Rechercher une commune par nom ou code postal"
+        role="combobox"
+        aria-autocomplete="list"
+        aria-controls="search-resultats"
+        [attr.aria-expanded]="panelVisible()"
+        [attr.aria-activedescendant]="activeId()"
         [value]="query()"
-        (input)="query.set($any($event.target).value)"
+        (input)="onInput($any($event.target).value)"
+        (focus)="openPanel()"
+        (keydown)="onKeydown($event)"
       />
     </div>
 
-    @if (!ready()) {
-      @if (indexStatus() === 'error') {
-        <app-error-message
-          message="Impossible de charger l'index des communes."
-          [retry]="reload"
-        />
-      } @else {
-        <div class="state" role="status">
-          <span class="spinner" aria-hidden="true"></span>
-          Chargement de l'index des communes…
-        </div>
-      }
-    } @else if (results().length) {
-      <ul class="results" role="listbox" aria-label="Résultats de recherche">
-        @for (item of results(); track item.s) {
-          <li role="option" aria-selected="false" class="results__item">
-            <a class="result" [routerLink]="['/ville', item.s]">
-              <span class="result__main">
-                <span class="result__name">{{ item.n }}</span>
-                <span class="result__meta">
-                  {{ item.cp[0] }} · dép. {{ item.d }} · {{ item.p | number: '1.0-0' }} hab.
-                </span>
-              </span>
-              <app-score-badge [score]="item.g" />
-            </a>
-          </li>
+    <!-- Panneau en superposition (position absolue) : ne pousse JAMAIS
+         la grille des départements — pas de décalage de mise en page. -->
+    @if (panelVisible()) {
+      <div class="search__panel">
+        @if (!ready()) {
+          @if (indexStatus() === 'error') {
+            <app-error-message
+              message="Impossible de charger l'index des communes."
+              [retry]="reload"
+            />
+          } @else {
+            <div class="state" role="status">
+              <span class="spinner" aria-hidden="true"></span>
+              Chargement de l'index des communes…
+            </div>
+          }
+        } @else if (results().length) {
+          <ul class="results" id="search-resultats" role="listbox" aria-label="Résultats de recherche">
+            @for (item of results(); track item.s; let i = $index) {
+              <li role="presentation" class="results__item">
+                <a
+                  class="result"
+                  role="option"
+                  [id]="'search-opt-' + i"
+                  [attr.aria-selected]="i === activeIndex()"
+                  [class.result--active]="i === activeIndex()"
+                  tabindex="-1"
+                  [routerLink]="['/ville', item.s]"
+                >
+                  <span class="result__main">
+                    <span class="result__name">{{ item.n }}</span>
+                    <span class="result__meta">
+                      {{ item.cp[0] }} · dép. {{ item.d }} · {{ item.p | number: '1.0-0' }} hab.
+                    </span>
+                  </span>
+                  <app-score-badge [score]="item.g" />
+                </a>
+              </li>
+            }
+          </ul>
+        } @else if (noResult()) {
+          <p class="state state--empty">Aucune commune ne correspond à « {{ query() }} ».</p>
         }
-      </ul>
-    } @else if (noResult()) {
-      <p class="state state--empty">Aucune commune ne correspond à « {{ query() }} ».</p>
+      </div>
     }
   </div>
 </section>
@@ -79,7 +99,12 @@
         </li>
       }
     </ul>
+  } @else if (departementsStatus() === 'error') {
+    <app-error-message
+      message="Impossible de charger la liste des départements."
+      [retry]="reload"
+    />
   } @else {
-    <p class="state">Chargement des départements…</p>
+    <p class="state state--flow" role="status">Chargement des départements…</p>
   }
 </section>

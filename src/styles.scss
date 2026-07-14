@@ -18,6 +18,8 @@
   --bad: #c93a2e;
   --line: #d9d2c3;
   --topbar-bg: rgb(250 246 239 / 0.85);
+  --on-accent: #fff; /* texte posé sur --accent / --bad (fonds saturés) */
+  --scrim: rgb(0 0 0 / 0.25); /* voile derrière les panneaux/menus */
 
   /* Typo */
   --font-display: 'Fraunces', 'Georgia', serif;
@@ -50,6 +52,8 @@
   --bad: #e5675b;
   --line: #333c5c;
   --topbar-bg: rgb(20 26 46 / 0.85);
+  --on-accent: #fff;
+  --scrim: rgb(0 0 0 / 0.5);
   --shadow: 0 2px 0 #05070f;
   --shadow-lift: 0 6px 0 rgb(0 0 0 / 0.35);
 
@@ -176,6 +180,38 @@ a {
   height: 8px;
   border-radius: 50%;
   background: var(--accent);
+}
+
+/* ── Leaflet : thème (éléments créés dynamiquement, hors scope composant) ──
+   Popups et contrôles suivent les tokens dans les deux thèmes ; en sombre,
+   les tuiles OSM (raster clair) sont inversées — markers et popups restent
+   dans leurs panes propres, non filtrés. */
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+  color: var(--ink-soft);
+}
+
+:root[data-theme='dark'] .leaflet-container {
+  background: var(--paper-soft);
+}
+
+:root[data-theme='dark'] .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9) saturate(0.6);
+}
+
+:root[data-theme='dark'] .leaflet-bar a,
+:root[data-theme='dark'] .leaflet-control-attribution {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+:root[data-theme='dark'] .leaflet-control-attribution a {
+  color: var(--ink-soft);
 }
 
 /* Hero commun aux pages placeholder (Phase 0) */

@@ -9,6 +9,12 @@ export interface PageMeta {
   description: string;
   /** Chemin canonique commençant par `/` (hors baseHref), ex. `/ville/lyon-69123`. */
   canonicalPath: string;
+  /**
+   * `true` pour les états sans contenu indexable (page introuvable, erreur) :
+   * pose une balise robots `noindex` DISTINCTE de la balise globale
+   * d'index.html (gérée par deploy.yml), retirée dès la page suivante.
+   */
+  noindex?: boolean;
 }
 
 const SITE = 'ma ville, notée';
@@ -44,11 +50,38 @@ export class MetaService {
       content: 'ma ville, notée — découvrez la note sur 10 de votre ville',
     });
     this.#meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
+    this.#meta.updateTag({ name: 'twitter:title', content: meta.title });
+    this.#meta.updateTag({ name: 'twitter:description', content: meta.description });
+    this.#meta.updateTag({ name: 'twitter:image', content: ogImage });
 
+    this.#setNoindex(meta.noindex === true);
     this.#setCanonical(url);
     // Purge les schémas JSON-LD de la page précédente : chaque page repose
     // ensuite les siens (JsonLdService.set) après cet appel.
     this.#jsonLd.clear();
+  }
+
+  /**
+   * Pose/retire NOTRE balise robots noindex sans jamais toucher à l'éventuelle
+   * balise globale d'index.html (les directives robots se cumulent, la plus
+   * restrictive gagne — deux balises simultanées ne posent pas de problème).
+   * Retrouvée par attribut (pas par référence d'instance) : le HTML rendu
+   * côté serveur peut déjà en contenir une que l'hydratation ne retire pas.
+   */
+  #setNoindex(noindex: boolean): void {
+    const existantes = this.#doc.head.querySelectorAll('meta[data-page-robots]');
+    if (noindex && existantes.length === 0) {
+      const tag = this.#doc.createElement('meta');
+      tag.setAttribute('name', 'robots');
+      tag.setAttribute('content', 'noindex');
+      tag.setAttribute('data-page-robots', ''); // distingue de la balise globale d'index.html
+      this.#doc.head.appendChild(tag);
+    } else if (!noindex) {
+      existantes.forEach((tag) => tag.remove());
+    } else if (existantes.length > 1) {
+      // doublon SSR + client : n'en garder qu'une
+      [...existantes].slice(1).forEach((tag) => tag.remove());
+    }
   }
 
   #setCanonical(url: string): void {

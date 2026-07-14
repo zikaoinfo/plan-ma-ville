@@ -5,6 +5,8 @@ import { AvisService } from '../../../core/services/avis.service';
 import { CritereSlider } from '../../../shared/critere-slider/critere-slider';
 
 const MIN_POSITIFS = 20;
+/** Borne haute (anti-abus) — à garder alignée avec le CHECK du schéma SQL. */
+const MAX_TEXTE = 2000;
 
 function notesParDefaut(): Record<Critere, number> {
   return Object.fromEntries(CRITERES.map((c) => [c, 5])) as Record<Critere, number>;
@@ -15,9 +17,9 @@ function notesParDefaut(): Record<Critere, number> {
   imports: [CritereSlider],
   template: `
     <form class="form" (submit)="submit($event)">
-      <h3 class="form__title">
+      <h2 class="form__title">
         {{ existing() ? 'Modifier mon avis' : 'Donner mon avis' }}
-      </h3>
+      </h2>
 
       <div class="form__sliders">
         @for (critere of criteres; track critere) {
@@ -34,6 +36,7 @@ function notesParDefaut(): Record<Critere, number> {
         <span>Points positifs <em>(20 caractères min.)</em></span>
         <textarea
           rows="3"
+          [attr.maxlength]="max"
           [value]="positifs()"
           (input)="positifs.set($any($event.target).value)"
           placeholder="Ce que vous appréciez dans cette commune…"
@@ -47,6 +50,7 @@ function notesParDefaut(): Record<Critere, number> {
         <span>Points négatifs <em>(optionnel)</em></span>
         <textarea
           rows="2"
+          [attr.maxlength]="max"
           [value]="negatifs()"
           (input)="negatifs.set($any($event.target).value)"
           placeholder="Ce qui pourrait être amélioré…"
@@ -84,6 +88,7 @@ export class CommuneAvisForm {
   protected readonly criteres = CRITERES;
   protected readonly labels = CRITERE_LABELS;
   protected readonly min = MIN_POSITIFS;
+  protected readonly max = MAX_TEXTE;
 
   protected readonly notes = signal<Record<Critere, number>>(notesParDefaut());
   protected readonly positifs = signal('');
@@ -124,8 +129,8 @@ export class CommuneAvisForm {
       commune_insee: this.codeInsee(),
       user_id: user.id,
       pseudo: this.#auth.pseudo(),
-      positifs: this.positifs().trim(),
-      negatifs: this.negatifs().trim() || null,
+      positifs: this.positifs().trim().slice(0, MAX_TEXTE),
+      negatifs: this.negatifs().trim().slice(0, MAX_TEXTE) || null,
       note_securite: n.securite,
       note_sante: n.sante,
       note_commerces: n.commerces,

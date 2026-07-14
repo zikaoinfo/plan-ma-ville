@@ -1,3 +1,4 @@
+import { fmtEntier, fmtNote } from '../../core/format';
 import type { CommuneDetail, GeoLightItem } from '../../core/models/data.models';
 import { haversineKm } from '../commune/commune-insights';
 
@@ -69,9 +70,6 @@ export function autourDe(
     .sort((a, b) => b.item.g - a.item.g || a.distanceKm - b.distanceKm)
     .slice(0, limite);
 }
-
-const fmtNote = (n: number): string => n.toFixed(1).replace('.', ',');
-const fmtEntier = (n: number): string => n.toLocaleString('fr-FR');
 
 /** Intro factuelle du palmarès sécurité (unique par département : ses stats). */
 export function introSecurite(depNom: string, communes: readonly CommuneDetail[], top: readonly CommuneDetail[]): string {

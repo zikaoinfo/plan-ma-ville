@@ -63,9 +63,7 @@ export class Comparateur {
 
     const villes = this.#route.snapshot.queryParamMap.get('villes');
     if (villes) {
-      villes
-        .split(',')
-        .filter(Boolean)
+      [...new Set(villes.split(',').filter(Boolean))] // dédoublonne les slugs de l'URL
         .slice(0, MAX_VILLES)
         .forEach((slug, i) => this.#slugs[i].set(slug));
     }
@@ -86,20 +84,32 @@ export class Comparateur {
     this.#syncUrl();
   }
 
+  /** Villes effectivement chargées (colonnes résolues). */
+  readonly #chargees = computed(() =>
+    this.#communes().filter((c): c is CommuneDetail => c !== null),
+  );
+
+  // Meilleures valeurs par ligne, précalculées (computed) au lieu d'être
+  // re-balayées à chaque cellule du tableau à chaque rendu.
+  readonly #meilleursCriteres = computed(() => {
+    const chargees = this.#chargees();
+    const map = {} as Record<(typeof CRITERES)[number], number | null>;
+    for (const critere of CRITERES) {
+      const vals = chargees.map((c) => c.score.criteres[critere]);
+      map[critere] = vals.length ? Math.max(...vals) : null;
+    }
+    return map;
+  });
+
   /** Meilleure valeur d'un critère parmi les villes chargées (pour surligner). */
   protected meilleureCritere(critere: (typeof CRITERES)[number]): number | null {
-    const vals = this.#communes()
-      .filter((c): c is CommuneDetail => c !== null)
-      .map((c) => c.score.criteres[critere]);
-    return vals.length ? Math.max(...vals) : null;
+    return this.#meilleursCriteres()[critere];
   }
 
-  protected meilleureGlobale(): number | null {
-    const vals = this.#communes()
-      .filter((c): c is CommuneDetail => c !== null)
-      .map((c) => c.score.global);
+  protected readonly meilleureGlobale = computed(() => {
+    const vals = this.#chargees().map((c) => c.score.global);
     return vals.length ? Math.max(...vals) : null;
-  }
+  });
 
   protected readonly ponderation = inject(PonderationService);
 
@@ -108,12 +118,10 @@ export class Comparateur {
     return this.ponderation.note(c.score.criteres);
   }
 
-  protected meilleurePerso(): number | null {
-    const vals = this.#communes()
-      .filter((c): c is CommuneDetail => c !== null)
-      .map((c) => this.notePerso(c));
+  protected readonly meilleurePerso = computed(() => {
+    const vals = this.#chargees().map((c) => this.notePerso(c));
     return vals.length ? Math.max(...vals) : null;
-  }
+  });
 
   protected couleur(note: number): string {
     return TIER_BG[scoreTier(note)];
