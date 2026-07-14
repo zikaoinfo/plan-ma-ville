@@ -2,7 +2,7 @@ import { DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { DomSanitizer, type SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { CRITERE_LABELS, CRITERES, type Critere } from '../../core/models/data.models';
+import { CRITERE_LABELS, CRITERES, type Critere, type CommuneStats } from '../../core/models/data.models';
 import { AuthService } from '../../core/services/auth.service';
 import { AvisService } from '../../core/services/avis.service';
 import { schemaBreadcrumb, schemaPlace, type Miette } from '../../core/seo/schemas';
@@ -58,7 +58,12 @@ export class Commune {
   readonly #jsonLd = inject(JsonLdService);
   readonly #sanitizer = inject(DomSanitizer);
   protected readonly auth = inject(AuthService);
-  protected readonly avisDisponible = inject(AvisService).disponible;
+  readonly #avis = inject(AvisService);
+  protected readonly avisDisponible = this.#avis.disponible;
+
+  /** Note moyenne des habitants (affichage seul — n'entre pas dans la note
+   *  officielle pondérée, cf. onglet « Avis habitants »). */
+  protected readonly avisStats = signal<CommuneStats | null>(null);
   readonly #route = inject(ActivatedRoute);
   readonly #router = inject(Router);
 
@@ -209,6 +214,18 @@ export class Commune {
   });
 
   constructor() {
+    // Note moyenne des habitants (badge affiché à côté des notes officielles) :
+    // rechargée quand la commune change et après soumission d'un nouvel avis.
+    effect(() => {
+      const c = this.commune();
+      this.avisVersion();
+      if (!c || !this.avisDisponible) {
+        this.avisStats.set(null);
+        return;
+      }
+      void this.#avis.loadStats(c.codeInsee).then((s) => this.avisStats.set(s));
+    });
+
     // URL canonique : les slugs de l'index sont en minuscules. Une URL avec
     // majuscules (/ville/Lyon-69123) est réécrite vers la forme canonique
     // (les données, elles, sont déjà résolues via #slug — la réécriture est

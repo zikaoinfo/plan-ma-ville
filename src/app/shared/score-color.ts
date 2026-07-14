@@ -21,13 +21,15 @@ export const TIER_BG: Record<ScoreTier, string> = {
   bad: '#c93a2e',
   mid: '#e67e22',
   warn: '#d9a514',
-  good: '#1d8a63',
+  // Assombri par rapport au token --good (#1d8a63) : avec du texte blanc,
+  // ce dernier ne passe que ~4.3:1 (RGAA exige ≥ 4.5:1).
+  good: '#17754f',
 };
 
-/** Texte sombre uniquement sur le jaune, pour le contraste. */
+/** Texte sombre sur les fonds trop clairs (jaune, orange) pour le contraste. */
 export const TIER_FG: Record<ScoreTier, string> = {
   bad: '#ffffff',
-  mid: '#ffffff',
+  mid: '#1b1b1b',
   warn: '#1b1b1b',
   good: '#ffffff',
 };

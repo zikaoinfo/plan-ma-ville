@@ -1,5 +1,6 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { ApplicationRef, computed, inject, Injectable, signal } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
+import { filter, firstValueFrom } from 'rxjs';
 import type { User } from '@supabase/supabase-js';
 import { SupabaseService } from './supabase.service';
 
@@ -12,6 +13,7 @@ import { SupabaseService } from './supabase.service';
 export class AuthService {
   readonly #sb = inject(SupabaseService);
   readonly #doc = inject(DOCUMENT);
+  readonly #appRef = inject(ApplicationRef);
 
   readonly user = signal<User | null>(null);
   readonly connecte = computed(() => this.user() !== null);
@@ -19,7 +21,16 @@ export class AuthService {
   readonly disponible = this.#sb.enabled;
 
   constructor() {
-    if (this.disponible) void this.#init();
+    // Chargement du chunk @supabase/supabase-js (lourd) différé après la
+    // stabilisation de l'appli : sinon la restauration de session au
+    // démarrage le déclenche sur CHAQUE page dès le premier rendu, ce qui
+    // annule le bénéfice de l'import dynamique (JS chargé mais quasi
+    // inutilisé au moment du chargement — flag Lighthouse « unused JS »).
+    if (this.disponible) {
+      void firstValueFrom(this.#appRef.isStable.pipe(filter((stable) => stable))).then(() =>
+        this.#init(),
+      );
+    }
   }
 
   async #init(): Promise<void> {

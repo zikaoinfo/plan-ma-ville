@@ -9,7 +9,7 @@
 }
 
 .ville {
-  color: var(--accent);
+  color: var(--accent-text);
   font-style: italic;
 }
 
@@ -212,7 +212,7 @@
 
 .departements__lien {
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
   text-decoration: none;
   white-space: nowrap;
 }

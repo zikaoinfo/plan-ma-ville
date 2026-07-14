@@ -21,6 +21,16 @@
   --on-accent: #fff; /* texte posé sur --accent / --bad (fonds saturés) */
   --scrim: rgb(0 0 0 / 0.25); /* voile derrière les panneaux/menus */
 
+  /* Variantes « texte-safe » (RGAA §1.5, contraste ≥ 4.5:1 sur --paper /
+     --paper-soft) : --accent et --good sont pensés comme couleurs de
+     remplissage saturées, pas comme texte — les utiliser directement comme
+     `color` sur fond clair tombe à ~2.9:1 / ~4.0:1. Ces tokens dérivés
+     servent de `color` (liens, libellés) ou de fond pour du texte clair
+     (--paper/--on-accent dessus). */
+  --accent-text: #a83a1f;
+  --accent-strong: #a83a1f;
+  --good-text: #157050;
+
   /* Typo */
   --font-display: 'Fraunces', 'Georgia', serif;
   --font-body: 'Outfit', system-ui, -apple-system, sans-serif;
@@ -56,6 +66,12 @@
   --scrim: rgb(0 0 0 / 0.5);
   --shadow: 0 2px 0 #05070f;
   --shadow-lift: 0 6px 0 rgb(0 0 0 / 0.35);
+
+  /* En sombre, --accent/--good sont déjà assez clairs pour servir de texte
+     sur le fond nuit (--paper) — pas besoin de les assombrir davantage. */
+  --accent-text: var(--accent);
+  --accent-strong: var(--accent);
+  --good-text: var(--good);
 
   color-scheme: dark;
 }

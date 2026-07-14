@@ -3,11 +3,11 @@ import { markerColor, markerRadius } from './marker-style';
 
 describe('markerColor', () => {
   it('applique les seuils de la spec', () => {
-    expect(markerColor(8)).toBe('#1d8a63'); // ≥ 7.5 vert
+    expect(markerColor(8)).toBe('#17754f'); // ≥ 7.5 vert
     expect(markerColor(6.5)).toBe('#d9a514'); // ≥ 6 jaune
     expect(markerColor(5)).toBe('#e67e22'); // ≥ 4 orange
     expect(markerColor(3)).toBe('#c93a2e'); // < 4 rouge
-    expect(markerColor(7.5)).toBe('#1d8a63'); // borne incluse
+    expect(markerColor(7.5)).toBe('#17754f'); // borne incluse
   });
 });
 

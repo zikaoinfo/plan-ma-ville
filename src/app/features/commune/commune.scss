@@ -35,7 +35,7 @@
 }
 
 .head__dep {
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 600;
   text-decoration: none;
 }
@@ -156,7 +156,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .card {
@@ -227,7 +227,7 @@
 }
 
 .texte__note a {
-  color: var(--accent);
+  color: var(--accent-text);
   font-style: normal;
   text-decoration: none;
   font-weight: 600;
@@ -299,7 +299,7 @@
 }
 
 .price__trend--up {
-  color: var(--good);
+  color: var(--good-text);
 }
 
 .price__trend--down {
@@ -353,7 +353,7 @@
 }
 
 .histo__delta.up {
-  color: var(--good);
+  color: var(--good-text);
 }
 
 .histo__delta.down {
@@ -438,7 +438,7 @@
 
 .near__hub {
   margin-bottom: 0.9rem;
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 600;
   text-decoration: none;
 }

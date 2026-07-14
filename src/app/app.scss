@@ -36,7 +36,7 @@
   height: 2.3rem;
   border: 2px solid var(--ink);
   border-radius: 50% 50% 50% 6px;
-  background: var(--accent);
+  background: var(--accent-strong);
   color: var(--paper);
   font-family: var(--font-display);
   font-size: 1.05rem;
@@ -56,7 +56,7 @@
   font-weight: 600;
 
   em {
-    color: var(--accent);
+    color: var(--accent-text);
     font-style: italic;
   }
 }
@@ -139,7 +139,7 @@
 
 .theme__check {
   margin-left: auto;
-  color: var(--good);
+  color: var(--good-text);
   font-weight: 700;
 }
 
@@ -306,6 +306,10 @@
 
 .account__item:hover {
   background: var(--paper-soft);
+}
+
+.account__profil-icone {
+  margin-right: 0.35rem;
 }
 
 .account__logout {
