@@ -30,9 +30,15 @@ export interface CommuneSource {
 
 /**
  * Télécharge la liste des communes (avec cache brut local dans .cache/geo.json,
- * gitignoré) puis applique les règles de nettoyage de la spec :
- * arrondissements municipaux exclus, population manquante/0 → 1,
- * codesPostaux manquants → [].
+ * gitignoré) puis applique les règles de nettoyage de la spec : population
+ * manquante/0 → 1, codesPostaux manquants → [].
+ *
+ * Les arrondissements municipaux de Paris/Lyon/Marseille (`type ===
+ * 'arrondissement-municipal'`, seuls concernés par ce type sur tout le
+ * territoire) sont CONSERVÉS : ils sont notés individuellement au même titre
+ * qu'une commune (hiérarchie Région > Département > Ville > Arrondissement,
+ * cf. `fetch/insee-code.ts`), en plus de la commune mère qui garde sa note
+ * agrégée.
  */
 export async function fetchCommunes(url: string, cacheDir: string): Promise<CommuneSource[]> {
   const cacheFile = path.join(cacheDir, 'geo.json');
@@ -53,7 +59,6 @@ export async function fetchCommunes(url: string, cacheDir: string): Promise<Comm
   }
 
   return raw
-    .filter((c) => c.type !== 'arrondissement-municipal')
     .filter((c) => c.codeDepartement !== undefined)
     .map((c) => {
       const [lon, lat] = c.centre?.coordinates ?? [];

@@ -1,6 +1,6 @@
 import type { PrixM2 } from '../models.js';
 import { ensureCsv, forEachCsvRow, parseNumber, type SourceSpec } from './download.js';
-import { communeParent } from './insee-code.js';
+import { codesAccumulation } from './insee-code.js';
 
 /** codeInsee (commune mère) → prix m² DVF (médiane + historique). */
 export type DvfMap = Map<string, PrixM2>;
@@ -107,16 +107,17 @@ export function makeDvfAccumulator() {
         if (prio === -1) return; // locaux commerciaux/industriels : hors sujet
       }
 
-      const code = communeParent(brut);
       const periode = cols.periode ? (row[cols.periode] ?? '') : '';
       const nb = cols.nb ? parseNumber(row[cols.nb]) : undefined;
 
-      const parPeriode = parCommune.get(code) ?? new Map();
-      const existant = parPeriode.get(periode);
-      if (!existant || prio < existant.prio) {
-        parPeriode.set(periode, { v: valeur, nb, prio });
+      for (const code of codesAccumulation(brut)) {
+        const parPeriode = parCommune.get(code) ?? new Map();
+        const existant = parPeriode.get(periode);
+        if (!existant || prio < existant.prio) {
+          parPeriode.set(periode, { v: valeur, nb, prio });
+        }
+        parCommune.set(code, parPeriode);
       }
-      parCommune.set(code, parPeriode);
     },
 
     result(): DvfMap {

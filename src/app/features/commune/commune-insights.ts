@@ -102,6 +102,26 @@ export interface VoisineCommune {
 }
 
 /**
+ * Retire du bassin de voisinage les entités déjà reliées à `current` par la
+ * hiérarchie Région > Département > Ville > Arrondissement, pour ne pas
+ * doublonner avec un lien déjà affiché ailleurs sur la fiche :
+ * - si `current` est une commune mère (Paris/Lyon/Marseille), ses propres
+ *   arrondissements (déjà listés dans la section dédiée) ;
+ * - si `current` est un arrondissement, sa commune mère (déjà dans le fil
+ *   d'Ariane).
+ */
+export function filtrerBassinVoisinage(
+  current: CommuneDetail,
+  pool: readonly CommuneDetail[],
+): CommuneDetail[] {
+  return pool.filter((c) => {
+    if (current.arrondissements && c.communeMere?.codeInsee === current.codeInsee) return false;
+    if (current.communeMere && c.codeInsee === current.communeMere.codeInsee) return false;
+    return true;
+  });
+}
+
+/**
  * Communes les plus proches de `current` dans `pool` (même département en
  * pratique), triées par distance croissante. Exige des coordonnées ; si
  * `current` n'en a pas, retourne `[]`. `limit` résultats max.
@@ -113,7 +133,7 @@ export function nearestCommunes(
 ): VoisineCommune[] {
   if (current.lat === undefined || current.lon === undefined) return [];
   const origin = { lat: current.lat, lon: current.lon };
-  return pool
+  return filtrerBassinVoisinage(current, pool)
     .filter((c) => c.slug !== current.slug && c.lat !== undefined && c.lon !== undefined)
     .map((c) => ({
       commune: c,

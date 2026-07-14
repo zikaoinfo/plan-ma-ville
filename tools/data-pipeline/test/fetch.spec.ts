@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { communeParent } from '../src/fetch/insee-code.js';
+import { codesAccumulation, communeParent, estArrondissement } from '../src/fetch/insee-code.js';
 import { makeBpeAccumulator, typequToCritere } from '../src/fetch/bpe.js';
 import { makeSecuriteAccumulator } from '../src/fetch/securite.js';
 import { buildFilosofiMap, detectValueCol } from '../src/fetch/filosofi.js';
@@ -14,6 +14,27 @@ describe('communeParent', () => {
     expect(communeParent('01001')).toBe('01001');
     expect(communeParent('2A004')).toBe('2A004');
     expect(communeParent('2B033')).toBe('2B033');
+  });
+});
+
+describe('estArrondissement', () => {
+  it('détecte un arrondissement municipal', () => {
+    expect(estArrondissement('75108')).toBe(true);
+    expect(estArrondissement('69382')).toBe(true);
+    expect(estArrondissement('13210')).toBe(true);
+  });
+  it('renvoie faux pour une commune mère ou une commune ordinaire', () => {
+    expect(estArrondissement('75056')).toBe(false);
+    expect(estArrondissement('01001')).toBe(false);
+  });
+});
+
+describe('codesAccumulation', () => {
+  it("crédite la commune mère ET l'arrondissement pour un code d'arrondissement", () => {
+    expect(codesAccumulation('75108')).toEqual(['75056', '75108']);
+  });
+  it("ne renvoie qu'un seul code pour une commune ordinaire", () => {
+    expect(codesAccumulation('01001')).toEqual(['01001']);
   });
 });
 
@@ -33,7 +54,7 @@ describe('typequToCritere', () => {
 });
 
 describe('makeBpeAccumulator', () => {
-  it('somme une colonne NB et agrège les arrondissements', () => {
+  it('somme une colonne NB, agrège les arrondissements sur la mère ET les note individuellement', () => {
     const acc = makeBpeAccumulator();
     acc.add({ DEPCOM: '75101', TYPEQU: 'F303', NB: '3' }); // culture Paris 1er
     acc.add({ DEPCOM: '75108', TYPEQU: 'F303', NB: '2' }); // culture Paris 8e
@@ -42,6 +63,10 @@ describe('makeBpeAccumulator', () => {
     const paris = acc.result().get('75056')!;
     expect(paris.culture).toBe(5);
     expect(paris.sante).toBe(4);
+    // Chaque arrondissement garde aussi son propre décompte.
+    expect(acc.result().get('75101')!.culture).toBe(3);
+    expect(acc.result().get('75108')!.culture).toBe(2);
+    expect(acc.result().get('75108')!.sante).toBe(4);
   });
 
   it('compte 1 par ligne si aucune colonne d’effectif (fichier détaillé)', () => {
@@ -74,11 +99,13 @@ describe('makeSecuriteAccumulator', () => {
     expect(acc.result().get('69123')).toBe(25);
   });
 
-  it('fond les arrondissements sur la commune mère', () => {
+  it('fond les arrondissements sur la commune mère ET garde leur propre total', () => {
     const acc = makeSecuriteAccumulator();
     acc.add({ CODGEO: '13201', annee: '2023', faits: '7' });
     acc.add({ CODGEO: '13202', annee: '2023', faits: '3' });
     expect(acc.result().get('13055')).toBe(10);
+    expect(acc.result().get('13201')).toBe(7);
+    expect(acc.result().get('13202')).toBe(3);
   });
 });
 
@@ -88,15 +115,16 @@ describe('buildFilosofiMap / detectValueCol', () => {
     expect(detectValueCol(['CODGEO', 'Q221'])).toBe('Q221');
   });
 
-  it('construit la map et ignore les communes sous secret', () => {
+  it('construit la map, ignore les communes sous secret, note aussi l’arrondissement lui-même', () => {
     const rows = [
       { CODGEO: '01001', MED21: '22000' },
       { CODGEO: '01002', MED21: '' }, // secret statistique
-      { CODGEO: '75101', MED21: '30000' }, // arrondissement → mère
+      { CODGEO: '75101', MED21: '30000' }, // arrondissement → mère + lui-même
     ];
     const map = buildFilosofiMap(rows);
     expect(map.get('01001')).toBe(22000);
     expect(map.has('01002')).toBe(false);
     expect(map.get('75056')).toBe(30000);
+    expect(map.get('75101')).toBe(30000);
   });
 });
