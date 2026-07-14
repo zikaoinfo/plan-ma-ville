@@ -180,6 +180,28 @@ describe('CommuneAvisForm', () => {
     expect(el.querySelector('.form__msg--ok')?.textContent).toContain('Lien de connexion envoyé');
   });
 
+  it('anonymous sign-ins désactivés côté Supabase : message dédié, pas le générique', async () => {
+    const auth = mockAuth();
+    auth.ensureUser = vi
+      .fn()
+      .mockRejectedValue({ code: 'anonymous_provider_disabled', message: 'disabled' });
+    const avis = mockAvis();
+    const fixture = mount([
+      { provide: AuthService, useValue: auth },
+      { provide: AvisService, useValue: avis },
+    ]);
+    const el = fixture.nativeElement as HTMLElement;
+    remplirPositifs(el, fixture);
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    (el.querySelector('.form__submit') as HTMLButtonElement).click();
+    await flush();
+    fixture.detectChanges();
+
+    expect(avis.submitAvis).not.toHaveBeenCalled();
+    expect(el.querySelector('.form__msg--err')?.textContent).toContain('pas encore activée');
+  });
+
   it('avis existant : bouton « Supprimer mon avis » → deleteAvis + reset', async () => {
     const auth = mockAuth();
     auth.user.set(INVITE);
