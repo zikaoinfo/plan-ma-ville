@@ -21,7 +21,7 @@
         placeholder="Lyon, Saint-Étienne, 69001…"
         role="combobox"
         aria-autocomplete="list"
-        aria-controls="search-resultats"
+        [attr.aria-controls]="panelVisible() && results().length ? 'search-resultats' : null"
         [attr.aria-expanded]="panelVisible()"
         [attr.aria-activedescendant]="activeId()"
         [value]="query()"
@@ -32,9 +32,12 @@
     </div>
 
     <!-- Panneau en superposition (position absolue) : ne pousse JAMAIS
-         la grille des départements — pas de décalage de mise en page. -->
+         la grille des départements — pas de décalage de mise en page.
+         mousedown.preventDefault : le clic sur une option ne doit pas faire
+         perdre le focus à l'input (sinon focusout ferme le panneau AVANT
+         que le clic n'atteigne le lien — Safari/tactile). -->
     @if (panelVisible()) {
-      <div class="search__panel">
+      <div class="search__panel" (mousedown)="$event.preventDefault()">
         @if (!ready()) {
           @if (indexStatus() === 'error') {
             <app-error-message
@@ -75,6 +78,13 @@
           <p class="state state--empty">Aucune commune ne correspond à « {{ query() }} ».</p>
         }
       </div>
+    } @else if (indexStatus() === 'error') {
+      <!-- Échec du chargement de l'index : visible SANS avoir à taper
+           (sinon la recherche semblerait juste morte). -->
+      <app-error-message
+        message="Impossible de charger l'index des communes."
+        [retry]="reload"
+      />
     }
   </div>
 </section>

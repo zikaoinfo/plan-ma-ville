@@ -92,7 +92,8 @@
   position: absolute;
   inset-inline: 0;
   top: calc(100% + 0.5rem);
-  z-index: 40;
+  /* Au-dessus du contenu, mais SOUS la topbar sticky (z-index 10). */
+  z-index: 5;
   max-height: min(55vh, 26rem);
   overflow-y: auto;
   background: var(--paper);
