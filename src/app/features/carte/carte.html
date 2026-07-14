@@ -30,13 +30,23 @@
 
   <!-- Carte de visualisation. Conforme RGAA §5.1 : les données qu'elle porte
        (communes + notes) sont disponibles sous forme HTML accessible et
-       navigable au clavier via le classement et les pages département. -->
-  <div
-    #map
-    class="carte__map"
-    role="region"
-    aria-label="Carte des communes. Les mêmes données sont consultables sous forme de tableau accessible dans le classement."
-  ></div>
+       navigable au clavier via le classement et les pages département.
+       @defer (on idle) : Leaflet + markercluster (~80 KiB) sortent du chemin
+       critique de premier rendu sans jamais s'exécuter côté serveur ; le
+       placeholder garde EXACTEMENT les dimensions de .carte__map pour ne pas
+       réintroduire de CLS à la bascule. -->
+  @defer (on idle) {
+    <div
+      #map
+      class="carte__map"
+      role="region"
+      aria-label="Carte des communes. Les mêmes données sont consultables sous forme de tableau accessible dans le classement."
+    ></div>
+  } @placeholder {
+    <div class="carte__map carte__map--placeholder" aria-hidden="true"></div>
+  } @loading {
+    <div class="carte__map carte__map--placeholder" aria-hidden="true"></div>
+  }
 
   <p class="carte__alt">
     Cette carte est une visualisation.
