@@ -51,6 +51,25 @@ describe('makeDvfAccumulator', () => {
     expect(m.get('75101')!.m2).toBe(11000);
   });
 
+  it('somme les ventes de PLUSIEURS arrondissements sur la commune mère (pas un seul écrasant les autres)', () => {
+    const acc = makeDvfAccumulator();
+    // 3 arrondissements différents, même période : chacun garde son propre
+    // prix/nb, la mère (75056) doit cumuler le nb et pondérer le prix.
+    acc.add(row('75101', '2025-S1', '11000', { nb_ventes_appartement_maison: '10' }));
+    acc.add(row('75115', '2025-S1', '9000', { nb_ventes_appartement_maison: '30' }));
+    acc.add(row('75120', '2025-S1', '7000', { nb_ventes_appartement_maison: '20' }));
+    const m = acc.result();
+    // Chaque arrondissement garde sa propre valeur, non affectée par les autres.
+    expect(m.get('75101')!.m2).toBe(11000);
+    expect(m.get('75101')!.nb).toBe(10);
+    expect(m.get('75115')!.m2).toBe(9000);
+    // La mère cumule le nombre de ventes de ses 3 arrondissements (pas 10 ou 30 seul).
+    const paris = m.get('75056')!;
+    expect(paris.nb).toBe(60); // 10 + 30 + 20
+    // Prix pondéré par nb : (11000*10 + 9000*30 + 7000*20) / 60 ≈ 8667
+    expect(paris.m2).toBe(8667);
+  });
+
   it('format « long » (colonne type de bien) : priorité au résidentiel combiné', () => {
     const acc = makeDvfAccumulator();
     const long = (type: string, med: string) => ({

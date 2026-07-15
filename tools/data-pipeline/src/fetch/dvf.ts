@@ -53,16 +53,51 @@ export function prioriteType(type: string): number {
   return idx;
 }
 
+interface Ligne {
+  v: number;
+  nb?: number;
+  prio: number;
+}
+
+/**
+ * Combine, pour une période donnée, les lignes venues de plusieurs origines
+ * (les arrondissements agrégés sur leur commune mère, ex. les 20
+ * arrondissements de Paris crédités sur 75056) : nombre de ventes TOTAL
+ * (somme), prix médian approché par une moyenne pondérée par le nombre de
+ * ventes de chaque origine (à défaut de données brutes, la meilleure
+ * approximation disponible à partir d'agrégats). Une seule origine (cas
+ * normal, communes sans arrondissement) → valeur inchangée.
+ */
+function combinerOrigines(parOrigine: ReadonlyMap<string, Ligne>): { v: number; nb?: number } {
+  const lignes = [...parOrigine.values()];
+  if (lignes.length === 1) {
+    return { v: Math.round(lignes[0].v), nb: lignes[0].nb };
+  }
+  const nbTotal = lignes.every((l) => l.nb !== undefined)
+    ? lignes.reduce((acc, l) => acc + l.nb!, 0)
+    : undefined;
+  const v = nbTotal
+    ? lignes.reduce((acc, l) => acc + l.v * l.nb!, 0) / nbTotal
+    : lignes.reduce((acc, l) => acc + l.v, 0) / lignes.length;
+  return { v: Math.round(v), nb: nbTotal };
+}
+
 /**
  * Accumulateur streaming « Statistiques DVF » (agrégats data.gouv par échelle
  * géographique) : ne retient que les lignes d'échelle commune, la médiane du
  * prix m² par période, avec priorité au résidentiel combiné. Les périodes
  * (semestres `AAAA-S?` ou mois `AAAA-MM`) se trient lexicographiquement.
+ * Les codes d'arrondissement (Paris/Lyon/Marseille) sont crédités À LA FOIS
+ * sur eux-mêmes et sur leur commune mère (`codesAccumulation`) : la mère
+ * reçoit alors PLUSIEURS lignes par période (une par arrondissement), gardées
+ * séparément par origine puis combinées dans `result()` (sinon un seul
+ * arrondissement écraserait les autres et la mère hériterait d'un nombre de
+ * ventes dérisoire — cf. Paris 75056 avec ~3 ventes au lieu de centaines).
  * Exporté pour testabilité.
  */
 export function makeDvfAccumulator() {
-  // code → période → { valeur, nb, prio (type retenu) }
-  const parCommune = new Map<string, Map<string, { v: number; nb?: number; prio: number }>>();
+  // code destination → période → code origine (brut) → ligne retenue (meilleure prio)
+  const parCommune = new Map<string, Map<string, Map<string, Ligne>>>();
   let cols:
     | {
         code: string;
@@ -109,13 +144,16 @@ export function makeDvfAccumulator() {
 
       const periode = cols.periode ? (row[cols.periode] ?? '') : '';
       const nb = cols.nb ? parseNumber(row[cols.nb]) : undefined;
+      const origine = brut.trim().toUpperCase();
 
       for (const code of codesAccumulation(brut)) {
         const parPeriode = parCommune.get(code) ?? new Map();
-        const existant = parPeriode.get(periode);
+        const parOrigine = parPeriode.get(periode) ?? new Map<string, Ligne>();
+        const existant = parOrigine.get(origine);
         if (!existant || prio < existant.prio) {
-          parPeriode.set(periode, { v: valeur, nb, prio });
+          parOrigine.set(origine, { v: valeur, nb, prio });
         }
+        parPeriode.set(periode, parOrigine);
         parCommune.set(code, parPeriode);
       }
     },
@@ -126,12 +164,12 @@ export function makeDvfAccumulator() {
         const periodes = [...parPeriode.keys()].sort(); // lexicographique = chronologique
         const histo = periodes
           .slice(-MAX_HISTO)
-          .map((p) => ({ p, v: Math.round(parPeriode.get(p)!.v) }));
+          .map((p) => ({ p, v: combinerOrigines(parPeriode.get(p)!).v }));
         if (histo.length === 0) continue;
         const derniere = periodes[periodes.length - 1];
-        const d = parPeriode.get(derniere)!;
+        const d = combinerOrigines(parPeriode.get(derniere)!);
         out.set(code, {
-          m2: Math.round(d.v),
+          m2: d.v,
           periode: derniere,
           ...(d.nb !== undefined ? { nb: d.nb } : {}),
           histo,

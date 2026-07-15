@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { fmtEntier } from '../../core/format';
 import type { CommuneDetail, Critere } from '../../core/models/data.models';
 import { categorieTaille, genereTexteCommune, qualificatif } from './commune-texte';
 
@@ -94,6 +95,51 @@ describe('genereTexteCommune', () => {
     const immo = t.sections.find((s) => s.titre.includes('Immobilier'))!;
     expect(immo.texte).toContain('5 120 €/m²'.replace(' ', ' '));
     expect(immo.texte).toMatch(/hausse de 4,9 ?%/);
+  });
+
+  it("ne compare jamais une commune à elle-même (seule commune de son groupe de référence → pas de comparaison)", () => {
+    // A est la SEULE commune du groupe à avoir un prix DVF : sans exclusion
+    // de soi-même, la « médiane départementale » serait égale à son propre
+    // prix (comparaison factice). Avec l'exclusion, aucune médiane externe
+    // n'est disponible → la phrase de comparaison ne doit pas apparaître.
+    const t = genereTexteCommune(A, DEPS, 'Val-de-Marne');
+    const immo = t.sections.find((s) => s.titre.includes('Immobilier'))!;
+    expect(immo.texte).not.toContain('plus cher que la médiane');
+    expect(immo.texte).not.toContain('moins cher que la médiane');
+  });
+
+  it('compare bien à une médiane départementale EXTERNE quand une autre commune a un prix DVF', () => {
+    const autrePrix: CommuneDetail['prix'] = {
+      m2: 3000,
+      periode: '2025-S2',
+      nb: 40,
+      histo: [{ p: '2025-S2', v: 3000 }],
+    };
+    const C = commune('Deltaville', '94004', 5.5, 9000, {}, autrePrix);
+    const deps = [A, B, C];
+    const t = genereTexteCommune(A, deps, 'Val-de-Marne');
+    const immo = t.sections.find((s) => s.titre.includes('Immobilier'))!;
+    expect(immo.texte).toContain('plus cher que la médiane des communes du département');
+    expect(immo.texte).toContain(`${fmtEntier(3000)} €/m²`);
+  });
+
+  it("pour une commune mère (Paris) : exclut ses propres arrondissements du groupe de comparaison", () => {
+    const arrPrix: CommuneDetail['prix'] = {
+      m2: 11000,
+      periode: '2025-S2',
+      nb: 10,
+      histo: [{ p: '2025-S2', v: 11000 }],
+    };
+    const paris = {
+      ...commune('Paris', '75056', 7, 2100000, {}, PRIX),
+      arrondissements: [{ slug: 'paris-1er-75101', nom: 'Paris 1er', codeInsee: '75101', population: 16000, score: A.score }],
+    };
+    const paris1 = { ...commune('Paris 1er', '75101', 8, 16000, {}, arrPrix), communeMere: { slug: 'paris-75056', nom: 'Paris', codeInsee: '75056' } };
+    const t = genereTexteCommune(paris, [paris, paris1], 'Paris');
+    const immo = t.sections.find((s) => s.titre.includes('Immobilier'))!;
+    // Le seul « autre » prix du groupe est celui de son propre arrondissement
+    // (75101) : ne doit PAS servir de référence externe.
+    expect(immo.texte).not.toContain('la médiane des communes du département');
   });
 });
 

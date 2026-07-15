@@ -34,7 +34,9 @@
           (input)="filterText.set($any($event.target).value)"
         />
       </label>
-      <span class="dep__count">{{ list.length | number: '1.0-0' }} communes</span>
+      <span class="dep__count">
+        {{ list.length | number: '1.0-0' }} commune{{ list.length > 1 ? 's' : '' }}
+      </span>
     </div>
 
     <!-- TODO pagination : pas de pagination en v1 (max ~800 communes,

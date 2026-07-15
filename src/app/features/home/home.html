@@ -62,6 +62,7 @@
                   [class.result--active]="i === activeIndex()"
                   tabindex="-1"
                   [routerLink]="['/ville', item.s]"
+                  (click)="selectResult(item.s)"
                 >
                   <span class="result__main">
                     <span class="result__name">{{ item.n }}</span>
@@ -102,7 +103,9 @@
             <span class="dep__code">{{ dep.code }}</span>
             <span class="dep__body">
               <span class="dep__nom">{{ dep.nom }}</span>
-              <span class="dep__nb">{{ dep.nbCommunes | number: '1.0-0' }} communes</span>
+              <span class="dep__nb">
+                {{ dep.nbCommunes | number: '1.0-0' }} commune{{ dep.nbCommunes > 1 ? 's' : '' }}
+              </span>
             </span>
             <app-score-badge [score]="dep.noteMoyenne" />
           </a>

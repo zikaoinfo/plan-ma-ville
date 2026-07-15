@@ -43,6 +43,7 @@ appliquer à toute création/modif d'UI ; socle focus/skip-link/live déjà en p
 - `npm run data:build` — pipeline complet + validation 6 invariants + sitemap.
 - `npm run data:sample` — pipeline départements 69,75.
 - `npm test` — Vitest (app). `npm run test:data` — tests pipeline.
+  `npm run test:functions` — tests des Cloudflare Pages Functions (logique pure).
 - `npx eslint .` — lint.
 
 ## Arborescence
@@ -88,7 +89,17 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
     historique ≤10 périodes → `CommuneDetail.prix` (`{m2, periode, nb?, histo}`)
     dans `dep/{code}.json`. Hors couverture (Alsace, Moselle, Mayotte, communes
     sans ventes) → champ absent, l'UI l'affiche honnêtement. N'alimente PAS la
-    note (info affichée, pas critère).
+    note (info affichée, pas critère). **Piège arrondissements** : le
+    millésime DVF ventile Paris/Lyon/Marseille PAR arrondissement (751xx/690xx/
+    132xx), jamais sur le code INSEE de la ville-mère — `codesAccumulation`
+    crédite donc CHAQUE ligne d'arrondissement à la fois sur lui-même et sur sa
+    mère, mais l'accumulateur (`makeDvfAccumulator`) doit alors **combiner**
+    (sommer le nb de ventes, moyenne pondérée par nb pour le prix) les
+    lignes de PLUSIEURS origines reçues par la mère pour une même période —
+    la 1ʳᵉ version ne gardait que la meilleure priorité de type de bien et
+    écrasait silencieusement les arrondissements suivants avec le même type,
+    d'où un `nb` dérisoire pour Paris (~3 ventes au lieu de centaines) hérité
+    d'un seul arrondissement. Tests : `test/dvf.spec.ts`.
 - **Scoring réel par rang percentile moyen** (`score/real.ts`, plus de notes
   factices) : densité /1000 hab (BPE), taux /1000 hab (SSMSI, inversé), revenu
   médian (Filosofi) → `rankNotes` (`score/scale.ts`) = midrank puis remise à
@@ -160,12 +171,27 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
   puis communes voisines (haversine) en grille de vignettes pleine largeur.
   **Prix m² = RÉEL (DVF)** : médiane + tendance 1 an (`dvfTrendPct`) + sparkline
   depuis `commune.prix.histo` ; sans donnée → message honnête, pas d'estimation.
-  L'historique de NOTE reste une trajectoire estimée (`commune-insights.ts`,
-  pur, testé). **Texte éditorial SEO** (`commune-texte.ts`, pur, testé) :
+  **Pas de trajectoire de note inventée** : la carte « Historique de la note »
+  (fausse marche aléatoire seedée par code INSEE, ex-`noteHistory`) a été
+  retirée avant le lancement public (site positionné comme factuel/rigoureux
+  face à ville-idéale.fr — une trajectoire sans double millésime réel était
+  attaquable) ; remplacée par un simple horodatage honnête « Fraîcheur des
+  données » (`derniereMiseAJour`, dérivé du champ `gen` de
+  `dep/{code}.json`, `fmtDateFr` dans `core/format.ts`). Si une vraie série
+  temporelle (deux millésimes réels BPE/SSMSI/Filosofi) devient disponible un
+  jour, documenter la méthode dans `/methodologie` avant de réafficher une
+  évolution. **Texte éditorial SEO** (`commune-texte.ts`, pur, testé) :
   réponse directe ~60 mots sous l'en-tête + 4 sections h2 « Vivre à {ville} »
   (~250 mots), 100 % dérivés des données réelles (rang départemental, moyennes,
   DVF), variantes de tournures par hash INSEE (déterministe entre builds,
-  anti scaled-content-abuse — cf. docs/SEO-PLAN.md). Onglets « Données
+  anti scaled-content-abuse — cf. docs/SEO-PLAN.md). Comparaisons
+  départementales (moyenne par critère, médiane DVF) calculées sur un groupe
+  **EXTERNE** à la commune (`filtrerBassinVoisinage`, jamais elle-même ni sa
+  famille mère/arrondissements) — sinon Paris/Lyon/Marseille, dont le
+  département ne contient quasiment que la ville et ses propres
+  arrondissements, se comparaient en grande partie à eux-mêmes (silencieux :
+  la phrase disparaît si aucune commune externe n'a de données, plutôt que de
+  comparer à une médiane fictive). Onglets « Données
   officielles » / « Avis habitants » (`?onglet=avis` pour survivre au retour
   OAuth). **Arrondissements (Paris/Lyon/Marseille)** : la fiche d'une commune
   mère affiche une section « Ses arrondissements » (notes + population,
@@ -239,6 +265,20 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
   bannière « Recharger » dans le shell. Les specs TestBed qui montent `App`
   doivent fournir `provideServiceWorker('ngsw-worker.js', {enabled:false})`.
   Vérifié headless : SW contrôlant + navigation et données HORS-LIGNE.
+- **Analytics (Umami, cookieless — pas de bannière CNIL)** : script déjà posé
+  dans `index.html` (`data-website-id`, survit au prerender car statique,
+  jamais strippé par le build). `AnalyticsService` (`core/services/
+  analytics.service.ts`) : `track(eventName, data?)` avec garde
+  `typeof window !== 'undefined' && 'umami' in window` (dégradation
+  silencieuse en SSR/prerender/avant chargement du script, jamais d'erreur).
+  Events instrumentés : `avis_start` (ouverture de l'onglet « Avis
+  habitants », `commune.ts` `openOnglet`), `avis_submit` (soumission
+  réussie), `comparateur_add` (ajout d'une ville au comparateur),
+  `recherche_query` (sélection d'un résultat de recherche sur la home —
+  Entrée ou clic, pas à chaque frappe). UTM (`utm_source` etc.) : aucune
+  route ne les strip (pas de `redirectTo`/`queryParamsHandling` qui les
+  effacerait) — capturés par le tracking auto de pageview d'Umami au premier
+  chargement.
 
 ## Supabase (Phase 7 — avis + auth)
 
@@ -295,6 +335,25 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
   `SITE_INDEXABLE=true`). `outputPath dist/ma-ville-notes`.
 - `.github/workflows/deploy.yml` : sur push `main` → inject secrets → data:build
   (cache) → build → Pages. **Pages déjà activé** (source « GitHub Actions »).
+- **Migration en cours vers Cloudflare Pages** (P0 pré-lancement, cf.
+  `docs/MIGRATION-CLOUDFLARE-PAGES.md`) : GitHub Pages sert son fallback SPA
+  (`404.html`) en statut HTTP **404** → aucune preview OG, non indexable pour
+  les ~32 000 communes non prérendues. `.github/workflows/deploy-cloudflare-pages.yml`
+  (même build que `deploy.yml`, tourne EN PARALLÈLE sans risque tant que le
+  DNS pointe encore sur GitHub Pages — publie sur l'URL de preview
+  `*.pages.dev`) déploie vers Cloudflare Pages : `public/_redirects` sert le
+  fallback en **200**, et `functions/ville/[slug].js` (+ logique pure
+  `functions/_lib/commune-meta.mjs`, `npm run test:functions`) injecte à la
+  volée les balises title/description/OG/canonique **de la commune demandée**
+  pour les pages non prérendues (asset statique servi tel quel s'il existe
+  déjà — aucune régression sur les pages prérendues). `public/_routes.json`
+  restreint cette Function à `/ville/*`. Reste à faire côté compte Cloudflare
+  (hors de portée d'un agent) : créer le projet Pages, poser les secrets
+  `CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ACCOUNT_ID`, vérifier la preview, puis
+  basculer le DNS — détail complet dans le document ci-dessus. En parallèle,
+  `app.routes.server.ts` prérend désormais aussi le top/flop 50 national et
+  les départements ciblés par la campagne (`DEPARTEMENTS_CAMPAGNE` = 75, 93,
+  94) quel que soit leur seuil de population.
 - **Branche de dev** : `claude/angular-21-creative-design-bfybnz`. Workflow
   demandé par l'utilisateur : **committer sur la branche + ouvrir/mettre à jour
   une PR, NE PAS merger dans `main` soi-même** (il relit et merge).

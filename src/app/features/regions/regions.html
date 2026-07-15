@@ -28,7 +28,7 @@
                 <span class="region__nom">{{ r.nom }}</span>
                 <span class="region__meta">
                   {{ r.nbDepartements }} département{{ r.nbDepartements > 1 ? 's' : '' }} ·
-                  {{ r.nbCommunes | number: '1.0-0' }} communes
+                  {{ r.nbCommunes | number: '1.0-0' }} commune{{ r.nbCommunes > 1 ? 's' : '' }}
                 </span>
               </span>
               <app-score-badge [score]="r.noteMoyenne" />
