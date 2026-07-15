@@ -47,14 +47,17 @@
   color: var(--ink);
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
+.table-wrap {
   margin-top: 0.5rem;
+  overflow-x: auto;
   background: var(--paper);
   border: 1.5px solid var(--line);
   border-radius: 14px;
-  overflow: hidden;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
 th,

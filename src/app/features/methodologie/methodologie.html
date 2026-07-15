@@ -32,22 +32,24 @@
 
   <section>
     <h2>Pondérations</h2>
-    <table class="ponder">
-      <thead>
-        <tr>
-          <th scope="col">Critère</th>
-          <th scope="col">Poids</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (critere of criteres; track critere) {
+    <div class="table-wrap">
+      <table class="ponder">
+        <thead>
           <tr>
-            <td>{{ labels[critere] }}</td>
-            <td class="num">{{ ponderations[critere].toFixed(1) }}</td>
+            <th scope="col">Critère</th>
+            <th scope="col">Poids</th>
           </tr>
-        }
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          @for (critere of criteres; track critere) {
+            <tr>
+              <td>{{ labels[critere] }}</td>
+              <td class="num">{{ ponderations[critere].toFixed(1) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
     <p>
       <strong>Vos priorités.</strong> Sur les fiches communes, le classement, le
       comparateur et les pages département, un sélecteur de profil
@@ -61,42 +63,44 @@
 
   <section>
     <h2>Sources de données</h2>
-    <table class="sources">
-      <thead>
-        <tr>
-          <th scope="col">Domaine</th>
-          <th scope="col">Source</th>
-          <th scope="col">Millésime</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Périmètre des communes, population</td>
-          <td>API Géo (geo.api.gouv.fr)</td>
-          <td>à jour</td>
-        </tr>
-        <tr>
-          <td>Santé, commerces, enseignement, sports, culture, transports</td>
-          <td>Base permanente des équipements (BPE, INSEE)</td>
-          <td>2018</td>
-        </tr>
-        <tr>
-          <td>Sécurité</td>
-          <td>Bases statistiques de la délinquance (SSMSI)</td>
-          <td>2025</td>
-        </tr>
-        <tr>
-          <td>Niveau de vie</td>
-          <td>Revenus localisés (Filosofi, INSEE)</td>
-          <td>2021</td>
-        </tr>
-        <tr>
-          <td>Prix immobilier au m²</td>
-          <td>Statistiques DVF — valeurs foncières (DGFiP, data.gouv.fr)</td>
-          <td>semestriel</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="table-wrap">
+      <table class="sources">
+        <thead>
+          <tr>
+            <th scope="col">Domaine</th>
+            <th scope="col">Source</th>
+            <th scope="col">Millésime</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Périmètre des communes, population</td>
+            <td>API Géo (geo.api.gouv.fr)</td>
+            <td>à jour</td>
+          </tr>
+          <tr>
+            <td>Santé, commerces, enseignement, sports, culture, transports</td>
+            <td>Base permanente des équipements (BPE, INSEE)</td>
+            <td>2018</td>
+          </tr>
+          <tr>
+            <td>Sécurité</td>
+            <td>Bases statistiques de la délinquance (SSMSI)</td>
+            <td>2025</td>
+          </tr>
+          <tr>
+            <td>Niveau de vie</td>
+            <td>Revenus localisés (Filosofi, INSEE)</td>
+            <td>2021</td>
+          </tr>
+          <tr>
+            <td>Prix immobilier au m²</td>
+            <td>Statistiques DVF — valeurs foncières (DGFiP, data.gouv.fr)</td>
+            <td>semestriel</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
     <p>
       Le prix au m² affiché est la <strong>médiane des ventes résidentielles réelles</strong>
       (base DVF des transactions notariées), sur la dernière période publiée. Il ne
