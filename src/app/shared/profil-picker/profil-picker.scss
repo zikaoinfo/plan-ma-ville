@@ -81,7 +81,7 @@
 /* ── Panneau des sliders ──────────────────── */
 .poids {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
   gap: 0.35rem 1.6rem;
   margin-top: 0.8rem;
   padding-top: 0.8rem;

@@ -159,6 +159,7 @@
 
 .dash__picker {
   grid-area: picker;
+  min-width: 0;
 }
 
 .card__head {
@@ -185,6 +186,11 @@
 }
 
 .card {
+  /* Empêche le contenu intrinsèque (grille imbriquée .themes/.near, tableau…)
+     de forcer la voie 1fr de `.dash` plus large que son conteneur (défaut
+     grid `min-width: auto` = plus grand min-content des enfants — "grid
+     blowout" classique, cause du scroll horizontal sur mobile). */
+  min-width: 0;
   background: var(--paper);
   border: 1.5px solid var(--line);
   border-radius: 18px;
@@ -384,7 +390,7 @@
 /* ── Thématiques ──────────────────────────── */
 .themes {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
   gap: 0.9rem 1.6rem;
 }
 
@@ -412,7 +418,7 @@
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
   gap: 0.6rem;
 }
 
@@ -561,6 +567,7 @@
       'price'
       'histo'
       'texte'
+      'arr'
       'near';
   }
 
@@ -571,6 +578,7 @@
       'price'
       'histo'
       'texte'
+      'arr'
       'near';
   }
 
