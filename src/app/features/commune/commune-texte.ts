@@ -1,6 +1,6 @@
 import { fmtEntier, fmtNote } from '../../core/format';
 import { CRITERE_LABELS, type CommuneDetail, type Critere } from '../../core/models/data.models';
-import { dvfTrendPct } from './commune-insights';
+import { dvfTrendPct, filtrerBassinVoisinage } from './commune-insights';
 
 /**
  * Génération du texte éditorial des fiches communes — 100 % dérivé des
@@ -57,25 +57,36 @@ interface Contexte {
   moyennesDep: Record<Critere, number>;
   /** Médiane départementale du prix m² (communes couvertes par DVF). */
   prixMedianDep: number | null;
+  /** Nombre de communes EXTERNES utilisées pour moyennesDep/prixMedianDep. */
+  nbExternes: number;
 }
 
+/**
+ * Communes de comparaison EXTERNES à `commune` : jamais elle-même, ni sa
+ * famille (commune mère / arrondissements — cf. Paris/Lyon/Marseille, dont le
+ * département ne contient quasiment que la ville et ses propres
+ * arrondissements). Sans cette exclusion, comparer Paris à « la moyenne du
+ * département » revient à la comparer en grande partie à elle-même.
+ */
 function contexteDepartemental(commune: CommuneDetail, deps: readonly CommuneDetail[]): Contexte {
   const tri = [...deps].sort((a, b) => b.score.global - a.score.global);
   const rang = tri.findIndex((c) => c.slug === commune.slug) + 1;
 
+  const externes = filtrerBassinVoisinage(commune, deps).filter((c) => c.slug !== commune.slug);
+
   const moyennesDep = {} as Record<Critere, number>;
   for (const critere of Object.keys(CRITERE_LABELS) as Critere[]) {
-    const somme = deps.reduce((acc, c) => acc + c.score.criteres[critere], 0);
-    moyennesDep[critere] = deps.length ? somme / deps.length : 0;
+    const somme = externes.reduce((acc, c) => acc + c.score.criteres[critere], 0);
+    moyennesDep[critere] = externes.length ? somme / externes.length : 0;
   }
 
-  const prix = deps
+  const prix = externes
     .map((c) => c.prix?.m2)
     .filter((v): v is number => v !== undefined)
     .sort((a, b) => a - b);
   const prixMedianDep = prix.length ? prix[Math.floor(prix.length / 2)] : null;
 
-  return { rang, total: deps.length, moyennesDep, prixMedianDep };
+  return { rang, total: deps.length, moyennesDep, prixMedianDep, nbExternes: externes.length };
 }
 
 /** Les 2 critères les mieux notés (ordre décroissant, départagés par label). */
@@ -129,7 +140,7 @@ export function genereTexteCommune(
   // ── Qualité de vie ──
   const deltaFort = notes[fort1] - ctx.moyennesDep[fort1];
   const comparaisonFort =
-    Math.abs(deltaFort) >= 0.5 && ctx.total > 1
+    Math.abs(deltaFort) >= 0.5 && ctx.nbExternes > 0
       ? ` — ${deltaFort > 0 ? `${fmtNote(Math.abs(deltaFort))} point${Math.abs(deltaFort) >= 2 ? 's' : ''} au-dessus de` : 'sous'} la moyenne départementale (${fmtNote(ctx.moyennesDep[fort1])}/10)`
       : '';
   sections.push({

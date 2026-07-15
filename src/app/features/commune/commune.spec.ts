@@ -150,7 +150,7 @@ describe('Commune', () => {
     expect(el.querySelector('h1')?.textContent).toContain('Lyon');
     expect(el.querySelector('.card--map iframe')).toBeTruthy();
     expect(el.querySelector('.card--price .price')).toBeTruthy();
-    expect(el.querySelector('.card--histo .spark')).toBeTruthy();
+    expect(el.querySelector('.card--histo .maj__date')?.textContent).toContain('13 juin 2026');
     expect(el.querySelectorAll('.card--themes app-note-bar').length).toBe(8);
 
     const noms = [...el.querySelectorAll('.near__name')].map((n) => n.textContent?.trim());

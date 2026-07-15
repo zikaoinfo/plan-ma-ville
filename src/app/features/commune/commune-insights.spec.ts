@@ -5,7 +5,6 @@ import {
   filtrerBassinVoisinage,
   haversineKm,
   nearestCommunes,
-  noteHistory,
 } from './commune-insights';
 
 function commune(
@@ -69,20 +68,6 @@ describe('dvfTrendPct', () => {
       { p: '2025-S2', v: 3868 },
     ];
     expect(dvfTrendPct(histo)).toBe(-3.3);
-  });
-});
-
-describe('noteHistory', () => {
-  it('se termine sur la note actuelle et couvre N années', () => {
-    const h = noteHistory(lyon, 2026, 6);
-    expect(h).toHaveLength(6);
-    expect(h[h.length - 1]).toEqual({ year: 2026, note: 6.2 });
-    expect(h[0].year).toBe(2021);
-    expect(h.every((p) => p.note >= 0 && p.note <= 10)).toBe(true);
-  });
-
-  it('est déterministe', () => {
-    expect(noteHistory(lyon, 2026)).toEqual(noteHistory(lyon, 2026));
   });
 });
 

@@ -59,7 +59,7 @@
           class="tab"
           [class.tab--active]="onglet() === 'officiel'"
           [attr.aria-selected]="onglet() === 'officiel'"
-          (click)="onglet.set('officiel')"
+          (click)="openOnglet('officiel')"
         >
           Données officielles
         </button>
@@ -71,7 +71,7 @@
           class="tab"
           [class.tab--active]="onglet() === 'avis'"
           [attr.aria-selected]="onglet() === 'avis'"
-          (click)="onglet.set('avis')"
+          (click)="openOnglet('avis')"
         >
           Avis habitants
         </button>
@@ -163,7 +163,7 @@
               </svg>
             }
             <p class="estimate-note">
-              Médiane des ventes ({{ prixPeriode() }}@if (p.nb) {, {{ p.nb | number: '1.0-0' }} ventes}) ·
+              Médiane des ventes@if (prixDetailTxt()) { ({{ prixDetailTxt() }})} ·
               source DVF/data.gouv.fr
             </p>
           } @else {
@@ -174,23 +174,20 @@
           }
         </section>
 
-        <!-- Historique de la note -->
-        <section class="card card--histo" aria-label="Historique de la note">
-          <h2 class="card__title">Historique de la note</h2>
-          @if (spark(); as s) {
-            <svg class="spark" viewBox="0 0 100 32" preserveAspectRatio="none" role="img"
-              [attr.aria-label]="'Évolution de ' + s.first.note + ' à ' + s.last.note">
-              <polyline class="spark__line" [attr.points]="s.points" />
-            </svg>
-            <div class="histo__legend">
-              <span>{{ s.first.year }} · {{ s.first.note.toFixed(1) }}</span>
-              <span class="histo__delta" [class.up]="s.delta >= 0" [class.down]="s.delta < 0">
-                {{ s.delta >= 0 ? '+' : '' }}{{ s.delta.toFixed(1) }} pt
-              </span>
-              <span>{{ s.last.year }} · {{ s.last.note.toFixed(1) }}</span>
-            </div>
+        <!-- Fraîcheur des données : pas de trajectoire de note inventée
+             (une seule mesure par build, aucune série temporelle réelle
+             disponible) — cf. /methodologie. -->
+        <section class="card card--histo" aria-label="Fraîcheur des données">
+          <h2 class="card__title">Fraîcheur des données</h2>
+          @if (derniereMiseAJour(); as maj) {
+            <p class="maj__date">{{ maj }}</p>
+            <p class="estimate-note">
+              Date des données officielles utilisées pour cette fiche (INSEE, SSMSI, DGFiP) —
+              voir la <a routerLink="/methodologie">méthodologie</a>.
+            </p>
+          } @else {
+            <p class="price__none">Date de mise à jour indisponible.</p>
           }
-          <p class="estimate-note">Trajectoire estimée</p>
         </section>
 
         <!-- Texte éditorial : sections « Vivre à {ville} » (SEO, données réelles) -->

@@ -18,7 +18,7 @@
             <h1>{{ r.nom }}</h1>
             <p class="region__meta">
               {{ r.nbDepartements }} département{{ r.nbDepartements > 1 ? 's' : '' }} ·
-              {{ r.nbCommunes | number: '1.0-0' }} communes
+              {{ r.nbCommunes | number: '1.0-0' }} commune{{ r.nbCommunes > 1 ? 's' : '' }}
             </p>
           </div>
           <div class="region__moy">

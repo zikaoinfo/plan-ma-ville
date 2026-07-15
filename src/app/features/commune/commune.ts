@@ -3,6 +3,8 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, input, si
 import { DomSanitizer, type SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CRITERE_LABELS, CRITERES, type Critere, type CommuneStats } from '../../core/models/data.models';
+import { fmtDateFr } from '../../core/format';
+import { AnalyticsService } from '../../core/services/analytics.service';
 import { AuthService } from '../../core/services/auth.service';
 import { AvisService } from '../../core/services/avis.service';
 import { schemaBreadcrumb, schemaPlace, type Miette } from '../../core/seo/schemas';
@@ -17,7 +19,7 @@ import { ProfilPicker } from '../../shared/profil-picker/profil-picker';
 import { ScoreBadge } from '../../shared/score-badge/score-badge';
 import { CommuneAvisForm } from './commune-avis/commune-avis-form';
 import { CommuneAvisList } from './commune-avis/commune-avis-list';
-import { dvfTrendPct, filtrerBassinVoisinage, nearestCommunes, noteHistory } from './commune-insights';
+import { dvfTrendPct, filtrerBassinVoisinage, nearestCommunes } from './commune-insights';
 import { genereTexteCommune } from './commune-texte';
 
 /** Seuil des pages « Où vivre autour de {ville} » — aligné sur
@@ -60,6 +62,7 @@ export class Commune {
   protected readonly auth = inject(AuthService);
   readonly #avis = inject(AvisService);
   protected readonly avisDisponible = this.#avis.disponible;
+  readonly #analytics = inject(AnalyticsService);
 
   /** Note moyenne des habitants (affichage seul — n'entre pas dans la note
    *  officielle pondérée, cf. onglet « Avis habitants »). */
@@ -75,8 +78,17 @@ export class Commune {
   /** Bump après soumission d'un avis → recharge la liste. */
   protected readonly avisVersion = signal(0);
 
+  /** Ouverture de l'onglet « Avis habitants » (formulaire visible). */
+  protected openOnglet(onglet: 'officiel' | 'avis'): void {
+    this.onglet.set(onglet);
+    if (onglet === 'avis') {
+      this.#analytics.track('avis_start', { ville: this.#slug() });
+    }
+  }
+
   protected onAvisSubmitted(): void {
     this.avisVersion.update((v) => v + 1);
+    this.#analytics.track('avis_submit', { ville: this.#slug() });
   }
 
   readonly slug = input.required<string>();
@@ -154,6 +166,16 @@ export class Commune {
     if (m) return `${m[2]}${m[2] === '1' ? 'ᵉʳ' : 'ᵉ'} semestre ${m[1]}`;
     return p.periode;
   });
+  /** Détail entre parenthèses (« Médiane des ventes (…) ») : période et/ou
+   *  nombre de ventes, sans virgule orpheline quand l'un des deux est absent. */
+  protected readonly prixDetailTxt = computed(() => {
+    const p = this.prix();
+    if (!p) return '';
+    const parts = [this.prixPeriode(), p.nb ? `${p.nb.toLocaleString('fr-FR')} ventes` : ''].filter(
+      (part) => part !== '',
+    );
+    return parts.join(', ');
+  });
   /** Sparkline SVG du prix m² (mêmes proportions que celle de la note). */
   protected readonly sparkPrix = computed(() => {
     const p = this.prix();
@@ -174,31 +196,11 @@ export class Commune {
       .join(' ');
     return { points, first: p.histo[0], last: p.histo[p.histo.length - 1] };
   });
-  protected readonly historique = computed(() => {
-    const c = this.commune();
-    return c ? noteHistory(c, new Date().getFullYear()) : [];
-  });
-
-  /** Sparkline SVG (polyline) de l'historique de la note. */
-  protected readonly spark = computed(() => {
-    const h = this.historique();
-    if (h.length < 2) return null;
-    const notes = h.map((p) => p.note);
-    const min = Math.min(...notes);
-    const max = Math.max(...notes);
-    const span = Math.max(0.4, max - min);
-    const W = 100;
-    const H = 32;
-    const pad = 4;
-    const points = h
-      .map((p, i) => {
-        const x = (i / (h.length - 1)) * (W - 2 * pad) + pad;
-        const y = H - pad - ((p.note - min) / span) * (H - 2 * pad);
-        return `${x.toFixed(1)},${y.toFixed(1)}`;
-      })
-      .join(' ');
-    const delta = Math.round((h[h.length - 1].note - h[0].note) * 10) / 10;
-    return { points, first: h[0], last: h[h.length - 1], delta };
+  /** Date de génération des données de la commune (pas de fausse trajectoire
+   *  historique : on n'a qu'un instantané par build, cf. Méthodologie). */
+  protected readonly derniereMiseAJour = computed(() => {
+    const gen = this.#commune.depFile()?.gen;
+    return gen ? fmtDateFr(gen) : null;
   });
 
   /** URL de carte OpenStreetMap (iframe), assainie pour l'embed. */
