@@ -11,11 +11,13 @@
     "data:build": "tsx tools/data-pipeline/src/main.ts",
     "data:validate": "tsx tools/data-pipeline/src/main.ts --strict",
     "data:sample": "tsx tools/data-pipeline/src/main.ts --departements 69,75",
-    "test:data": "npm run test --workspace tools/data-pipeline"
+    "test:data": "npm run test --workspace tools/data-pipeline",
+    "test:functions": "npm run test --workspace functions"
   },
   "private": true,
   "workspaces": [
-    "tools/data-pipeline"
+    "tools/data-pipeline",
+    "functions"
   ],
   "packageManager": "npm@11.12.1",
   "dependencies": {

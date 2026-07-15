@@ -1,0 +1,8 @@
+# Config Cloudflare Pages — cf. P0 pré-lancement (migration hors GitHub Pages
+# pour un fallback SPA en HTTP 200, cf. docs/MIGRATION-CLOUDFLARE-PAGES.md).
+#
+# Le nom du projet doit correspondre EXACTEMENT au projet Pages créé côté
+# Cloudflare (dashboard ou `wrangler pages project create ma-ville-notes`).
+name = "ma-ville-notes"
+compatibility_date = "2026-01-01"
+pages_build_output_dir = "dist/ma-ville-notes/browser"

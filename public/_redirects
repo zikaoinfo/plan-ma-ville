@@ -1,0 +1,6 @@
+# Cloudflare Pages : fallback SPA en 200 (jamais 404) pour toute route
+# gérée côté client par le routeur Angular et non prérendue statiquement.
+# Les fiches communes (/ville/:slug) sont gérées à part par la Pages Function
+# functions/ville/[slug].js (meta OG dynamiques) — cf. _routes.json, qui les
+# exclut du routing normal des assets/redirects.
+/*    /index.csr.html   200

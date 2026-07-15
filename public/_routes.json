@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "description": "Restreint les Pages Functions à /ville/* (meta OG dynamiques pour les communes non prérendues) ; toutes les autres routes — intégralement prérendues (accueil, régions, départements, classement, etc.) — passent directement par les assets statiques, sans invocation de Function.",
+  "include": ["/ville/*"],
+  "exclude": []
+}
