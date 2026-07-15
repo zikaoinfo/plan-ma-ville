@@ -2,6 +2,7 @@ import { DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CRITERE_LABELS, CRITERES, type CommuneDetail } from '../../core/models/data.models';
+import { AnalyticsService } from '../../core/services/analytics.service';
 import { CommuneDataService } from '../../core/services/commune-data.service';
 import { MetaService } from '../../core/services/meta.service';
 import { PonderationService } from '../../core/services/ponderation.service';
@@ -24,6 +25,7 @@ export class Comparateur {
   readonly #route = inject(ActivatedRoute);
   readonly #router = inject(Router);
   readonly #meta = inject(MetaService);
+  readonly #analytics = inject(AnalyticsService);
 
   protected readonly max = MAX_VILLES;
   protected readonly criteres = CRITERES;
@@ -74,6 +76,7 @@ export class Comparateur {
     if (this.full() || this.#slugs.some((s) => s() === slug)) return;
     this.#slugs.find((s) => s() === '')?.set(slug);
     this.#syncUrl();
+    this.#analytics.track('comparateur_add', { ville: slug });
   }
 
   protected removeVille(index: number): void {

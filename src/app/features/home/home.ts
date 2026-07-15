@@ -1,6 +1,7 @@
 import { DecimalPipe, DOCUMENT } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { AnalyticsService } from '../../core/services/analytics.service';
 import { MetaService } from '../../core/services/meta.service';
 import { SearchIndexService } from '../../core/services/search-index.service';
 import { ErrorMessage } from '../../shared/error-message/error-message';
@@ -16,6 +17,7 @@ import { ScoreBadge } from '../../shared/score-badge/score-badge';
 export class Home {
   readonly #search = inject(SearchIndexService);
   readonly #meta = inject(MetaService);
+  readonly #analytics = inject(AnalyticsService);
   readonly #router = inject(Router);
   readonly #doc = inject(DOCUMENT);
 
@@ -52,6 +54,11 @@ export class Home {
 
   protected readonly reload = () => this.#search.reload();
 
+  /** Recherche effectuée (commune sélectionnée), pas à chaque frappe. */
+  protected selectResult(slug: string): void {
+    this.#analytics.track('recherche_query', { requete: this.query().trim(), ville: slug });
+  }
+
   protected onInput(value: string): void {
     this.query.set(value);
     this.activeIndex.set(-1);
@@ -87,6 +94,7 @@ export class Home {
         if (!nb) return;
         event.preventDefault();
         const item = this.results()[Math.max(this.activeIndex(), 0)];
+        this.selectResult(item.s);
         void this.#router.navigate(['/ville', item.s]);
         break;
       }

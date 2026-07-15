@@ -1,0 +1,104 @@
+name: Deploy to Cloudflare Pages
+
+# Migration hors GitHub Pages (P0 pré-lancement, cf.
+# docs/MIGRATION-CLOUDFLARE-PAGES.md) : GitHub Pages sert son fallback SPA
+# (404.html) avec un statut HTTP 404, ce qui casse les previews Open Graph et
+# l'indexation des ~32 000 communes non prérendues. Cloudflare Pages sert le
+# même fallback en 200 (`public/_redirects`) et exécute
+# `functions/ville/[slug].js` (meta OG dynamiques par commune).
+#
+# Ce workflow tourne EN PARALLÈLE de deploy.yml (GitHub Pages) sans risque
+# tant que le DNS de planmaville.fr pointe encore vers GitHub Pages : il
+# déploie sur l'URL de preview *.pages.dev du projet Cloudflare, pas sur le
+# domaine live. Une fois vérifié (cf. critères de validation de la migration),
+# basculer le DNS puis retirer deploy.yml + public/CNAME.
+#
+# Prérequis (à faire une fois, côté Cloudflare — non automatisable ici) :
+#   1. Créer le projet Pages `ma-ville-notes` (dashboard ou
+#      `wrangler pages project create ma-ville-notes`).
+#   2. Ajouter les secrets de dépôt CLOUDFLARE_API_TOKEN (permission
+#      "Cloudflare Pages: Edit") et CLOUDFLARE_ACCOUNT_ID.
+# Sans ces secrets, ce workflow échoue proprement au step de déploiement (ne
+# bloque jamais deploy.yml, qui reste indépendant).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloudflare-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Même cache/clé que deploy.yml : réutilise les données déjà générées
+      # par le job GitHub Pages sur ce commit au lieu de refaire le fetch.
+      - name: Cache generated data
+        id: data-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            public/data
+            public/sitemap.xml
+          key: public-data-v2-${{ hashFiles('tools/data-pipeline/**/*.ts', 'tools/data-pipeline/*.json') }}
+
+      - name: Build data files
+        if: steps.data-cache.outputs.cache-hit != 'true'
+        run: |
+          for i in 1 2 3; do
+            npm run data:build && exit 0
+            echo "::warning::data:build tentative $i/3 échouée — nouvel essai dans 30 s"
+            sleep 30
+          done
+          exit 1
+
+      - name: Inject environment secrets
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          WORKER_URL: ${{ secrets.WORKER_URL }}
+        run: |
+          ENV=src/environments/environment.ts
+          sed -i "s|__SUPABASE_URL__|${SUPABASE_URL}|g" "$ENV"
+          sed -i "s|__SUPABASE_ANON_KEY__|${SUPABASE_ANON_KEY}|g" "$ENV"
+          sed -i "s|__WORKER_URL__|${WORKER_URL}|g" "$ENV"
+
+      - name: Allow indexing (SITE_INDEXABLE=true)
+        if: vars.SITE_INDEXABLE == 'true'
+        run: sed -i '/name="robots" content="noindex/d' src/index.html
+
+      - name: Build app
+        run: npm run build
+
+      - name: Check Cloudflare secrets
+        id: cf-secrets
+        run: |
+          if [ -n "${{ secrets.CLOUDFLARE_API_TOKEN }}" ] && [ -n "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID absents — déploiement Cloudflare Pages ignoré (cf. docs/MIGRATION-CLOUDFLARE-PAGES.md)."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy to Cloudflare Pages
+        if: steps.cf-secrets.outputs.ready == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist/ma-ville-notes/browser --project-name=ma-ville-notes --branch=main
