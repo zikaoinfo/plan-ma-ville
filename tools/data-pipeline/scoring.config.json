@@ -1,8 +1,8 @@
 {
   "version": 1,
   "populationMinClassement": 2000,
-  "_prerenderMinPopulation": "Seuil de population au-delà duquel la page commune est prérendue (SSG) ET listée dans le sitemap. Lu aussi par src/app/app.routes.server.ts.",
-  "prerenderMinPopulation": 5000,
+  "_prerenderMinPopulation": "Seuil de population au-delà duquel la page commune est prérendue (SSG) ET listée dans le sitemap. Lu aussi par src/app/app.routes.server.ts. 0 = toutes les communes (choix retenu : évite le 404 HTTP du fallback SPA pour les crawlers/bots sur GitHub Pages sans dépendre de Cloudflare).",
+  "prerenderMinPopulation": 0,
   "_hubAutourMinPopulation": "Seuil de population des grandes villes ayant une page « Où vivre autour de {ville} » (prerender + sitemap).",
   "hubAutourMinPopulation": 50000,
   "ponderations": {
