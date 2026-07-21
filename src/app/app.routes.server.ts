@@ -1,27 +1,12 @@
 import { RenderMode, type ServerRoute } from '@angular/ssr';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type {
-  ClassementFile,
-  DepartementsFile,
-  RegionsFile,
-  SearchIndexFile,
-} from './core/models/data.models';
+import type { DepartementsFile, RegionsFile, SearchIndexFile } from './core/models/data.models';
 
 const RACINE = process.cwd();
 
 /** Population minimale pour prérendre la page d'une commune (SEO). */
-const MIN_POP_DEFAUT = 5000;
-
-/**
- * Départements ciblés par la campagne d'acquisition en cours (P0 pré-lancement,
- * cf. docs/MIGRATION-CLOUDFLARE-PAGES.md) : leurs communes sont TOUJOURS
- * prérendues, même sous le seuil de population, pour de vraies pages SSG
- * (meilleur signal SEO que le fallback dynamique de la Pages Function) sur
- * les zones les plus susceptibles d'être partagées dans l'immédiat. À
- * compléter au fur et à mesure des départements visés par la presse.
- */
-const DEPARTEMENTS_CAMPAGNE = ['75', '93', '94'];
+const MIN_POP_DEFAUT = 0;
 
 function lireJson<T>(chemin: string): T | null {
   try {
@@ -122,31 +107,18 @@ export const serverRoutes: ServerRoute[] = [
     async getPrerenderParams() {
       const seuil = seuilPopulation();
       const items = lireJson<SearchIndexFile>('public/data/index.json')?.items ?? [];
-      const classement = lireJson<ClassementFile>('public/data/classement.json');
-
-      // Seuil de population, + top/flop national (pages les plus consultées/
-      // partagées), + départements ciblés par la campagne en cours (intégralement,
-      // quelle que soit la population) — cf. DEPARTEMENTS_CAMPAGNE ci-dessus.
-      const slugs = new Set<string>();
-      for (const it of items) {
-        if (it.p >= seuil || DEPARTEMENTS_CAMPAGNE.includes(it.d)) slugs.add(it.s);
-      }
-      for (const entry of [...(classement?.top ?? []), ...(classement?.flop ?? [])]) {
-        slugs.add(entry.slug);
-      }
+      const slugs = items.filter((it) => it.p >= seuil).map((it) => it.s);
 
       info(
         items.length === 0
           ? 'public/data/index.json absent — aucune page commune prérendue (build local)'
-          : `${slugs.size} pages commune (population ≥ ${seuil}, top/flop national, départements ${DEPARTEMENTS_CAMPAGNE.join(', ')})`,
+          : `${slugs.length} pages commune (population ≥ ${seuil})`,
       );
-      return [...slugs].map((slug) => ({ slug }));
+      return slugs.map((slug) => ({ slug }));
     },
   },
-  // Tout le reste (communes non prérendues, URLs inconnues) : rendu client via
-  // le shell CSR (index.csr.html), servi en 200 par la Pages Function
-  // `functions/ville/[slug].js` (Cloudflare) ou par `public/_redirects` pour
-  // les autres routes ; 404.html sert le même rôle côté GitHub Pages (statut
-  // 404, cf. docs/MIGRATION-CLOUDFLARE-PAGES.md).
+  // Toute commune est prérendue (seuil de population à 0, cf. scoring.config.json) :
+  // ce fallback ne sert plus qu'aux URLs inconnues (slug invalide) et aux builds
+  // locaux sans données (public/data/index.json absent, cf. commentaire ci-dessus).
   { path: '**', renderMode: RenderMode.Client },
 ];

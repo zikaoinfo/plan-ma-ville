@@ -240,8 +240,10 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
   (bootstrap AVEC `BootstrapContext` — NG0401 sinon) + routes serveur dans
   `src/app/app.routes.server.ts` : pages fixes + `region/:code` +
   `departement/:code` + `ville/:slug` (communes ≥ `prerenderMinPopulation`
-  de scoring.config.json, 5000 → ~2 500 pages), reste en
-  `RenderMode.Client` (fallback SPA 404.html). **Piège du prerender async
+  de scoring.config.json, **0 depuis la correction du 404 bots** → les
+  ~35 000 communes sont toutes prérendues, cf. section Déploiement), reste en
+  `RenderMode.Client` (fallback SPA 404.html, ne sert plus qu'aux slugs
+  inconnus et aux builds locaux sans données). **Piège du prerender async
   contourné** : intercepteur serveur `core/prerender/donnees-locales.interceptor.ts`
   qui sert `data/*.json` depuis le disque en synchrone (data:build tourne
   AVANT ng build en CI). `document.baseURI` N'EXISTE PAS dans le DOM serveur →
@@ -335,25 +337,22 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
   `SITE_INDEXABLE=true`). `outputPath dist/ma-ville-notes`.
 - `.github/workflows/deploy.yml` : sur push `main` → inject secrets → data:build
   (cache) → build → Pages. **Pages déjà activé** (source « GitHub Actions »).
-- **Migration en cours vers Cloudflare Pages** (P0 pré-lancement, cf.
-  `docs/MIGRATION-CLOUDFLARE-PAGES.md`) : GitHub Pages sert son fallback SPA
-  (`404.html`) en statut HTTP **404** → aucune preview OG, non indexable pour
-  les ~32 000 communes non prérendues. `.github/workflows/deploy-cloudflare-pages.yml`
-  (même build que `deploy.yml`, tourne EN PARALLÈLE sans risque tant que le
-  DNS pointe encore sur GitHub Pages — publie sur l'URL de preview
-  `*.pages.dev`) déploie vers Cloudflare Pages : `public/_redirects` sert le
-  fallback en **200**, et `functions/ville/[slug].js` (+ logique pure
-  `functions/_lib/commune-meta.mjs`, `npm run test:functions`) injecte à la
-  volée les balises title/description/OG/canonique **de la commune demandée**
-  pour les pages non prérendues (asset statique servi tel quel s'il existe
-  déjà — aucune régression sur les pages prérendues). `public/_routes.json`
-  restreint cette Function à `/ville/*`. Reste à faire côté compte Cloudflare
-  (hors de portée d'un agent) : créer le projet Pages, poser les secrets
-  `CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ACCOUNT_ID`, vérifier la preview, puis
-  basculer le DNS — détail complet dans le document ci-dessus. En parallèle,
-  `app.routes.server.ts` prérend désormais aussi le top/flop 50 national et
-  les départements ciblés par la campagne (`DEPARTEMENTS_CAMPAGNE` = 75, 93,
-  94) quel que soit leur seuil de population.
+- **404 bots corrigé par prérendu intégral (au lieu de la bascule Cloudflare)** :
+  GitHub Pages servait son fallback SPA (`404.html`) en statut HTTP **404**
+  pour toute commune non prérendue → aucune preview OG, non indexable. Plutôt
+  que de dépendre d'un hébergeur tiers (Cloudflare Pages, cf.
+  `docs/MIGRATION-CLOUDFLARE-PAGES.md` pour l'historique), `prerenderMinPopulation`
+  (scoring.config.json) est passé à **0** : les ~35 000 communes ont désormais
+  toutes un vrai HTML statique (`ville/:slug` dans `app.routes.server.ts`,
+  logique de seuil simplifiée en conséquence — plus de cas spécial
+  départements de campagne / top-flop, devenu redondant). Reste 100 % GitHub
+  Pages, aucun compte/DNS externe requis. Contrepartie à surveiller : temps de
+  build CI et taille du `dist/` en hausse (à vérifier au prochain run
+  `deploy.yml`). Le code de la migration Cloudflare (`functions/ville/[slug].js`,
+  `deploy-cloudflare-pages.yml`, `wrangler.toml`) reste dans le repo (déploie
+  toujours sans risque sur une URL de preview `*.pages.dev`, secrets
+  Cloudflare absents → step sautée) mais n'est plus nécessaire pour ce
+  problème ; à retirer si la piste Cloudflare est définitivement abandonnée.
 - **Branche de dev** : `claude/angular-21-creative-design-bfybnz`. Workflow
   demandé par l'utilisateur : **committer sur la branche + ouvrir/mettre à jour
   une PR, NE PAS merger dans `main` soi-même** (il relit et merge).
