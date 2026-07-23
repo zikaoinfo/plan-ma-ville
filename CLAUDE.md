@@ -243,7 +243,21 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
   de scoring.config.json, **0 depuis la correction du 404 bots** → les
   ~35 000 communes sont toutes prérendues, cf. section Déploiement), reste en
   `RenderMode.Client` (fallback SPA 404.html, ne sert plus qu'aux slugs
-  inconnus et aux builds locaux sans données). **Piège du prerender async
+  inconnus et aux builds locaux sans données). **Build shardé (`npm run
+  build` = `tools/build-prerender.mjs` + `copy-404.mjs`)** : prérendre les
+  ~35 000 communes dans UN SEUL `ng build` sature le tas V8 (constaté en CI —
+  `JavaScript heap out of memory` après ~20 min, heap ~4,1 Go, sans avoir
+  fini). `build-prerender.mjs` relance `ng build` plusieurs fois
+  (`PAGES_PAR_SHARD = 2000` → ~18 shards), chaque process ne prérendant
+  qu'une tranche modulo des communes (`PRERENDER_SHARD_INDEX`/`_COUNT` lus
+  par `app.routes.server.ts`, mémoire remise à plat entre deux shards
+  puisque ce sont des process distincts), puis fusionne les dossiers
+  `browser/ville/*` de chaque shard. Seul le shard 0 prérend aussi les pages
+  fixes et les petites listes paramétrées (région/département/palmarès/hubs
+  « autour de » — RenderMode.Client sur les autres shards, sinon regénérées
+  N fois pour rien). Sans les variables d'env (`ng build` lancé à la main) :
+  un seul shard, comportement inchangé. Si l'OOM revient (jeu de données
+  encore plus gros), baisser `PAGES_PAR_SHARD`. **Piège du prerender async
   contourné** : intercepteur serveur `core/prerender/donnees-locales.interceptor.ts`
   qui sert `data/*.json` depuis le disque en synchrone (data:build tourne
   AVANT ng build en CI). `document.baseURI` N'EXISTE PAS dans le DOM serveur →
@@ -346,9 +360,11 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
   toutes un vrai HTML statique (`ville/:slug` dans `app.routes.server.ts`,
   logique de seuil simplifiée en conséquence — plus de cas spécial
   départements de campagne / top-flop, devenu redondant). Reste 100 % GitHub
-  Pages, aucun compte/DNS externe requis. Contrepartie à surveiller : temps de
-  build CI et taille du `dist/` en hausse (à vérifier au prochain run
-  `deploy.yml`). Le code de la migration Cloudflare (`functions/ville/[slug].js`,
+  Pages, aucun compte/DNS externe requis. **Contrepartie rencontrée** : le
+  premier déploiement a crashé en OOM (`ng build` prérendant les 34 920
+  communes dans un seul process) → corrigé par le build shardé (cf. section
+  SSG/prerender ci-dessus, `tools/build-prerender.mjs`). Le code de la
+  migration Cloudflare (`functions/ville/[slug].js`,
   `deploy-cloudflare-pages.yml`, `wrangler.toml`) reste dans le repo (déploie
   toujours sans risque sur une URL de preview `*.pages.dev`, secrets
   Cloudflare absents → step sautée) mais n'est plus nécessaire pour ce

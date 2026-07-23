@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build && node tools/copy-404.mjs",
+    "build": "node tools/build-prerender.mjs && node tools/copy-404.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
