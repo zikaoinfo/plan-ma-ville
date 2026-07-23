@@ -41,6 +41,45 @@ function info(msg: string): void {
 }
 
 /**
+ * Sharding du build (cf. tools/build-prerender.mjs) : prérendre les ~35 000
+ * communes dans UN SEUL process `ng build` sature le tas V8 (constaté en CI —
+ * heap ~4,1 Go atteint puis `JavaScript heap out of memory` après ~20 min,
+ * sans avoir fini). Le script d'orchestration relance `ng build` plusieurs
+ * fois avec PRERENDER_SHARD_INDEX/COUNT, chaque process ne rendant qu'une
+ * tranche modulo des communes avant de repartir de zéro (mémoire remise à
+ * plat entre deux shards) ; les dossiers `browser/ville/*` de chaque shard
+ * sont ensuite fusionnés. Par défaut (vars absentes, ex. `ng build` lancé à
+ * la main) : un seul shard, comportement inchangé.
+ */
+const SHARD_INDEX = Number(process.env['PRERENDER_SHARD_INDEX'] ?? 0);
+const SHARD_COUNT = Math.max(1, Number(process.env['PRERENDER_SHARD_COUNT'] ?? 1));
+
+/**
+ * Seul le premier shard prérend les pages fixes et les petites listes
+ * paramétrées (régions, départements, palmarès, hubs « autour de » — quelques
+ * centaines de pages en tout) : les regénérer à l'identique sur chaque shard
+ * serait un travail redondant pur. Les autres shards les laissent en
+ * RenderMode.Client (aucun fichier émis, le script d'orchestration ne
+ * conserve de toute façon que `browser/ville/*` des shards > 0).
+ */
+const modePrincipal = SHARD_INDEX === 0 ? RenderMode.Prerender : RenderMode.Client;
+
+function routeFixe(path: string): ServerRoute {
+  return modePrincipal === RenderMode.Prerender
+    ? { path, renderMode: RenderMode.Prerender }
+    : { path, renderMode: RenderMode.Client };
+}
+
+function routeParametree(
+  path: string,
+  getPrerenderParams: () => Promise<Record<string, string>[]>,
+): ServerRoute {
+  return modePrincipal === RenderMode.Prerender
+    ? { path, renderMode: RenderMode.Prerender, getPrerenderParams }
+    : { path, renderMode: RenderMode.Client };
+}
+
+/**
  * Stratégie de rendu par route (outputMode: 'static' → tout est généré au
  * build, aucun serveur Node au runtime). Les paramètres proviennent des JSON
  * émis par le pipeline (`data:build` tourne AVANT `ng build` en CI). En local
@@ -48,71 +87,55 @@ function info(msg: string): void {
  * et les routes paramétrées retombent sur le fallback SPA (404.html).
  */
 export const serverRoutes: ServerRoute[] = [
-  { path: '', renderMode: RenderMode.Prerender },
-  { path: 'regions', renderMode: RenderMode.Prerender },
-  { path: 'classement', renderMode: RenderMode.Prerender },
-  { path: 'comparer', renderMode: RenderMode.Prerender },
-  { path: 'methodologie', renderMode: RenderMode.Prerender },
-  { path: 'carte', renderMode: RenderMode.Prerender },
-  {
-    path: 'region/:code',
-    renderMode: RenderMode.Prerender,
-    async getPrerenderParams() {
-      const regions = lireJson<RegionsFile>('public/data/regions.json')?.items ?? [];
-      info(`${regions.length} pages région`);
-      return regions.map((r) => ({ code: r.code }));
-    },
-  },
-  {
-    path: 'departement/:code',
-    renderMode: RenderMode.Prerender,
-    async getPrerenderParams() {
-      const deps = codesDepartements();
-      info(`${deps.length} pages département`);
-      return deps;
-    },
-  },
-  {
-    path: 'palmares/securite/:code',
-    renderMode: RenderMode.Prerender,
-    async getPrerenderParams() {
-      const deps = codesDepartements();
-      info(`${deps.length} palmarès sécurité`);
-      return deps;
-    },
-  },
-  {
-    path: 'palmares/prix/:code',
-    renderMode: RenderMode.Prerender,
-    async getPrerenderParams() {
-      const deps = codesDepartements();
-      info(`${deps.length} palmarès prix`);
-      return deps;
-    },
-  },
-  {
-    path: 'palmares/autour/:slug',
-    renderMode: RenderMode.Prerender,
-    async getPrerenderParams() {
-      const seuil = seuilHubAutour();
-      const items = lireJson<SearchIndexFile>('public/data/index.json')?.items ?? [];
-      const grandes = items.filter((it) => it.p >= seuil);
-      info(`${grandes.length} pages « autour de » (population ≥ ${seuil})`);
-      return grandes.map((it) => ({ slug: it.s }));
-    },
-  },
+  routeFixe(''),
+  routeFixe('regions'),
+  routeFixe('classement'),
+  routeFixe('comparer'),
+  routeFixe('methodologie'),
+  routeFixe('carte'),
+  routeParametree('region/:code', async () => {
+    const regions = lireJson<RegionsFile>('public/data/regions.json')?.items ?? [];
+    info(`${regions.length} pages région`);
+    return regions.map((r) => ({ code: r.code }));
+  }),
+  routeParametree('departement/:code', async () => {
+    const deps = codesDepartements();
+    info(`${deps.length} pages département`);
+    return deps;
+  }),
+  routeParametree('palmares/securite/:code', async () => {
+    const deps = codesDepartements();
+    info(`${deps.length} palmarès sécurité`);
+    return deps;
+  }),
+  routeParametree('palmares/prix/:code', async () => {
+    const deps = codesDepartements();
+    info(`${deps.length} palmarès prix`);
+    return deps;
+  }),
+  routeParametree('palmares/autour/:slug', async () => {
+    const seuil = seuilHubAutour();
+    const items = lireJson<SearchIndexFile>('public/data/index.json')?.items ?? [];
+    const grandes = items.filter((it) => it.p >= seuil);
+    info(`${grandes.length} pages « autour de » (population ≥ ${seuil})`);
+    return grandes.map((it) => ({ slug: it.s }));
+  }),
   {
     path: 'ville/:slug',
     renderMode: RenderMode.Prerender,
     async getPrerenderParams() {
       const seuil = seuilPopulation();
       const items = lireJson<SearchIndexFile>('public/data/index.json')?.items ?? [];
-      const slugs = items.filter((it) => it.p >= seuil).map((it) => it.s);
+      const eligibles = items.filter((it) => it.p >= seuil);
+      const slugs =
+        SHARD_COUNT > 1
+          ? eligibles.filter((_, i) => i % SHARD_COUNT === SHARD_INDEX).map((it) => it.s)
+          : eligibles.map((it) => it.s);
 
       info(
         items.length === 0
           ? 'public/data/index.json absent — aucune page commune prérendue (build local)'
-          : `${slugs.length} pages commune (population ≥ ${seuil})`,
+          : `${slugs.length}/${eligibles.length} pages commune (population ≥ ${seuil}, shard ${SHARD_INDEX + 1}/${SHARD_COUNT})`,
       );
       return slugs.map((slug) => ({ slug }));
     },
