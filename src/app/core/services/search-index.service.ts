@@ -31,16 +31,29 @@ export function searchItems(items: readonly SearchIndexItem[], query: string): S
       .filter((it) => it.cp.some((cp) => cp.startsWith(raw)))
       .sort(
         (a, b) =>
-          rangCp(b, raw) - rangCp(a, raw) || a.cp[0].localeCompare(b.cp[0]) || a.n.localeCompare(b.n),
+          rangCp(b, raw) - rangCp(a, raw) ||
+          a.cp[0].localeCompare(b.cp[0]) ||
+          b.p - a.p ||
+          a.n.localeCompare(b.n),
       )
       .slice(0, MAX_RESULTS);
   }
 
   const q = normaliseNom(raw);
   if (q.length < 2) return [];
+  // Homonymes (ex. plusieurs communes "Saint-Denis") : même rang de
+  // correspondance et même longueur de nom → départager par population
+  // décroissante (la commune la plus peuplée, donc la plus probablement
+  // recherchée, apparaît en premier).
   return items
     .filter((it) => it.nn.startsWith(q))
-    .sort((a, b) => rangNom(b, q) - rangNom(a, q) || a.nn.length - b.nn.length || a.n.localeCompare(b.n))
+    .sort(
+      (a, b) =>
+        rangNom(b, q) - rangNom(a, q) ||
+        a.nn.length - b.nn.length ||
+        b.p - a.p ||
+        a.n.localeCompare(b.n),
+    )
     .slice(0, MAX_RESULTS);
 }
 

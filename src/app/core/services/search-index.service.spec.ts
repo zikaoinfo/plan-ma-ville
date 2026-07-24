@@ -69,4 +69,14 @@ describe('searchItems', () => {
     );
     expect(searchItems(many, '10000')).toHaveLength(10);
   });
+
+  it('homonymes : départage par population décroissante (plus peuplée en premier)', () => {
+    const homonymes: SearchIndexItem[] = [
+      item({ n: 'Saint-Denis', s: 'saint-denis-11339', cp: ['11350'], d: '11', p: 700 }),
+      item({ n: 'Saint-Denis', s: 'saint-denis-93066', cp: ['93200'], d: '93', p: 111000 }),
+      item({ n: 'Saint-Denis', s: 'saint-denis-974', cp: ['97400'], d: '974', p: 146000 }),
+    ];
+    const res = searchItems(homonymes, 'saint-denis');
+    expect(res.map((r) => r.s)).toEqual(['saint-denis-974', 'saint-denis-93066', 'saint-denis-11339']);
+  });
 });

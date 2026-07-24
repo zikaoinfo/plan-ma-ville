@@ -67,7 +67,9 @@
                   <span class="result__main">
                     <span class="result__name">{{ item.n }}</span>
                     <span class="result__meta">
-                      {{ item.cp[0] }} · dép. {{ item.d }} · {{ item.p | number: '1.0-0' }} hab.
+                      {{ item.cp[0] }} ·
+                      <strong class="result__dep">{{ depLabel(item.d) }} ({{ item.d }})</strong>
+                      · {{ item.p | number: '1.0-0' }} hab.
                     </span>
                   </span>
                   <app-score-badge [score]="item.g" />
