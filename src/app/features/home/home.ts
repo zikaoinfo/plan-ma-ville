@@ -54,6 +54,13 @@ export class Home {
 
   protected readonly reload = () => this.#search.reload();
 
+  /** Nom du département (fallback sur le code si departements.json n'est pas
+   * encore chargé) — affiché en évidence dans les résultats pour distinguer
+   * les communes homonymes (ex. plusieurs « Saint-Denis »). */
+  protected depLabel(code: string): string {
+    return this.#search.departementName(code) ?? code;
+  }
+
   /** Recherche effectuée (commune sélectionnée), pas à chaque frappe. */
   protected selectResult(slug: string): void {
     this.#analytics.track('recherche_query', { requete: this.query().trim(), ville: slug });

@@ -150,6 +150,11 @@
   color: var(--ink-soft);
 }
 
+.result__dep {
+  font-weight: 700;
+  color: var(--ink);
+}
+
 /* ── États (chargement / vide) ────────────── */
 .state {
   display: flex;
