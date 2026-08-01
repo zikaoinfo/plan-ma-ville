@@ -1,9 +1,11 @@
 /* ════════════════════════════════════════════════════════════
    ma-ville-notes — design system
-   Palette « encre & craie » : fond crème, encre bleu nuit,
-   accent corail, vert note. Typo : Instrument Sans (une seule
-   famille sans-serif, hiérarchie par graisse et interlettrage
-   négatif sur les titres).
+   Palette « porcelaine & violet électrique » : fond porcelaine
+   froid, encre indigo-violet, accent violet électrique, halos
+   aurore (violet + sarcelle) en fond. Les couleurs de NOTE
+   (vert/ambre/rouge) restent sémantiques et inchangées.
+   Typo : Instrument Sans (une seule famille sans-serif,
+   hiérarchie par graisse et interlettrage négatif).
    ════════════════════════════════════════════════════════════ */
 
 /* Police auto-hébergée (fini fonts.gstatic.com — CLS causé par le swap
@@ -35,33 +37,33 @@
 
 :root {
   /* Couleurs */
-  --paper: #faf6ef;
-  --paper-soft: #f1ebe0;
-  --ink: #18203a;
-  --ink-soft: #4a5270;
-  --accent: #ff5a3c;
-  --accent-soft: #ffd9d0;
+  --paper: #f8f8fc;
+  --paper-soft: #eef0f9;
+  --ink: #1a1733;
+  --ink-soft: #50506e;
+  --accent: #5b3df0;
+  --accent-soft: #e9e4ff;
   --good: #1a7c59; /* aligné TIER_BG.good (score-color.ts) — 5.16:1 en blanc */
   --good-soft: #d2efe3;
   --warn: #d9a514;
   --bad: #c93a2e;
-  --line: #d9d2c3;
-  --topbar-bg: rgb(250 246 239 / 0.85);
-  /* Texte posé sur --accent (fonds saturés mais clairs : 2.85-2.88:1 en
-     blanc, échec WCAG AA) → encre sombre, 5.19:1 (clair) / 6.41:1 (sombre). */
-  --on-accent: #181022;
+  --line: #dcdcec;
+  --topbar-bg: rgb(248 248 252 / 0.85);
+  /* Texte posé sur --accent : le violet est assez profond pour du blanc —
+     6.23:1 (clair) ; en sombre l'accent s'éclaircit, on repasse à l'encre
+     nuit (6.44:1). */
+  --on-accent: #ffffff;
   /* Texte posé sur --bad : blanc en clair (5.09:1), encre sombre en sombre
      (--bad s'éclaircit à #e5675b, le blanc y tombe à 3.27:1). */
   --on-bad: #ffffff;
   --scrim: rgb(0 0 0 / 0.25); /* voile derrière les panneaux/menus */
 
   /* Variantes « texte-safe » (RGAA §1.5, contraste ≥ 4.5:1 sur --paper /
-     --paper-soft) : --accent et --good sont pensés comme couleurs de
-     remplissage saturées, pas comme texte — les utiliser directement comme
-     `color` sur fond clair tombe à ~2.9:1 / ~4.0:1. Ces tokens dérivés
-     servent de `color` (liens, libellés) ou de fond pour du texte clair
-     (--paper/--on-accent dessus). */
-  --accent-text: #a83a1f;
+     --paper-soft) : --accent passe déjà en texte sur porcelaine (5.88:1)
+     mais --accent-text, un cran plus sombre, garde de la marge pour les
+     petits corps (7.00:1 / 6.53:1) ; --good reste une couleur de
+     remplissage (—4.0:1 en texte), d'où --good-text (5.72:1 / 5.33:1). */
+  --accent-text: #5334d6;
   --good-text: #157050;
 
   /* Typo — même famille pour display et body : la hiérarchie passe par
@@ -69,11 +71,11 @@
   --font-display: 'Instrument Sans', 'Instrument Sans Fallback', -apple-system, 'Helvetica Neue', system-ui, sans-serif;
   --font-body: 'Instrument Sans', 'Instrument Sans Fallback', -apple-system, 'Helvetica Neue', system-ui, sans-serif;
 
-  /* Rythme */
+  /* Rythme — élévation douce et diffuse (fini l'ombre dure décalée) */
   --radius: 14px;
   --radius-sm: 8px;
-  --shadow: 0 2px 0 var(--ink);
-  --shadow-lift: 0 6px 0 rgb(24 32 58 / 0.12);
+  --shadow: 0 1px 2px rgb(26 23 51 / 0.06), 0 8px 24px rgb(26 23 51 / 0.09);
+  --shadow-lift: 0 14px 36px rgb(26 23 51 / 0.16);
   --container: 1080px;
 
   color-scheme: light;
@@ -81,29 +83,30 @@
 
 /* ── Thème sombre ─────────────────────────────
    Appliqué via data-theme sur <html> (ThemeService + script inline
-   anti-flash dans index.html). Même encre/craie, inversée : fond nuit,
-   encre craie, accents éclaircis pour le contraste. */
+   anti-flash dans index.html). Même identité, inversée : nuit violette,
+   encre porcelaine, accent violet éclairci pour le contraste. */
 :root[data-theme='dark'] {
-  --paper: #141a2e;
-  --paper-soft: #1d2440;
-  --ink: #ece7db;
-  --ink-soft: #a9aec6;
-  --accent: #ff7257;
-  --accent-soft: #52251b;
+  --paper: #12102a;
+  --paper-soft: #1c1a3e;
+  --ink: #eae9f6;
+  --ink-soft: #a9a8cc;
+  --accent: #9d8bff;
+  --accent-soft: #2c2358;
   --good: #3cb488;
   --good-soft: #17402f;
   --warn: #e3b62f;
   --bad: #e5675b;
-  --line: #333c5c;
-  --topbar-bg: rgb(20 26 46 / 0.85);
-  --on-accent: #181022; /* 6.41:1 sur --accent sombre */
+  --line: #31315a;
+  --topbar-bg: rgb(18 16 42 / 0.85);
+  --on-accent: #171236; /* 6.44:1 sur --accent sombre (violet clair) */
   --on-bad: #181022; /* --bad s'éclaircit en sombre (#e5675b) : encre, 5.65:1 */
   --scrim: rgb(0 0 0 / 0.5);
-  --shadow: 0 2px 0 #05070f;
-  --shadow-lift: 0 6px 0 rgb(0 0 0 / 0.35);
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.45), 0 10px 28px rgb(0 0 0 / 0.4);
+  --shadow-lift: 0 16px 40px rgb(0 0 0 / 0.55);
 
   /* En sombre, --accent/--good sont déjà assez clairs pour servir de texte
-     sur le fond nuit (--paper) — pas besoin de les assombrir davantage. */
+     sur le fond nuit (--paper) : 6.68:1 / 7.13:1 — pas besoin de les
+     assombrir davantage. */
   --accent-text: var(--accent);
   --good-text: var(--good);
 
@@ -124,8 +127,8 @@ body {
   margin: 0;
   min-height: 100dvh;
   background:
-    radial-gradient(1200px 500px at 85% -10%, rgb(255 90 60 / 0.07), transparent 60%),
-    radial-gradient(900px 500px at -10% 0%, rgb(29 138 99 / 0.06), transparent 55%),
+    radial-gradient(1200px 500px at 85% -10%, rgb(91 61 240 / 0.07), transparent 60%),
+    radial-gradient(900px 500px at -10% 0%, rgb(23 162 184 / 0.06), transparent 55%),
     var(--paper);
   color: var(--ink);
   font-family: var(--font-body);
