@@ -6,7 +6,6 @@ culture, transports, niveau de vie.
 
 > Spécifications : [`docs/SPEC-DATA.md`](docs/SPEC-DATA.md) (données) et
 > [`docs/SPEC-PHASES-2-6.md`](docs/SPEC-PHASES-2-6.md) (front).
-> Conventions : [`CLAUDE.md`](CLAUDE.md).
 
 ## Fonctionnalités
 

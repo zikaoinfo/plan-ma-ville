@@ -2,7 +2,7 @@
 
 > Fusion du plan initial, de l'état réel du code et d'une recherche sourcée
 > (deep-research) sur les pratiques 2025-2026. Sert de spec d'exécution aux
-> sessions Claude Code. ✅ = affirmation contre-vérifiée (3 votes indépendants).
+> sessions de développement. ✅ = affirmation contre-vérifiée (3 votes indépendants).
 
 ## Contexte 2026 — ce qui a changé (et change les priorités)
 

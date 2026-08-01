@@ -1,6 +1,6 @@
 # Playbook Accessibilité RGAA 4.1.2 — plan-ma-ville
 
-> **Fichier destiné à Claude Code.** À déposer à la racine du repo et à référencer
+> **Fichier destiné à l'agent de développement.** À déposer à la racine du repo et à référencer
 > depuis `CLAUDE.md` (`Voir ACCESSIBILITE-RGAA.md pour toute création/modif d'UI`).
 > Objectif : viser la **conformité totale RGAA** (100 % des critères applicables validés).
 
@@ -26,7 +26,7 @@
 
 ## 1. Definition of Done accessibilité (à appliquer à CHAQUE PR touchant l'UI)
 
-Avant de considérer une tâche UI comme terminée, Claude Code doit vérifier :
+Avant de considérer une tâche UI comme terminée, l'agent de développement doit vérifier :
 
 1. **Lint a11y vert** : `@angular-eslint` règles a11y activées, 0 erreur (§2).
 2. **axe = 0 violation** sur le composant/la page modifiée (§2).
@@ -91,7 +91,7 @@ Comme plan-ma-ville passe en SSG (`outputMode: 'static'`), pointe **pa11y-ci** o
 
 ---
 
-## 3. Comment Claude Code doit utiliser les §4→§9
+## 3. Comment l'agent de développement doit utiliser les §4→§9
 
 Chaque bloc = **une thématique RGAA**. Format : `Règle → Faire → Ne pas faire → Vérifier`.
 Applique la règle qui correspond à ce que tu es en train de coder. En cas de doute,
@@ -525,7 +525,7 @@ RETOUR D'INFORMATION ET CONTACT
 
 ---
 
-## 10. Rappels de format pour Claude Code
+## 10. Rappels de format pour l'agent de développement
 
 - **Composants standalone, signals, `inject()`, `OnPush`/zoneless** — pas de NgModules, pas de `effect()` pour dériver de l'état.
 - Préfère un **élément HTML natif** (`<button>`, `<a>`, `<label>`, `<table>`) à une reconstruction ARIA : c'est la solution la plus accessible et la plus courte.
