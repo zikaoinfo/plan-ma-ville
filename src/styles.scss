@@ -1,48 +1,35 @@
 /* ════════════════════════════════════════════════════════════
    ma-ville-notes — design system
    Palette « encre & craie » : fond crème, encre bleu nuit,
-   accent corail, vert note. Typo : Fraunces (display) + Outfit.
+   accent corail, vert note. Typo : Instrument Sans (une seule
+   famille sans-serif, hiérarchie par graisse et interlettrage
+   négatif sur les titres).
    ════════════════════════════════════════════════════════════ */
 
-/* Polices auto-hébergées (fini fonts.gstatic.com — CLS causé par le swap
-   tardif). Fichiers variables (axe wght) téléchargés une fois pour toutes
-   les graisses utilisées dans le code : Fraunces 500/600/700, Outfit
-   400/500/600/700, sous-ensemble latin (couvre les accents français). */
+/* Police auto-hébergée (fini fonts.gstatic.com — CLS causé par le swap
+   tardif). Fichier variable (axe wght 400–700) téléchargé une fois pour
+   toutes les graisses utilisées dans le code, sous-ensemble latin (couvre
+   les accents français). Une seule famille pour display ET body : la
+   hiérarchie vient de la taille, de la graisse et du tracking. */
 @font-face {
-  font-family: 'Fraunces';
-  src: url('/fonts/fraunces-variable-latin.woff2') format('woff2');
-  font-weight: 500 700;
-  font-style: normal;
-  font-display: optional;
-}
-
-@font-face {
-  font-family: 'Outfit';
-  src: url('/fonts/outfit-variable-latin.woff2') format('woff2');
+  font-family: 'Instrument Sans';
+  src: url('/fonts/instrument-sans-variable-latin.woff2') format('woff2');
   font-weight: 400 700;
   font-style: normal;
   font-display: optional;
 }
 
-/* Polices de repli aux métriques ajustées (générées avec fontaine à partir
-   des .woff2 ci-dessus — ascent/descent/size-adjust calibrés, PAS inventés)
-   pour qu'Arial occupe exactement la même place que la police finale : plus
+/* Police de repli aux métriques ajustées (calibrées avec fontkit contre
+   Liberation Sans, métriquement identique à Arial — ascent/descent/
+   size-adjust mesurés sur un échantillon français, PAS inventés) pour
+   qu'Arial occupe exactement la même place que la police finale : plus
    de reflow au chargement, donc plus de CLS. */
 @font-face {
-  font-family: 'Fraunces Fallback';
+  font-family: 'Instrument Sans Fallback';
   src: local('Arial');
-  size-adjust: 100%;
-  ascent-override: 97.8%;
-  descent-override: 25.5%;
-  line-gap-override: 0%;
-}
-
-@font-face {
-  font-family: 'Outfit Fallback';
-  src: local('Arial');
-  size-adjust: 100%;
-  ascent-override: 100%;
-  descent-override: 26%;
+  size-adjust: 101.8%;
+  ascent-override: 95.3%;
+  descent-override: 24.6%;
   line-gap-override: 0%;
 }
 
@@ -77,9 +64,10 @@
   --accent-text: #a83a1f;
   --good-text: #157050;
 
-  /* Typo */
-  --font-display: 'Fraunces', 'Fraunces Fallback', 'Georgia', serif;
-  --font-body: 'Outfit', 'Outfit Fallback', system-ui, -apple-system, sans-serif;
+  /* Typo — même famille pour display et body : la hiérarchie passe par
+     la taille, la graisse et le tracking (pas par un changement de police). */
+  --font-display: 'Instrument Sans', 'Instrument Sans Fallback', -apple-system, 'Helvetica Neue', system-ui, sans-serif;
+  --font-body: 'Instrument Sans', 'Instrument Sans Fallback', -apple-system, 'Helvetica Neue', system-ui, sans-serif;
 
   /* Rythme */
   --radius: 14px;
@@ -143,6 +131,7 @@ body {
   font-family: var(--font-body);
   font-size: 16px;
   line-height: 1.6;
+  letter-spacing: -0.011em;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -150,9 +139,9 @@ h1,
 h2,
 h3 {
   font-family: var(--font-display);
-  font-weight: 600;
-  line-height: 1.15;
-  letter-spacing: -0.01em;
+  font-weight: 650;
+  line-height: 1.12;
+  letter-spacing: -0.022em;
   margin: 0 0 0.5em;
 }
 
