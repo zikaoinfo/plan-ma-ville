@@ -39,9 +39,24 @@
             }
           </p>
         </div>
-        <div class="head__score">
-          <span class="head__score-label">Note globale</span>
-          <app-score-badge [score]="c.score.global" />
+        <div class="head__scores">
+          <div class="head__score">
+            <span class="head__score-label">Note globale</span>
+            <app-score-badge [score]="c.score.global" />
+            <span class="head__score-sub">données officielles</span>
+          </div>
+          @if (noteHabitants(); as h) {
+            <button
+              type="button"
+              class="head__score head__score--avis"
+              (click)="openOnglet('avis')"
+              title="Note moyenne des avis publiés — indépendante de la note globale"
+            >
+              <span class="head__score-label">Avis habitants</span>
+              <app-score-badge [score]="h.note" />
+              <span class="head__score-sub">{{ h.nb }} avis →</span>
+            </button>
+          }
         </div>
       </header>
 
@@ -74,6 +89,9 @@
           (click)="openOnglet('avis')"
         >
           Avis habitants
+          @if (noteHabitants(); as h) {
+            <span class="tab__count">{{ h.nb }}</span>
+          }
         </button>
       </div>
 
@@ -102,25 +120,12 @@
                 <app-note-bar [label]="labels[critere]" [score]="c.score.criteres[critere]" />
               </div>
             }
-            @if (avisStats(); as s) {
-              @if (s.nb_avis > 0 && s.note_habitants !== null) {
-                <div class="theme theme--avis">
-                  <span class="theme__icon" aria-hidden="true">🗣️</span>
-                  <app-note-bar
-                    [label]="'Avis habitants (' + s.nb_avis + ')'"
-                    [score]="s.note_habitants"
-                  />
-                </div>
-              }
-            }
           </div>
-          @if (avisStats(); as s) {
-            @if (s.nb_avis > 0 && s.note_habitants !== null) {
-              <p class="estimate-note">
-                Note des habitants indicative, non incluse dans la note globale —
-                voir l'onglet « Avis habitants ».
-              </p>
-            }
+          @if (noteHabitants()) {
+            <p class="estimate-note">
+              La note « Avis habitants » de l'en-tête est la moyenne des avis publiés —
+              elle n'entre pas dans la note globale.
+            </p>
           }
         </section>
 

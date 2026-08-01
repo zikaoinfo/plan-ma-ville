@@ -46,6 +46,13 @@
   text-decoration: underline;
 }
 
+.head__scores {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.1rem;
+  flex: none;
+}
+
 .head__score {
   display: flex;
   flex-direction: column;
@@ -54,10 +61,34 @@
   flex: none;
 }
 
+/* Note habitants : bouton (ouvre l'onglet « Avis habitants »), séparé de la
+   note officielle par un simple filet — deux chiffres, zéro carte en plus. */
+.head__score--avis {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  border-left: 1.5px solid var(--line);
+  border-radius: 0;
+  padding: 0 0 0 1.1rem;
+  cursor: pointer;
+}
+
+.head__score--avis:hover .head__score-sub,
+.head__score--avis:focus-visible .head__score-sub {
+  color: var(--accent-text);
+  text-decoration: underline;
+}
+
 .head__score-label {
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.07em;
+  color: var(--ink-soft);
+}
+
+.head__score-sub {
+  font-size: 0.72rem;
   color: var(--ink-soft);
 }
 
@@ -90,6 +121,19 @@
 .tab--active {
   background: var(--ink);
   color: var(--paper);
+}
+
+.tab__count {
+  margin-left: 0.35rem;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  font-size: 0.78em;
+  font-variant-numeric: tabular-nums;
+}
+
+.tab--active .tab__count {
+  background: color-mix(in srgb, var(--paper) 25%, transparent);
 }
 
 .avis-panel {
@@ -593,6 +637,10 @@
 
   .head__score {
     align-items: flex-start;
+  }
+
+  .head__scores {
+    flex-wrap: wrap;
   }
 }
 
