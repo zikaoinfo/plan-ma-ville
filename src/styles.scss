@@ -1,11 +1,15 @@
 /* ════════════════════════════════════════════════════════════
    ma-ville-notes — design system
-   Palette « porcelaine & violet électrique » : fond porcelaine
-   froid, encre indigo-violet, accent violet électrique, halos
-   aurore (violet + sarcelle) en fond. Les couleurs de NOTE
-   (vert/ambre/rouge) restent sémantiques et inchangées.
-   Typo : Instrument Sans (une seule famille sans-serif,
-   hiérarchie par graisse et interlettrage négatif).
+   Palette « porcelaine & encre » : fond porcelaine froid, encre
+   indigo, halo aurore (accent + sarcelle) en fond. L'ACCENT est
+   un thème choisi par l'utilisateur — orange (défaut), jaune,
+   vert ou bleu — via data-accent sur <html> (AccentService +
+   script anti-flash d'index.html) ; chaque variante redéfinit
+   --accent/-soft/-text/--on-accent, contrastes vérifiés dans les
+   deux thèmes. Les couleurs de NOTE (vert/ambre/rouge) restent
+   sémantiques et inchangées. Typo : Instrument Sans (une seule
+   famille sans-serif, hiérarchie par graisse et interlettrage
+   négatif).
    ════════════════════════════════════════════════════════════ */
 
 /* Police auto-hébergée (fini fonts.gstatic.com — CLS causé par le swap
@@ -41,17 +45,20 @@
   --paper-soft: #eef0f9;
   --ink: #1a1733;
   --ink-soft: #50506e;
-  --accent: #5b3df0;
-  --accent-soft: #e9e4ff;
+  /* Accent par défaut : ORANGE. Tous les contrastes annotés ci-dessous
+     valent pour lui ; les variantes jaune/vert/bleu (blocs data-accent
+     plus bas) respectent les mêmes seuils, vérifiés au même script. */
+  --accent: #cf4500;
+  --accent-soft: #ffe1d1;
   --good: #1a7c59; /* aligné TIER_BG.good (score-color.ts) — 5.16:1 en blanc */
   --good-soft: #d2efe3;
   --warn: #d9a514;
   --bad: #c93a2e;
   --line: #dcdcec;
   --topbar-bg: rgb(248 248 252 / 0.85);
-  /* Texte posé sur --accent : le violet est assez profond pour du blanc —
-     6.23:1 (clair) ; en sombre l'accent s'éclaircit, on repasse à l'encre
-     nuit (6.44:1). */
+  /* Texte posé sur --accent : chaque accent clair est assez profond pour
+     du blanc (orange 4.66:1) ; en sombre les accents s'éclaircissent, les
+     blocs sombres repassent à l'encre nuit. */
   --on-accent: #ffffff;
   /* Texte posé sur --bad : blanc en clair (5.09:1), encre sombre en sombre
      (--bad s'éclaircit à #e5675b, le blanc y tombe à 3.27:1). */
@@ -59,12 +66,20 @@
   --scrim: rgb(0 0 0 / 0.25); /* voile derrière les panneaux/menus */
 
   /* Variantes « texte-safe » (RGAA §1.5, contraste ≥ 4.5:1 sur --paper /
-     --paper-soft) : --accent passe déjà en texte sur porcelaine (5.88:1)
-     mais --accent-text, un cran plus sombre, garde de la marge pour les
-     petits corps (7.00:1 / 6.53:1) ; --good reste une couleur de
-     remplissage (—4.0:1 en texte), d'où --good-text (5.72:1 / 5.33:1). */
-  --accent-text: #5334d6;
+     --paper-soft) : --accent-text, un cran plus sombre que l'accent, sert
+     de `color` aux liens et petits corps (orange 4.99:1 / 4.65:1) ;
+     --good reste une couleur de remplissage (—4.0:1 en texte), d'où
+     --good-text (5.72:1 / 5.33:1). */
+  --accent-text: #c04000;
   --good-text: #157050;
+
+  /* Pastilles du sélecteur d'accent (menu thème) : la couleur de CHAQUE
+     option doit rester visible quel que soit l'accent actif — seuls hex
+     autorisés hors tokens d'accent, éclaircis dans le bloc sombre. */
+  --swatch-orange: #cf4500;
+  --swatch-jaune: #946b00;
+  --swatch-vert: #0e7a48;
+  --swatch-bleu: #2257e0;
 
   /* Typo — même famille pour display et body : la hiérarchie passe par
      la taille, la graisse et le tracking (pas par un changement de police). */
@@ -81,6 +96,29 @@
   color-scheme: light;
 }
 
+/* ── Accents alternatifs (thème CLAIR) ────────
+   data-accent posé sur <html> par AccentService (+ anti-flash index.html).
+   Pas de bloc [data-accent='orange'] : l'orange EST la base ci-dessus.
+   Ratios (script WCAG) : on/accent ≥ 4.5 · text/paper(+soft) ≥ 4.5 ·
+   accent/paper ≥ 3 (focus). */
+:root[data-accent='jaune'] {
+  --accent: #946b00; /* or foncé — blanc 4.81:1, focus 4.54:1 */
+  --accent-soft: #ffedc2;
+  --accent-text: #7d5b00; /* 5.89:1 / 5.48:1 */
+}
+
+:root[data-accent='vert'] {
+  --accent: #0e7a48; /* blanc 5.39:1, focus 5.09:1 */
+  --accent-soft: #d1f2e0;
+  --accent-text: #0d6b40; /* 6.21:1 / 5.78:1 */
+}
+
+:root[data-accent='bleu'] {
+  --accent: #2257e0; /* blanc 5.99:1, focus 5.65:1 */
+  --accent-soft: #dbe9ff;
+  --accent-text: #1d4fd7; /* 6.29:1 / 5.86:1 */
+}
+
 /* ── Thème sombre ─────────────────────────────
    Appliqué via data-theme sur <html> (ThemeService + script inline
    anti-flash dans index.html). Même identité, inversée : nuit violette,
@@ -90,27 +128,51 @@
   --paper-soft: #1c1a3e;
   --ink: #eae9f6;
   --ink-soft: #a9a8cc;
-  --accent: #9d8bff;
-  --accent-soft: #2c2358;
+  --accent: #ff9d6b; /* orange éclairci — texte 9.08:1 sur nuit */
+  --accent-soft: #4d2410;
   --good: #3cb488;
   --good-soft: #17402f;
   --warn: #e3b62f;
   --bad: #e5675b;
   --line: #31315a;
   --topbar-bg: rgb(18 16 42 / 0.85);
-  --on-accent: #171236; /* 6.44:1 sur --accent sombre (violet clair) */
+  --on-accent: #1a1733; /* 8.47:1 sur l'accent orange éclairci */
   --on-bad: #181022; /* --bad s'éclaircit en sombre (#e5675b) : encre, 5.65:1 */
   --scrim: rgb(0 0 0 / 0.5);
   --shadow: 0 1px 2px rgb(0 0 0 / 0.45), 0 10px 28px rgb(0 0 0 / 0.4);
   --shadow-lift: 0 16px 40px rgb(0 0 0 / 0.55);
 
   /* En sombre, --accent/--good sont déjà assez clairs pour servir de texte
-     sur le fond nuit (--paper) : 6.68:1 / 7.13:1 — pas besoin de les
-     assombrir davantage. */
+     sur le fond nuit (--paper) — pas besoin de les assombrir davantage. */
   --accent-text: var(--accent);
   --good-text: var(--good);
 
+  /* Pastilles éclaircies pour rester lisibles sur nuit. */
+  --swatch-orange: #ff9d6b;
+  --swatch-jaune: #f5bd3d;
+  --swatch-vert: #45c58b;
+  --swatch-bleu: #7aaaff;
+
   color-scheme: dark;
+}
+
+/* ── Accents alternatifs (thème SOMBRE) ───────
+   Ratios : accent en texte sur nuit(+soft) ≥ 4.5 · encre sur accent ≥ 4.5. */
+:root[data-theme='dark'][data-accent='jaune'] {
+  --accent: #f5bd3d; /* texte 10.79:1 / 9.65:1 ; encre dessus 10.07:1 */
+  --accent-soft: #4d3c0e;
+}
+
+:root[data-theme='dark'][data-accent='vert'] {
+  --accent: #45c58b; /* texte 8.48:1 / 7.59:1 ; --on-accent hérite (8.48:1) */
+  --accent-soft: #123f2a;
+  --on-accent: #12102a;
+}
+
+:root[data-theme='dark'][data-accent='bleu'] {
+  --accent: #7aaaff; /* texte 7.96:1 / 7.12:1 */
+  --accent-soft: #172b52;
+  --on-accent: #12102a;
 }
 
 *,
@@ -126,8 +188,14 @@ html {
 body {
   margin: 0;
   min-height: 100dvh;
+  /* Halo aurore : le premier suit l'accent choisi (color-mix), le second
+     reste sarcelle quelle que soit la variante. */
   background:
-    radial-gradient(1200px 500px at 85% -10%, rgb(91 61 240 / 0.07), transparent 60%),
+    radial-gradient(
+      1200px 500px at 85% -10%,
+      color-mix(in srgb, var(--accent) 7%, transparent),
+      transparent 60%
+    ),
     radial-gradient(900px 500px at -10% 0%, rgb(23 162 184 / 0.06), transparent 55%),
     var(--paper);
   color: var(--ink);

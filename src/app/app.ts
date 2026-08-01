@@ -13,6 +13,7 @@ import { Title } from '@angular/platform-browser';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { AuthService } from './core/services/auth.service';
+import { AccentService, type AccentPref } from './core/services/accent.service';
 import { ThemeService, type ThemePref } from './core/services/theme.service';
 import { UpdateService } from './core/services/update.service';
 import { PonderationService } from './core/services/ponderation.service';
@@ -25,6 +26,14 @@ const THEME_OPTIONS: { value: ThemePref; label: string; icon: string }[] = [
   { value: 'system', label: 'Système', icon: '💻' },
 ];
 
+/** Options du sélecteur d'accent (pastilles colorées via --swatch-*). */
+const ACCENT_OPTIONS: { value: AccentPref; label: string }[] = [
+  { value: 'orange', label: 'Orange' },
+  { value: 'jaune', label: 'Jaune' },
+  { value: 'vert', label: 'Vert' },
+  { value: 'bleu', label: 'Bleu' },
+];
+
 @Component({
   selector: 'app-root',
   imports: [RouterOutlet, RouterLink, RouterLinkActive],
@@ -35,6 +44,7 @@ const THEME_OPTIONS: { value: ThemePref; label: string; icon: string }[] = [
 export class App {
   protected readonly auth = inject(AuthService);
   protected readonly theme = inject(ThemeService);
+  protected readonly accentService = inject(AccentService);
   protected readonly maj = inject(UpdateService);
   protected readonly ponderation = inject(PonderationService);
   protected readonly annee = new Date().getFullYear();
@@ -47,6 +57,7 @@ export class App {
   protected readonly themeMenuOpen = signal(false);
 
   protected readonly themeOptions = THEME_OPTIONS;
+  protected readonly accentOptions = ACCENT_OPTIONS;
 
   // ── Accessibilité : focus + annonce au changement de route (RGAA 5.2) ──
   readonly #doc = inject(DOCUMENT);
@@ -97,6 +108,11 @@ export class App {
   protected setTheme(pref: ThemePref): void {
     this.theme.setPreference(pref);
     this.themeMenuOpen.set(false);
+  }
+
+  /** Choisir un accent ne ferme pas le menu : on voit l'effet en direct. */
+  protected setAccent(accent: AccentPref): void {
+    this.accentService.setAccent(accent);
   }
 
   /** Icône du bouton thème : celle de la préférence courante. */

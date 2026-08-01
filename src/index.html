@@ -11,18 +11,23 @@
        préversions. Détails : docs/SEO-INDEXATION.md -->
   <!-- SEO_ROBOTS -->
   <meta name="theme-color" content="#f8f8fc">
-  <!-- Anti-flash : pose data-theme ET la theme-color AVANT le chargement
-       d'Angular. Doit rester aligné avec ThemeService (clé mvn-theme,
-       défaut system, couleurs META_THEME_COLOR). -->
+  <!-- Anti-flash : pose data-theme, data-accent ET la theme-color AVANT le
+       chargement d'Angular. Doit rester aligné avec ThemeService (clé
+       mvn-theme, défaut system, couleurs META_THEME_COLOR) et AccentService
+       (clé mvn-accent, défaut orange). -->
   <script>
     (function () {
       var theme = 'light';
+      var accent = 'orange';
       try {
         var pref = localStorage.getItem('mvn-theme');
         var systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         theme = pref === 'dark' || (pref !== 'light' && systemDark) ? 'dark' : 'light';
-      } catch (e) { /* stockage/matchMedia indisponibles : clair */ }
+        var acc = localStorage.getItem('mvn-accent');
+        if (acc === 'jaune' || acc === 'vert' || acc === 'bleu') accent = acc;
+      } catch (e) { /* stockage/matchMedia indisponibles : clair + orange */ }
       document.documentElement.dataset.theme = theme;
+      document.documentElement.dataset.accent = accent;
       var meta = document.querySelector('meta[name="theme-color"]');
       if (meta) meta.setAttribute('content', theme === 'dark' ? '#12102a' : '#f8f8fc');
     })();
