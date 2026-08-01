@@ -71,6 +71,22 @@
                 }
               </button>
             }
+
+            <div class="theme__sep" role="separator" aria-hidden="true"></div>
+            <p class="theme__group-label" id="accent-label">Couleur d'accent</p>
+            <div class="theme__accents" role="group" aria-labelledby="accent-label">
+              @for (opt of accentOptions; track opt.value) {
+                <button
+                  type="button"
+                  class="theme__swatch theme__swatch--{{ opt.value }}"
+                  [class.theme__swatch--active]="accentService.accent() === opt.value"
+                  [attr.aria-pressed]="accentService.accent() === opt.value"
+                  [attr.aria-label]="'Accent ' + opt.label"
+                  [title]="opt.label"
+                  (click)="setAccent(opt.value)"
+                ></button>
+              }
+            </div>
           </div>
         }
       </div>

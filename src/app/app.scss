@@ -145,6 +145,61 @@
   font-weight: 700;
 }
 
+/* ── Sélecteur d'accent (dans le menu thème) ── */
+.theme__sep {
+  height: 1px;
+  margin: 0.4rem 0.3rem;
+  background: var(--line);
+}
+
+.theme__group-label {
+  margin: 0 0 0.35rem;
+  padding: 0 0.7rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+}
+
+.theme__accents {
+  display: flex;
+  gap: 0.55rem;
+  padding: 0 0.7rem 0.45rem;
+}
+
+.theme__swatch {
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/* Anneau de sélection : la pastille active est cerclée d'encre, décollée
+   de sa couleur par un liseré papier (lisible dans les deux thèmes). */
+.theme__swatch--active {
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 2px var(--paper);
+}
+
+.theme__swatch--orange {
+  background: var(--swatch-orange);
+}
+
+.theme__swatch--jaune {
+  background: var(--swatch-jaune);
+}
+
+.theme__swatch--vert {
+  background: var(--swatch-vert);
+}
+
+.theme__swatch--bleu {
+  background: var(--swatch-bleu);
+}
+
 /* ── Burger (mobile) ──────────────────────── */
 .burger {
   display: none; /* affiché sous le breakpoint mobile */
