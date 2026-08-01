@@ -67,6 +67,14 @@ export class Commune {
   /** Note moyenne des habitants (affichage seul — n'entre pas dans la note
    *  officielle pondérée, cf. onglet « Avis habitants »). */
   protected readonly avisStats = signal<CommuneStats | null>(null);
+
+  /** Note habitants prête à afficher (null tant qu'aucun avis publié). */
+  protected readonly noteHabitants = computed(() => {
+    const s = this.avisStats();
+    return s && s.nb_avis > 0 && s.note_habitants !== null
+      ? { note: s.note_habitants, nb: s.nb_avis }
+      : null;
+  });
   readonly #route = inject(ActivatedRoute);
   readonly #router = inject(Router);
 

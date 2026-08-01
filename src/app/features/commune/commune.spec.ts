@@ -157,5 +157,46 @@ describe('Commune', () => {
     expect(noms).toContain('Villeurbanne');
     expect(noms).toContain('Caluire-et-Cuire');
     expect(noms).not.toContain('Lyon');
+
+    // Sans avis (Supabase non configuré) : une seule note dans l'en-tête.
+    expect(el.querySelectorAll('.head__scores .head__score').length).toBe(1);
+    expect(el.querySelector('.head__score--avis')).toBeNull();
+    expect(el.querySelector('.tab__count')).toBeNull();
+  });
+
+  it("affiche la note des habitants dans l'en-tête et ouvre l'onglet avis au clic", async () => {
+    const fixture = TestBed.createComponent(Commune);
+    fixture.componentRef.setInput('slug', 'lyon-69123');
+
+    await flushWhenReady(fixture, '/data/index.json', INDEX);
+    await flushWhenReady(fixture, '/data/departements.json', DEPS);
+    await flushWhenReady(fixture, '/data/regions.json', REGIONS);
+    await flushWhenReady(fixture, '/data/dep/69.json', DEP69);
+
+    for (let i = 0; i < 3; i++) {
+      fixture.detectChanges();
+      await tick();
+    }
+
+    fixture.componentInstance['avisStats'].set({
+      note_habitants: 7.4,
+      nb_avis: 12,
+      resume_ia: null,
+    });
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    const btn = el.querySelector<HTMLButtonElement>('.head__score--avis');
+    expect(btn).toBeTruthy();
+    expect(btn?.textContent).toContain('7.4');
+    expect(btn?.textContent).toContain('12 avis');
+    // Compteur d'avis visible sur l'onglet, note absente de la carte thématiques.
+    expect(el.querySelector('#tab-avis .tab__count')?.textContent?.trim()).toBe('12');
+    expect(el.querySelectorAll('.card--themes app-note-bar').length).toBe(8);
+
+    btn?.click();
+    fixture.detectChanges();
+    expect(el.querySelector('#panel-avis')).toBeTruthy();
+    expect(el.querySelector('#tab-avis')?.getAttribute('aria-selected')).toBe('true');
   });
 });
