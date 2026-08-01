@@ -12,7 +12,7 @@
        suffirait pas : sur un site projet Pages il devrait vivre à la racine de
        zikaoinfo.github.io, hors de notre contrôle. -->
   <meta name="robots" content="noindex">
-  <meta name="theme-color" content="#faf6ef">
+  <meta name="theme-color" content="#f8f8fc">
   <!-- Anti-flash : pose data-theme ET la theme-color AVANT le chargement
        d'Angular. Doit rester aligné avec ThemeService (clé mvn-theme,
        défaut system, couleurs META_THEME_COLOR). -->
@@ -26,7 +26,7 @@
       } catch (e) { /* stockage/matchMedia indisponibles : clair */ }
       document.documentElement.dataset.theme = theme;
       var meta = document.querySelector('meta[name="theme-color"]');
-      if (meta) meta.setAttribute('content', theme === 'dark' ? '#10152a' : '#faf6ef');
+      if (meta) meta.setAttribute('content', theme === 'dark' ? '#12102a' : '#f8f8fc');
     })();
   </script>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
