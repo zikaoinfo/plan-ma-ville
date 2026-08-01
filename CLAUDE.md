@@ -233,6 +233,13 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
   anti-flash dans `index.html`** (à garder aligné avec le service). Sélecteur
   ☀️/🌙/💻 dans le header. Toute couleur nouvelle DOIT passer par les tokens
   (jamais de hex en dur dans les composants).
+- **Accent au choix de l'utilisateur** : orange (défaut), jaune, vert, bleu.
+  `AccentService` (signal persisté localStorage `mvn-accent`) → `data-accent`
+  sur `<html>` ; tokens par accent (`--accent/-soft/-text/--on-accent`) dans
+  `styles.scss`, thèmes clair ET sombre, contrastes vérifiés (ratios en
+  commentaire). Pastilles dans le menu thème (`--swatch-*`). Le script
+  anti-flash d'index.html pose aussi `data-accent`. Les assets statiques
+  (favicon, icônes PWA, og-image) suivent l'accent PAR DÉFAUT (orange).
 - **Nav mobile** (≤920px) : burger → panneau déroulant sous la topbar
   (backdrop, fermeture au clic sur un lien), pseudo compte masqué, marque
   réduite au badge <380px.
