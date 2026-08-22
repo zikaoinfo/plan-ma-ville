@@ -3,6 +3,31 @@
 
   <h1>Méthodologie</h1>
 
+  <!-- Chiffres clés. Volontairement PAS une course au nombre de « critères »
+       (le concurrent de référence en annonce 197) : l'argument tenu ici est
+       celui qu'un visiteur peut vérifier ligne à ligne dans le tableau des
+       sources plus bas. Les nombres viennent de methodologie-chiffres.ts. -->
+  <ul class="chiffres">
+    <li class="chiffre">
+      <span class="chiffre__valeur">{{ nbSources }}</span>
+      <span class="chiffre__label">sources publiques officielles</span>
+    </li>
+    <li class="chiffre">
+      <span class="chiffre__valeur">{{ nbCriteres }}</span>
+      <span class="chiffre__label">critères notés, {{ nbSourcesNote }} sources dans la note</span>
+    </li>
+    <li class="chiffre">
+      <span class="chiffre__valeur">0</span>
+      <span class="chiffre__label">estimation : une donnée non publiée n'est pas inventée</span>
+    </li>
+  </ul>
+
+  <p class="chiffres__note">
+    Chaque source est nommée avec son millésime ci-dessous, et la méthode de
+    calcul est décrite en entier sur cette page&nbsp;: nos notes sont
+    reproductibles à partir des mêmes fichiers publics.
+  </p>
+
   <section>
     <h2>Comment sont calculées les notes&nbsp;?</h2>
     <p>
@@ -41,10 +66,12 @@
           </tr>
         </thead>
         <tbody>
-          @for (critere of criteres; track critere) {
+          @for (src of sources; track src.source) {
             <tr>
-              <td>{{ labels[critere] }}</td>
-              <td class="num">{{ ponderations[critere].toFixed(1) }}</td>
+              <td>{{ src.domaine }}</td>
+              <td>{{ src.source }}</td>
+              <td>{{ src.millesime }}</td>
+              <td>{{ src.entreDansLaNote ? 'Oui' : 'Non' }}</td>
             </tr>
           }
         </tbody>
@@ -70,6 +97,7 @@
             <th scope="col">Domaine</th>
             <th scope="col">Source</th>
             <th scope="col">Millésime</th>
+            <th scope="col">Entre dans la note</th>
           </tr>
         </thead>
         <tbody>

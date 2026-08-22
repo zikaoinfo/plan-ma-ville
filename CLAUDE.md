@@ -230,6 +230,38 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
   vous » + re-tri du top/flop officiel — `criteres` embarqués dans
   `classement.json`), comparateur (ligne dédiée), département (colonne triable
   `perso` via `filterAndSortCommunes(..., poids)`).
+- **Classements multi-niveaux** (`score/classements.ts` pipeline, pur) : rangs
+  national / départemental / **par strate de population**, calculés UNE fois et
+  embarqués dans `dep/{code}.json` — l'app ne les recalcule pas (le bloc
+  « Classements », la prose et la FAQ liraient sinon des rangs différents ;
+  `commune-contexte.ts` lit le rang émis). **Strates = définition UNIQUE**
+  (9 niveaux, seuils 500/2k/5k/10k/20k/50k/100k/200k) partagée avec le
+  classement de la sécurité de `score/real.ts` : deux découpages se seraient
+  contredits sur la même page. Percentile arrondi au PLANCHER (104ᵉ sur 34 920
+  → « 99 % », jamais « 100 % » qui affirmerait qu'aucune commune ne fait mieux).
+- **Prix DVF ventilés maison / appartement** : l'accumulateur suit 3 variantes
+  (ensemble/maison/appartement) dans les deux formes de fichier (large et
+  long). La dimension « origine » qui corrige l'agrégation des arrondissements
+  reste SOUS la variante — sinon le bug d'écrasement se rejoue sur les
+  nouveaux champs (testé). Colonnes classées par PRÉSENCE des deux mots
+  (`med_prix_m2_appartement_maison` = combiné, pas « maison »).
+- **Démographie INSEE** (`fetch/demographie.ts`) : pyramide 7 tranches, sexes,
+  8 CSP. **Millésime détecté dans les en-têtes** (`P22_POP0014`) — figer le
+  préfixe ferait tomber la source en silence au millésime suivant. PAS
+  d'agrégation des arrondissements (l'INSEE publie déjà mère + arrondissements
+  séparément). Effectifs stockés, parts calculées à l'affichage.
+- **Fiche mairie** (`fetch/mairie.ts`) : annuaire DILA/service-public.fr, flux
+  JSON imbriqué. **Parser TOLÉRANT** (reconnaissance par traits : code INSEE +
+  marqueur de type « mairie », extraction par clés approchées) — la structure
+  n'a pas pu être inspectée hors CI. Testé sur 3 formes plausibles. Le mot
+  « mairie » n'est cherché que dans les clés de TYPAGE (sinon « rue de la
+  Mairie » ferait passer une préfecture pour une mairie).
+- **Chiffres de méthodologie** (`features/methodologie/methodologie-chiffres.ts`) :
+  source UNIQUE des nombres affichés sur /methodologie et du rappel sur chaque
+  fiche ; les totaux sont DÉRIVÉS de la liste des sources. **Positionnement
+  assumé** : pas de course au nombre de critères face aux « 197 critères » du
+  concurrent (perdu d'avance et invérifiable) — l'argument est la traçabilité
+  (sources nommées + millésime, méthode reproductible, aucune estimation).
 - **Méthodologie** : statique.
 - **Palmarès (hubs SEO, docs/SEO-PLAN.md §P4)** : `/palmares/securite/:dep` et
   `/palmares/prix/:dep` (un composant, `type` via route data +
