@@ -49,6 +49,9 @@ appliquer à toute création/modif d'UI ; socle focus/skip-link/live déjà en p
   `npm run test:functions` — tests des Cloudflare Pages Functions (logique pure).
 - `npm run seo:audit` — audit des URLs du sitemap EN LIGNE (0 redirection,
   0 `noindex`) ; `--local` pour lire `public/sitemap.xml` sans réseau.
+- `npm run seo:monitor` — mesure Search Console hebdomadaire → Supabase
+  (`docs/SEO-MONITORING.md`). `npm run seo:citation` — baseline de citation
+  IA (**coûteux**, mensuel). `npm run test:seo` — logique pure des deux.
 - `npx eslint .` — lint.
 
 ## Arborescence
@@ -72,6 +75,8 @@ src/app/
 └── shared/{note-bar,score-badge,score-color,error-message,
             critere-slider,auth-gate}
 tools/data-pipeline/                 tsx (pas de build), fixture .cache/geo.json
+tools/seo-monitor/                   workspace : monitoring GSC + citation IA
+tools/audit-urls.mjs                 audit 0 redirection / 0 noindex du sitemap
 docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
 ```
 
@@ -233,6 +238,43 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
   pure `palmares-logic.ts` (tops, intros factuelles). Prerendus + sitemap +
   JSON-LD (Breadcrumb+ItemList) + maillage (département ↔ hubs ↔ communes,
   lien depuis les fiches des grandes villes).
+- **FAQ générée sur les fiches communes** (`commune-faq.ts`, pur, testé) :
+  3-4 paires Q/R dérivées des données déjà calculées, en accordéon
+  `<details>` natif + JSON-LD `FAQPage` alimenté par la MÊME source (du
+  balisage FAQ sans contenu visible correspondant est du spam structuré).
+  **Google n'affiche plus de rich result FAQ depuis 2023** — le balisage vise
+  les moteurs de réponse, aucun gain de SERP à en attendre.
+  `commune-contexte.ts` est le socle PARTAGÉ avec la prose (`commune-texte.ts`)
+  : rang, moyennes départementales externes, points forts/faibles, variantes
+  déterministes. **Toute nouvelle dérivation chiffrée passe par lui** — deux
+  calculs parallèles finiraient par se contredire sur la même page.
+  Règle de rédaction : chaque phrase commence par un SUJET EXPLICITE, jamais
+  par un pronom (une réponse extraite est lue isolément ; un test le vérifie).
+- **Maillage interne des fiches** (~18 liens contextuels sortants) :
+  « Aux alentours » (géographique, haversine) + « Villes au profil similaire »
+  (distance euclidienne sur les 8 critères, `communesSimilaires`) dont les
+  voisines déjà affichées sont EXCLUES — sinon la section n'ajoute aucun
+  chemin de crawl — + bloc « Explorer le {département} » (palmarès sécurité/
+  prix, hub « autour de », page département) présent sur CHAQUE fiche.
+- **Sitemap segmenté** : `sitemap.xml` est un **index** (URL déjà dans
+  robots.txt et soumise en GSC) → `sitemap-pages` / `-grandes-villes` /
+  `-villes-moyennes` / `-communes` / `-hubs`, `priority`/`changefreq`
+  différenciés (Google les ignore ; le bénéfice est le suivi du taux
+  d'indexation PAR SEGMENT en Search Console). Scission auto > 45 000 URLs.
+  **Tout consommateur du sitemap doit dérouler l'index** — `indexnow.mjs` et
+  `audit-urls.mjs` le font ; l'IndexNow découpe aussi en lots de 10 000
+  (plafond de l'API). Le cache CI doit inclure `public/sitemap-*.xml`.
+- **Monitoring SEO** (`tools/seo-monitor/`, workspace npm, `docs/SEO-MONITORING.md`) :
+  mesure hebdo Search Console → table Supabase `seo_metrics`, alerte si les
+  pages indexées reculent > 5 %. **Le rapport « Pages » de la GSC n'a pas
+  d'API** : le nombre de pages indexées est ESTIMÉ par échantillonnage via
+  l'URL Inspection API (quota 2 000/jour), 40 URLs par segment de sitemap,
+  extrapolé par taille de segment. Une inspection en échec est exclue du
+  dénominateur (sinon fausse alerte). JWT du compte de service signé avec
+  node:crypto — pas de dépendance `googleapis`.
+  `ai-citation.mjs` : baseline de citation par les moteurs de réponse
+  (Claude + recherche web, Perplexity en option), **coûteux → mensuel, pas de
+  workflow planifié**.
 - **Thème clair/sombre/système** : `ThemeService` (signal `preference` persisté
   localStorage `mvn-theme`, `resolved` computed suivant `prefers-color-scheme`
   en direct) → `data-theme` sur `<html>` via `effect`. Tokens sombres dans

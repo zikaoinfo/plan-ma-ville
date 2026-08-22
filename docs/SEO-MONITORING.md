@@ -98,6 +98,43 @@ Coller `docs/supabase-migration-seo-metrics.sql` dans *SQL Editor → Run*. La
 table a les RLS actives et aucune policy : elle n'est lisible que par la clé
 service role.
 
+## Baseline de citation IA (§6)
+
+Mesure complémentaire : sur des requêtes informationnelles comme les nôtres
+(« vivre à X »), une part croissante des réponses est lue sans clic. Être
+**cité** par un moteur de réponse devient un objectif distinct du classement
+Google.
+
+```bash
+npm run seo:citation                                   # 50 plus grandes communes
+node tools/seo-monitor/ai-citation.mjs --villes 100
+node tools/seo-monitor/ai-citation.mjs --villes 5 --dry-run   # essai à moindre coût
+```
+
+Pour chaque ville, le script pose la question « *[Ville] est-elle une bonne
+ville où vivre ?* » à Claude **avec l'outil de recherche web**, puis regarde si
+`planmaville.fr` apparaît :
+
+- **nommé dans la réponse** — ce qui amène notoriété et trafic ;
+- **présent dans les sources consultées** — le moteur nous a lus sans nous citer.
+
+La distinction est enregistrée séparément : passer de « source » à « nommé »
+est une progression réelle qu'un taux global masquerait.
+
+Perplexity est interrogé en plus si `PERPLEXITY_API_KEY` est défini (son API
+renvoie ses `citations`). Un autre moteur s'ajoute en écrivant une fonction qui
+renvoie `{ texte, sources }` — toute la détection est commune.
+
+Une ville dont l'appel échoue est **exclue du dénominateur** plutôt que comptée
+« non citée » : un incident d'API ne doit pas faire chuter la baseline.
+
+Résultats historisés dans la table `ai_citations` (même fichier de migration).
+
+> ⚠️ **Coût.** Une requête avec recherche web par ville et par moteur — compter
+> quelques dollars pour 100 villes. Ce script est conçu pour une exécution
+> **mensuelle**, pas pour une CI à chaque déploiement ; il n'a volontairement
+> pas de workflow planifié. Requiert `ANTHROPIC_API_KEY`.
+
 ## Limites assumées
 
 - **Estimation, pas comptage.** Le chiffre de pages indexées ne correspondra
@@ -108,3 +145,7 @@ service role.
   terminant il y a 3 jours, pour ne jamais mesurer une période incomplète.
 - **Aucune donnée avant la première exécution.** Le premier run n'affiche
   aucun delta et n'alerte pas — il pose la référence.
+- **La citation IA n'est pas reproductible à l'identique.** Les réponses des
+  moteurs varient d'un appel à l'autre, à question constante : sur 50-100
+  villes la tendance est lisible, mais un écart de quelques points entre deux
+  campagnes n'est pas nécessairement un mouvement réel.
