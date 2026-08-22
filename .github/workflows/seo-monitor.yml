@@ -1,0 +1,51 @@
+name: SEO monitoring
+
+# Suivi hebdomadaire de l'indexation (plan de croissance §5). Le lundi matin :
+# performances Search Console + estimation du taux d'indexation par segment de
+# sitemap, enregistrées dans Supabase, avec alerte si les pages indexées
+# reculent de plus de 5 %.
+on:
+  schedule:
+    - cron: '0 6 * * 1' # tous les lundis à 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mesure:
+    runs-on: ubuntu-latest
+    # Le script sort en code 2 quand il ALERTE : c'est une information, pas une
+    # panne du dépôt. On laisse le job rouge (il faut le voir) sans que ça
+    # bloque quoi que ce soit d'autre.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      # Aucune dépendance npm n'est nécessaire : le script n'utilise que
+      # node:crypto et fetch (cf. tools/seo-monitor/google-auth.mjs).
+      - name: Mesure hebdomadaire
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          GSC_SITE_URL: ${{ vars.GSC_SITE_URL || 'https://planmaville.fr/' }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        # `shell: bash` active pipefail : sans lui, le code de sortie serait
+        # celui de `tee` et l'alerte (code 2) passerait inaperçue.
+        shell: bash
+        run: npm run seo:monitor | tee resume.txt
+
+      # Le résumé reste consultable dans l'onglet Summary du run, sans avoir à
+      # dérouler les logs.
+      - name: Publier le résumé
+        if: always()
+        run: |
+          {
+            echo '```'
+            cat resume.txt 2>/dev/null || echo 'Aucun résumé produit (voir les logs).'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

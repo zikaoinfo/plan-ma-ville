@@ -214,6 +214,55 @@
           </section>
         }
 
+        <!-- Villes similaires : profil de notes proche, pas proximité
+             géographique (celle-ci est traitée par « Aux alentours », dont les
+             communes sont exclues ici pour ne pas doublonner les liens). -->
+        @if (similaires().length) {
+          <section class="card card--simil" aria-labelledby="simil-titre">
+            <div class="card__head">
+              <h2 class="card__title" id="simil-titre">Villes au profil similaire</h2>
+              <p class="simil__note">Notes proches sur les 8 critères</p>
+            </div>
+            <ul class="near__grid">
+              @for (s of similaires(); track s.commune.slug) {
+                <li>
+                  <a class="near__item" [routerLink]="['/ville', s.commune.slug]">
+                    <span class="near__nom">{{ s.commune.nom }}</span>
+                    <app-score-badge [score]="s.commune.score.global" />
+                  </a>
+                </li>
+              }
+            </ul>
+          </section>
+        }
+
+        <!-- Palmarès du département : présents sur CHAQUE fiche (et plus
+             seulement sur la page département), pour que ces hubs soient
+             atteignables depuis n'importe quelle commune. -->
+        <section class="card card--hubs" aria-labelledby="hubs-titre">
+          <h2 class="card__title" id="hubs-titre">Explorer le {{ depNom() }}</h2>
+          <ul class="hubs__liste">
+            <li>
+              <a [routerLink]="['/palmares/securite', depCode()]">
+                Les communes les plus sûres du {{ depNom() }}
+              </a>
+            </li>
+            <li>
+              <a [routerLink]="['/palmares/prix', depCode()]">
+                Les prix au m² les plus accessibles du {{ depNom() }}
+              </a>
+            </li>
+            @if (aHubAutour()) {
+              <li>
+                <a [routerLink]="['/palmares/autour', c.slug]">
+                  Où vivre autour de {{ c.nom }} ?
+                </a>
+              </li>
+            }
+            <li><a [routerLink]="['/departement', depCode()]">Toutes les communes du {{ depNom() }}</a></li>
+          </ul>
+        </section>
+
         <!-- FAQ générée depuis les données réelles (même source que la prose :
              commune-contexte.ts). <details> natif : accessible au clavier sans
              ARIA, sans JS, et le contenu reste dans le HTML prérendu donc

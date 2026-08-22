@@ -187,7 +187,9 @@
     'texte  texte'
     'faq    faq'
     'arr    arr'
-    'near   near';
+    'near   near'
+    'simil  simil'
+    'hubs   hubs';
   gap: 1rem;
 }
 
@@ -200,7 +202,9 @@
     'texte  texte'
     'faq    faq'
     'arr    arr'
-    'near   near';
+    'near   near'
+    'simil  simil'
+    'hubs   hubs';
 }
 
 .dash__picker {
@@ -275,6 +279,39 @@
 
 .card--faq {
   grid-area: faq;
+}
+
+.card--simil {
+  grid-area: simil;
+}
+
+.simil__note {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.card--hubs {
+  grid-area: hubs;
+}
+
+.hubs__liste {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  a {
+    color: var(--accent-text);
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 }
 
 .faq__liste {
@@ -647,7 +684,9 @@
       'texte'
       'faq'
       'arr'
-      'near';
+      'near'
+      'simil'
+      'hubs';
   }
 
   .dash--nomap {
@@ -659,7 +698,9 @@
       'texte'
       'faq'
       'arr'
-      'near';
+      'near'
+      'simil'
+      'hubs';
   }
 
   .sk-grid {
