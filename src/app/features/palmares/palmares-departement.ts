@@ -82,7 +82,9 @@ export class PalmaresDepartement {
             ? `Classement des communes les plus sûres du ${this.nom()} (${code}), d'après les faits de délinquance enregistrés (SSMSI) rapportés à la population.`
             : `Les communes du ${this.nom()} (${code}) au prix au m² le plus accessible, d'après les ventes immobilières réelles (base DVF).`,
         canonicalPath: chemin,
-        noindex: !this.charge(), // chargement ou erreur : rien d'indexable
+        // Erreur définitive uniquement : un noindex posé pendant le
+        // chargement désindexe une page valide (cf. commune.ts).
+        noindex: this.erreur(),
       });
 
       const top = this.top();

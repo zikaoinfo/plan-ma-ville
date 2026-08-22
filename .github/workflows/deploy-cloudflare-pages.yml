@@ -78,9 +78,21 @@ jobs:
           sed -i "s|__SUPABASE_ANON_KEY__|${SUPABASE_ANON_KEY}|g" "$ENV"
           sed -i "s|__WORKER_URL__|${WORKER_URL}|g" "$ENV"
 
-      - name: Allow indexing (SITE_INDEXABLE=true)
-        if: vars.SITE_INDEXABLE == 'true'
-        run: sed -i '/name="robots" content="noindex/d' src/index.html
+      # Ce workflow ne publie que sur une URL de PRÉVERSION *.pages.dev : elle
+      # sert exactement le même contenu que planmaville.fr et ne doit jamais
+      # être indexée (contenu dupliqué → signal d'indexation dilué). Le noindex
+      # est donc posé INCONDITIONNELLEMENT ici, contrairement à deploy.yml /
+      # data-refresh.yml qui publient le site réel et le posent seulement si
+      # SITE_INDEXABLE != 'true'. Si Cloudflare Pages devenait un jour l'hôte
+      # de production sur le domaine définitif, aligner cette étape sur les
+      # deux autres (condition `if: vars.SITE_INDEXABLE != 'true'`).
+      - name: Block indexing (préversion *.pages.dev)
+        run: |
+          sed -i 's|<!-- SEO_ROBOTS -->|<meta name="robots" content="noindex">|' src/index.html
+          # Échoue bruyamment si le marqueur a bougé : sans ça, un sed muet
+          # publierait tout le site en indexable sans que personne ne le voie.
+          ! grep -q '<!-- SEO_ROBOTS -->' src/index.html
+          grep -q '<meta name="robots" content="noindex">' src/index.html
 
       - name: Build app
         run: npm run build

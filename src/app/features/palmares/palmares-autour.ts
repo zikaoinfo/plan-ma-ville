@@ -65,7 +65,9 @@ export class PalmaresAutour {
           ? `Les communes les mieux notées à moins de ${AUTOUR_RAYON_KM} km de ${centre.n} : notes de qualité de vie officielles, pour choisir où s'installer.`
           : 'Les communes les mieux notées autour d’une grande ville.',
         canonicalPath: `/palmares/autour/${this.slug()}`,
-        noindex: !centre, // chargement / introuvable : rien d'indexable
+        // Introuvable seulement (geo-light.json résolu ET slug absent) :
+        // l'état de chargement est transitoire (cf. commune.ts).
+        noindex: this.introuvable(),
       });
 
       const proches = this.proches();

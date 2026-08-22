@@ -5,6 +5,9 @@ avis habitants). Concurrence ville-ideale.fr. **100 % statique (GitHub Pages)**,
 backend communautaire = **Supabase** uniquement.
 
 Specs : `docs/SPEC-DATA.md`, `docs/SPEC-PHASES-2-6.md`, `docs/SPEC-PHASES-7-12.md`.
+**SEO : `docs/SEO-PLAN.md` (stratégie) et `docs/SEO-INDEXATION.md` (défauts
+techniques d'indexation corrigés en août 2026 — à lire avant toute modif
+d'URL, de sitemap, de balise robots ou de workflow de déploiement).**
 **Accessibilité : voir `ACCESSIBILITE-RGAA.md`** (Definition of Done a11y §1 à
 appliquer à toute création/modif d'UI ; socle focus/skip-link/live déjà en place).
 
@@ -44,6 +47,8 @@ appliquer à toute création/modif d'UI ; socle focus/skip-link/live déjà en p
 - `npm run data:sample` — pipeline départements 69,75.
 - `npm test` — Vitest (app). `npm run test:data` — tests pipeline.
   `npm run test:functions` — tests des Cloudflare Pages Functions (logique pure).
+- `npm run seo:audit` — audit des URLs du sitemap EN LIGNE (0 redirection,
+  0 `noindex`) ; `--local` pour lire `public/sitemap.xml` sans réseau.
 - `npx eslint .` — lint.
 
 ## Arborescence
@@ -53,6 +58,8 @@ src/app/
 ├── core/
 │   ├── models/data.models.ts        schémas contractuels (+ copie pipeline models.ts)
 │   ├── normalise.ts                 normaliseNom (aligné pipeline)
+│   ├── url/                         slash-final.ts + SlashFinalUrlSerializer
+│   │                                (forme canonique des URLs, cf. SEO-INDEXATION)
 │   └── services/
 │       ├── search-index.service.ts  httpResource index+departements, search()
 │       ├── commune-data.service.ts  getCommuneBySlug()→{state,depFile}, loadDep()
@@ -265,12 +272,41 @@ docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
   données ; idem `dataset` sur documentElement (utiliser setAttribute).
   Hydratation activée avec `withNoHttpTransferCache` (sinon index.json ~Mo
   embarqué dans chaque HTML). Le sitemap inclut les mêmes communes ≥ seuil.
-  **NOINDEX temporaire** : `<meta name="robots" noindex>` dans index.html
-  (l'URL github.io ne doit pas être indexée avant le vrai domaine ; un
-  robots.txt ne marcherait pas — racine github.io hors de contrôle sur un
-  site projet). deploy.yml la retire si la variable de dépôt
-  `SITE_INDEXABLE=true` — à activer au passage sur le domaine définitif
-  (avec `environment.baseUrl` + `siteBaseUrl` de main.ts à mettre à jour).
+  **Balise robots globale (sens INVERSÉ depuis le fix indexation)** :
+  `src/index.html` porte un marqueur vide `<!-- SEO_ROBOTS -->` → le site est
+  indexable **par défaut**. Les 3 workflows de déploiement *posent* le
+  `noindex` par `sed` quand il ne faut pas indexer (`SITE_INDEXABLE != 'true'`
+  pour deploy.yml/data-refresh.yml ; **toujours** pour
+  deploy-cloudflare-pages.yml, qui ne publie que sur une préversion
+  `*.pages.dev`). La version précédente écrivait le `noindex` en dur et
+  comptait sur chaque workflow pour le retirer : **data-refresh.yml n'avait
+  pas l'étape**, donc chaque rafraîchissement mensuel des données redéployait
+  les 35 000 pages en `noindex` jusqu'au push suivant sur `main` (cause de
+  l'effondrement des impressions d'août 2026). Ne JAMAIS remettre une balise
+  robots littérale dans un commentaire d'index.html : les workflows vérifient
+  la substitution par `grep`.
+- **URLs canoniques = AVEC slash final** (`src/app/core/url/`, cf.
+  `docs/SEO-INDEXATION.md`) : le prerender écrit un dossier par route
+  (`ville/{slug}/index.html`) et GitHub Pages ne sert ce fichier en 200 qu'à
+  `…/ville/{slug}/` — la forme sans slash répond **301**. Le site publiait
+  pourtant partout la forme sans slash (sitemap, canonique, `og:url`, JSON-LD,
+  `href` des routerLink) → 7 129 pages « Page avec redirection » en GSC et
+  autant de budget de crawl brûlé. **Pire** : `DefaultUrlSerializer` découpe
+  `/ville/x/` en TROIS segments (`['ville','x','']`), donc la route
+  `ville/:slug` ne matchait pas, le wildcard `**` rendait « Commune
+  introuvable » et posait un `noindex` à l'hydratation — sur l'URL même que
+  Google crawle. Google exécutant le JS, il désindexait la page. Corrigé par
+  `SlashFinalUrlSerializer` (parse tolérant, serialize canonique) fourni dans
+  `app.config.ts`, plus `avecSlashFinal()` dans `MetaService`,
+  `core/seo/schemas.ts`, `functions/_lib/commune-meta.mjs` et `urlsSitemap()`
+  du pipeline. **Toute nouvelle URL publiée doit passer par ces helpers.**
+  Non-régression : `core/url/routes-slash-final.spec.ts` (échoue sur les 12
+  routes du site sans le sérialiseur). Audit en ligne : `npm run seo:audit`
+  (`tools/audit-urls.mjs` — 0 redirection, 0 `noindex` attendus).
+- **Jamais de `noindex` sur un état de CHARGEMENT** : Googlebot photographie le
+  DOM à un instant donné ; un `noindex` transitoire désindexe une page valide.
+  Les pages ne le posent que sur un état définitif (`erreur()`,
+  `introuvable()`, `not-found`).
 - **PWA installable** : `@angular/service-worker` (version EXACTE du core,
   22.0.1), activé en **prod uniquement** (`serviceWorker` dans la config
   production d'angular.json + `provideServiceWorker` gardé par `isDevMode`).

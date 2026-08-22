@@ -44,7 +44,9 @@ export class Region {
           ? `Les ${region.nbDepartements} départements de ${region.nom} classés par note moyenne sur 10.`
           : 'Classement des départements de la région.',
         canonicalPath: `/region/${this.code()}`,
-        noindex: !region, // chargement / introuvable : rien d'indexable
+        // Introuvable seulement (résolu ET absent) : l'état de chargement est
+        // transitoire et poser un noindex dessus désindexe une page valide.
+        noindex: this.introuvable(),
       });
 
       if (region) {

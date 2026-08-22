@@ -1,5 +1,6 @@
 import { environment } from '../../../environments/environment';
 import type { CommuneDetail } from '../models/data.models';
+import { avecSlashFinal } from '../url/slash-final';
 
 /**
  * Constructeurs PURS de schémas JSON-LD (schema.org). Périmètre volontairement
@@ -9,7 +10,12 @@ import type { CommuneDetail } from '../models/data.models';
  * (types Place/City inéligibles aux étoiles).
  */
 
-const abs = (path: string): string => environment.baseUrl + path;
+/**
+ * URL absolue canonique : AVEC slash final, comme le `<link rel=canonical>` et
+ * le sitemap (seule forme servie en 200 — cf. `core/url/slash-final.ts`). Un
+ * JSON-LD qui pointe vers la forme redirigée dilue le signal de canonicalité.
+ */
+const abs = (path: string): string => environment.baseUrl + avecSlashFinal(path);
 
 export interface Miette {
   nom: string;

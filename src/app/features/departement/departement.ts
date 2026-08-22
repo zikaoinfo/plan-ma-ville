@@ -82,7 +82,10 @@ export class Departement {
             : 'Chargement… — ma ville, notée',
         description: `Les communes du département ${nom} (${code}) notées sur 10, classables par critère.`,
         canonicalPath: `/departement/${code}`,
-        noindex: !this.#file(), // chargement ou erreur : rien d'indexable
+        // Chargement (transitoire) : SURTOUT PAS de noindex — Googlebot peut
+        // photographier le DOM avant la fin du fetch et désindexer la page.
+        // Seule l'erreur définitive (code inconnu, fichier absent) le mérite.
+        noindex: this.erreur(),
       });
 
       const region = this.#search.regionForDepartement(code);
