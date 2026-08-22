@@ -22,5 +22,12 @@
     "dataset": "statistiques-dvf",
     "format": "csv",
     "resource": "total"
+  },
+  "demographie": {
+    "dataset": "evolution-et-structure-de-la-population-principaux-indicateurs-dossier-complet",
+    "format": "csv",
+    "resource": "commune",
+    "resourceExclude": "region|departement|epci|arrondissement-departemental",
+    "_note": "Colonnes P{mil}_POP0014… / C{mil}_POP15P_CS1… — le millésime est détecté dans les en-têtes (cf. fetch/demographie.ts). À CONFIRMER par l'inventaire du job CI « Validate open data »."
   }
 }

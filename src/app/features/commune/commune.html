@@ -238,6 +238,60 @@
           </section>
         }
 
+        <!-- Population : effectifs INSEE (recensement). Les pourcentages sont
+             calculés à l'affichage, jamais stockés en double. -->
+        @if (demographie(); as d) {
+          <section class="card card--demo" aria-labelledby="demo-titre">
+            <div class="card__head">
+              <h2 class="card__title" id="demo-titre">Population à {{ c.nom }}</h2>
+              <p class="demo__source">Recensement INSEE {{ d.millesime }}</p>
+            </div>
+
+            @if (d.sexes; as s) {
+              <p class="demo__sexes">
+                <span>{{ s.partHommes | number: '1.0-1' }} % d'hommes</span>
+                <span aria-hidden="true">·</span>
+                <span>{{ s.partFemmes | number: '1.0-1' }} % de femmes</span>
+              </p>
+            }
+
+            <h3 class="demo__soustitre">Répartition par âge</h3>
+            <ul class="demo__liste">
+              @for (a of d.ages; track a.label) {
+                <li class="demo__ligne">
+                  <span class="demo__label">{{ a.label }}</span>
+                  <span class="demo__part">{{ a.part | number: '1.0-1' }} %</span>
+                  <span class="demo__barre" aria-hidden="true">
+                    <span class="demo__barre-remplie" [style.width.%]="a.largeur"></span>
+                  </span>
+                  <span class="sr-only">{{ a.effectif | number: '1.0-0' }} habitants</span>
+                </li>
+              }
+            </ul>
+
+            @if (d.csp; as csp) {
+              <h3 class="demo__soustitre">Catégories socioprofessionnelles</h3>
+              <ul class="demo__liste">
+                @for (p of csp; track p.label) {
+                  <li class="demo__ligne">
+                    <span class="demo__label">{{ p.label }}</span>
+                    <span class="demo__part">{{ p.part | number: '1.0-1' }} %</span>
+                    <span class="demo__barre" aria-hidden="true">
+                      <span class="demo__barre-remplie" [style.width.%]="p.largeur"></span>
+                    </span>
+                    <span class="sr-only">{{ p.effectif | number: '1.0-0' }} personnes</span>
+                  </li>
+                }
+              </ul>
+              <p class="estimate-note">
+                Population de 15 ans et plus. Les retraités et les personnes sans
+                activité professionnelle font partie de la nomenclature INSEE :
+                les omettre fausserait les pourcentages.
+              </p>
+            }
+          </section>
+        }
+
         <!-- Classements : national, département, strate de population.
              Le rang par strate est le plus informatif — comparer une commune
              de 3 000 habitants à toute la France n'a guère de sens. -->
