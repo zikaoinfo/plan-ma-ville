@@ -99,8 +99,10 @@ describe('injectMeta', () => {
       '<meta name="description" content="Samatan : note globale 7.6/10.',
     );
     expect(html).toContain('<meta property="og:title" content="Samatan (32) — note 7.6/10 — ma ville, notée">');
-    expect(html).toContain('<meta property="og:url" content="https://planmaville.fr/ville/samatan-32410">');
-    expect(html).toContain('<link rel="canonical" href="https://planmaville.fr/ville/samatan-32410">');
+    // Slash final : forme canonique unique du site (cf.
+    // src/app/core/url/slash-final.ts) — la forme sans slash redirige.
+    expect(html).toContain('<meta property="og:url" content="https://planmaville.fr/ville/samatan-32410/">');
+    expect(html).toContain('<link rel="canonical" href="https://planmaville.fr/ville/samatan-32410/">');
     expect(html).toContain('<meta name="twitter:card" content="summary_large_image">');
     expect(html).not.toContain('noindex');
   });

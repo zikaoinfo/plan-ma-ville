@@ -50,17 +50,32 @@ function parNn(a: { nn: string; i: string }, b: { nn: string; i: string }): numb
   return a.nn < b.nn ? -1 : a.nn > b.nn ? 1 : a.i < b.i ? -1 : 1;
 }
 
-async function emitSitemap(
-  file: string,
-  base: string,
-  codes: string[],
-  regionCodes: string[],
-  villeSlugs: string[],
-  autourSlugs: string[],
-  gen: string,
-): Promise<void> {
+export interface PagesSitemap {
+  codes: string[];
+  regionCodes: string[];
+  villeSlugs: string[];
+  autourSlugs: string[];
+}
+
+/**
+ * Les URLs absolues du sitemap, **toutes terminées par un slash**.
+ *
+ * SLASH FINAL OBLIGATOIRE : le prerender Angular écrit un dossier par route
+ * (`ville/{slug}/index.html`) et GitHub Pages ne sert ce fichier en 200 qu'à
+ * l'URL AVEC slash final — la forme sans slash répond **301**. Un sitemap
+ * listant la forme sans slash envoyait donc Googlebot sur une redirection à
+ * CHACUNE des ~35 000 URLs : d'où les milliers de pages « Page avec
+ * redirection » en Search Console et le budget de crawl gaspillé au lieu
+ * d'être dépensé à indexer. Doit rester aligné avec
+ * `src/app/core/url/slash-final.ts` (canonique, og:url, JSON-LD, href des
+ * routerLink) — sans quoi le site se contredit lui-même.
+ *
+ * Fonction PURE (testée dans `test/sitemap.spec.ts`).
+ */
+export function urlsSitemap(base: string, pages: PagesSitemap): string[] {
   const root = base.replace(/\/$/, '');
-  const paths = [
+  const { codes, regionCodes, villeSlugs, autourSlugs } = pages;
+  return [
     '/',
     '/classement',
     '/regions',
@@ -73,9 +88,20 @@ async function emitSitemap(
     ...autourSlugs.map((s) => `/palmares/autour/${s}`),
     // Communes prérendues (SSG) uniquement : mêmes pages que le prerender.
     ...villeSlugs.map((s) => `/ville/${s}`),
-  ];
-  const urls = paths
-    .map((p) => `  <url><loc>${root}${p}</loc><lastmod>${gen}</lastmod></url>`)
+  ].map((p) => `${root}${p.endsWith('/') ? p : `${p}/`}`);
+}
+
+async function emitSitemap(
+  file: string,
+  base: string,
+  codes: string[],
+  regionCodes: string[],
+  villeSlugs: string[],
+  autourSlugs: string[],
+  gen: string,
+): Promise<void> {
+  const urls = urlsSitemap(base, { codes, regionCodes, villeSlugs, autourSlugs })
+    .map((loc) => `  <url><loc>${loc}</loc><lastmod>${gen}</lastmod></url>`)
     .join('\n');
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
   await writeFile(file, xml, 'utf8');
@@ -250,8 +276,9 @@ export async function emitAll(
   await writeFile(path.join(outDir, 'geo-light.json'), JSON.stringify(geoLight), 'utf8');
 
   // ── sitemap.xml (à la racine publique, pas dans data/) ──
-  // Pages statiques + 1 URL par département. PAS d'URL par commune (35k =
-  // inutile pour GitHub Pages).
+  // Pages statiques + régions + départements + hubs palmarès + 1 URL par
+  // commune prérendue (seuil `prerenderMinPopulation`, à 0 → toutes).
+  // Toutes les URLs portent un slash final (cf. emitSitemap).
   await emitSitemap(
     path.join(outDir, '..', 'sitemap.xml'),
     siteBaseUrl,

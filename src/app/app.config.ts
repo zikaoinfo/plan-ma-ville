@@ -14,12 +14,14 @@ import {
 } from '@angular/platform-browser';
 import {
   provideRouter,
+  UrlSerializer,
   withComponentInputBinding,
   withInMemoryScrolling,
 } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
 
 import { routes } from './app.routes';
+import { SlashFinalUrlSerializer } from './core/url/slash-final-url-serializer';
 
 registerLocaleData(localeFr);
 
@@ -33,6 +35,12 @@ export const appConfig: ApplicationConfig = {
       withComponentInputBinding(),
       withInMemoryScrolling({ scrollPositionRestoration: 'enabled', anchorScrolling: 'enabled' }),
     ),
+    // URLs canoniques AVEC slash final : c'est la seule forme que GitHub Pages
+    // sert en 200 (le prerender écrit `ville/{slug}/index.html`). Sans ce
+    // sérialiseur, une arrivée sur `/ville/{slug}/` — l'URL vers laquelle le
+    // serveur redirige, donc celle que Google crawle — ne matchait AUCUNE route
+    // et basculait sur la page « introuvable » + noindex à l'hydratation.
+    { provide: UrlSerializer, useClass: SlashFinalUrlSerializer },
     provideHttpClient(),
     // Hydratation des pages prérendues (SSG). Transfer cache HTTP DÉSACTIVÉ :
     // il embarquerait index.json (~Mo) et dep/*.json dans chaque HTML.

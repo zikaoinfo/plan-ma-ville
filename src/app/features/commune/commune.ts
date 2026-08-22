@@ -284,7 +284,12 @@ export class Commune {
           title: 'Chargement… — ma ville, notée',
           description: 'Chargement de la fiche commune.',
           canonicalPath: `/ville/${this.#slug()}`,
-          noindex: true, // état transitoire, jamais indexable
+          // PAS de noindex ici : cet état est TRANSITOIRE et la page est
+          // prérendue avec son contenu. Googlebot exécute le JS et prend un
+          // instantané du DOM ; s'il le prend pendant le chargement de
+          // `dep/{code}.json`, un noindex posé ici désindexe une page
+          // parfaitement valide (cause de « Exclue par balise noindex » en
+          // Search Console). Seul l'état 'not-found', définitif, le mérite.
         });
       } else if (s === 'not-found') {
         this.#meta.setPage({

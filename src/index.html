@@ -6,12 +6,10 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="La note sur 10 de chaque commune française : sécurité, santé, commerces, enseignement, sports, culture, transports et niveau de vie.">
-  <!-- NOINDEX temporaire : l'URL github.io ne doit PAS être indexée (le site
-       sera hébergé sur son vrai domaine). Retiré automatiquement par deploy.yml
-       quand la variable de dépôt SITE_INDEXABLE vaut "true". Un robots.txt ne
-       suffirait pas : sur un site projet Pages il devrait vivre à la racine de
-       zikaoinfo.github.io, hors de notre contrôle. -->
-  <meta name="robots" content="noindex">
+  <!-- Marqueur robots : vide = site indexable (défaut). Les workflows de
+       déploiement le remplacent par une balise noindex pour les
+       préversions. Détails : docs/SEO-INDEXATION.md -->
+  <!-- SEO_ROBOTS -->
   <meta name="theme-color" content="#f8f8fc">
   <!-- Anti-flash : pose data-theme ET la theme-color AVANT le chargement
        d'Angular. Doit rester aligné avec ThemeService (clé mvn-theme,

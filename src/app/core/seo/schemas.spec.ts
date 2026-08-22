@@ -57,7 +57,9 @@ describe('schemaItemList / schemaDataset', () => {
     ]) as { numberOfItems: number; itemListElement: { position: number; url: string }[] };
     expect(s.numberOfItems).toBe(2);
     expect(s.itemListElement[1].position).toBe(2);
-    expect(s.itemListElement[0].url).toMatch(/^https?:\/\/.+\/ville\/lyon-69123$/);
+    // Slash final : même forme canonique que <link rel=canonical> et le
+    // sitemap (seule URL servie en 200 — cf. core/url/slash-final.ts).
+    expect(s.itemListElement[0].url).toMatch(/^https?:\/\/.+\/ville\/lyon-69123\/$/);
   });
 
   it('dataset : sources officielles référencées, aucun undefined', () => {

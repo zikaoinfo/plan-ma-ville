@@ -25,14 +25,31 @@ describe('MetaService', () => {
     expect(TestBed.inject(Meta).getTag('name="description"')?.content).toBe('desc Lyon');
   });
 
-  it("pose une URL OpenGraph et un lien canonique préfixés du baseUrl", () => {
+  // Slash final : c'est la SEULE forme servie en 200 par GitHub Pages (le
+  // prerender écrit `classement/index.html`), la forme sans slash répondant
+  // 301. Un canonique vers l'URL redirigée gaspillait le budget de crawl.
+  it("pose une URL OpenGraph et un lien canonique préfixés du baseUrl, avec slash final", () => {
     service.setPage({ title: 't', description: 'd', canonicalPath: '/classement' });
 
     const og = TestBed.inject(Meta).getTag('property="og:url"')?.content;
-    expect(og).toBe(environment.baseUrl + '/classement');
+    expect(og).toBe(environment.baseUrl + '/classement/');
 
     const canonical = doc.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
-    expect(canonical?.getAttribute('href')).toBe(environment.baseUrl + '/classement');
+    expect(canonical?.getAttribute('href')).toBe(environment.baseUrl + '/classement/');
+  });
+
+  it('ne double pas le slash si le canonicalPath en porte déjà un', () => {
+    service.setPage({ title: 't', description: 'd', canonicalPath: '/classement/' });
+
+    const canonical = doc.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    expect(canonical?.getAttribute('href')).toBe(environment.baseUrl + '/classement/');
+  });
+
+  it("la racine reste '/' (pas de '//')", () => {
+    service.setPage({ title: 'a', description: 'a', canonicalPath: '/' });
+
+    const canonical = doc.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    expect(canonical?.getAttribute('href')).toBe(environment.baseUrl + '/');
   });
 
   it('réutilise le même lien canonique entre deux pages (pas de doublon)', () => {
@@ -41,7 +58,7 @@ describe('MetaService', () => {
 
     expect(doc.head.querySelectorAll('link[rel="canonical"]').length).toBe(1);
     expect(doc.head.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href).toMatch(
-      /\/methodologie$/,
+      /\/methodologie\/$/,
     );
   });
 

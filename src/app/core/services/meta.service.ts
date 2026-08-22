@@ -2,12 +2,18 @@ import { DOCUMENT } from '@angular/common';
 import { inject, Injectable } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 import { environment } from '../../../environments/environment';
+import { avecSlashFinal } from '../url/slash-final';
 import { JsonLdService } from './json-ld.service';
 
 export interface PageMeta {
   title: string;
   description: string;
-  /** Chemin canonique commençant par `/` (hors baseHref), ex. `/ville/lyon-69123`. */
+  /**
+   * Chemin canonique commençant par `/` (hors baseHref), ex. `/ville/lyon-69123`.
+   * Le slash final est ajouté automatiquement (`avecSlashFinal`) : c'est la
+   * seule forme servie en 200 par GitHub Pages, la forme sans slash répondant
+   * 301 (cf. `core/url/slash-final.ts`).
+   */
   canonicalPath: string;
   /**
    * `true` pour les états sans contenu indexable (page introuvable, erreur) :
@@ -31,7 +37,7 @@ export class MetaService {
   readonly #jsonLd = inject(JsonLdService);
 
   setPage(meta: PageMeta): void {
-    const url = environment.baseUrl + meta.canonicalPath;
+    const url = environment.baseUrl + avecSlashFinal(meta.canonicalPath);
     const ogImage = `${environment.baseUrl}/og-image.png`;
 
     this.#title.setTitle(meta.title);

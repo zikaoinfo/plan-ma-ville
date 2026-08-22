@@ -56,7 +56,14 @@ const escapeHtml = (s) =>
 export function injectMeta(html, meta, baseUrl) {
   const title = escapeHtml(meta.title);
   const description = escapeHtml(meta.description);
-  const url = `${baseUrl}${meta.canonicalPath}`;
+  // Slash final, comme le sitemap et le `MetaService` Angular (cf.
+  // src/app/core/url/slash-final.ts) : sur un hébergeur qui sert les pages
+  // prérendues depuis un dossier, la forme sans slash répond 301 et un
+  // canonique qui pointe dessus dilue le signal.
+  const chemin = meta.canonicalPath.endsWith('/')
+    ? meta.canonicalPath
+    : `${meta.canonicalPath}/`;
+  const url = `${baseUrl}${chemin}`;
   const ogImage = `${baseUrl}/og-image.png`;
 
   let out = html
