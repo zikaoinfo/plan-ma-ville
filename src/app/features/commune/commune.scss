@@ -283,6 +283,40 @@
   grid-area: faq;
 }
 
+.price__types {
+  list-style: none;
+  margin: 0.9rem 0 0;
+  padding: 0.7rem 0 0;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.price__type {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+}
+
+.price__type-label {
+  color: var(--ink-soft);
+  min-width: 6.5rem;
+}
+
+.price__type-valeur {
+  font-weight: 600;
+}
+
+.price__type-nb,
+.price__type-trend {
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
 .card--rangs {
   grid-area: rangs;
 }

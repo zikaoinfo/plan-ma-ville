@@ -158,7 +158,8 @@
                 [class.price__trend--up]="prixTrend()! >= 0"
                 [class.price__trend--down]="prixTrend()! < 0"
               >
-                {{ prixTrend()! >= 0 ? '▲' : '▼' }} {{ prixTrend() }} % sur un an
+                {{ prixTrend()! >= 0 ? '▲' : '▼' }}
+                {{ prixTrendAbs() | number: '1.0-1' }} % sur un an
               </p>
             }
             @if (sparkPrix(); as s) {
@@ -166,6 +167,29 @@
                 [attr.aria-label]="'Prix de ' + s.first.v + ' à ' + s.last.v + ' €/m²'">
                 <polyline class="spark__line" [attr.points]="s.points" />
               </svg>
+            }
+            @if (prixParType().length) {
+              <ul class="price__types">
+                @for (t of prixParType(); track t.label) {
+                  <li class="price__type">
+                    <span class="price__type-label">{{ t.label }}</span>
+                    <span class="price__type-valeur">
+                      {{ t.m2 | number: '1.0-0' }} €/m²
+                      @if (t.nb) {
+                        <span class="price__type-nb">({{ t.nb | number: '1.0-0' }} ventes)</span>
+                      }
+                    </span>
+                    @if (t.tendance !== null) {
+                      <span
+                        class="price__type-trend"
+                        [class.price__trend--up]="t.tendance! >= 0"
+                        [class.price__trend--down]="t.tendance! < 0"
+                      >{{ t.tendance! >= 0 ? '▲' : '▼' }}
+                        {{ t.tendanceAbs | number: '1.0-1' }} %</span>
+                    }
+                  </li>
+                }
+              </ul>
             }
             <p class="estimate-note">
               Médiane des ventes@if (prixDetailTxt()) { ({{ prixDetailTxt() }})} ·
