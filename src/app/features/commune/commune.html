@@ -214,6 +214,37 @@
           </section>
         }
 
+        <!-- Classements : national, département, strate de population.
+             Le rang par strate est le plus informatif — comparer une commune
+             de 3 000 habitants à toute la France n'a guère de sens. -->
+        @if (classements(); as rangs) {
+          <section class="card card--rangs" aria-labelledby="rangs-titre">
+            <h2 class="card__title" id="rangs-titre">Classements de {{ c.nom }}</h2>
+            <ul class="rangs__liste">
+              @for (r of rangs; track r.libelle) {
+                <li class="rangs__item">
+                  <span class="rangs__libelle">{{ r.libelle }}</span>
+                  <span class="rangs__valeur">
+                    <strong>{{ r.rangTexte }}</strong>
+                    <span class="rangs__total">sur {{ r.total | number: '1.0-0' }}</span>
+                  </span>
+                  <span class="rangs__jauge" aria-hidden="true">
+                    <span class="rangs__jauge-barre" [style.width.%]="r.percentile"></span>
+                  </span>
+                  <span class="sr-only">
+                    Mieux classée que {{ r.percentile }} % des communes de ce groupe.
+                  </span>
+                </li>
+              }
+            </ul>
+            <p class="rangs__note">
+              Classement établi sur la note globale. La comparaison par taille de
+              commune est la plus pertinente : les équipements et les prix ne se
+              comparent pas d'un village à une métropole.
+            </p>
+          </section>
+        }
+
         <!-- Villes similaires : profil de notes proche, pas proximité
              géographique (celle-ci est traitée par « Aux alentours », dont les
              communes sont exclues ici pour ne pas doublonner les liens). -->

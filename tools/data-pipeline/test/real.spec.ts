@@ -83,10 +83,17 @@ describe('computeRealScores', () => {
 });
 
 describe('stratePopulation', () => {
+  /**
+   * Réexporté depuis `score/classements.ts` : une SEULE définition des strates
+   * sert au classement de la sécurité et au rang par strate affiché sur les
+   * fiches. Les seuils sont passés de 6 à 8 (ajout de 10 000 et 200 000) avec
+   * l'affichage du rang — d'où 200 000 habitants en strate 8 et non plus 6.
+   * Le détail des strates est couvert par `classements.spec.ts`.
+   */
   it('classe par tranche de population croissante', () => {
     expect(stratePopulation(300)).toBe(0);
     expect(stratePopulation(1000)).toBe(1);
-    expect(stratePopulation(200_000)).toBe(6);
+    expect(stratePopulation(200_000)).toBe(8);
     expect(stratePopulation(300)).toBeLessThan(stratePopulation(200_000));
   });
 });

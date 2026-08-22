@@ -113,6 +113,8 @@ export interface CommuneDetail {
   score: CommuneScore;
   /** Prix immobilier réel DVF (absent : pas de ventes / hors couverture). */
   prix?: PrixM2;
+  /** Rangs national / départemental / par strate (cf. `Classements`). */
+  classements?: Classements;
   /**
    * Vrai pour un arrondissement municipal (Paris/Lyon/Marseille) : noté comme
    * une commune à part entière, mais rattaché à une commune mère (`communeMere`).
@@ -123,6 +125,26 @@ export interface CommuneDetail {
   communeMere?: CommuneMereRef;
   /** Pour Paris/Lyon/Marseille : ses arrondissements, triés par note décroissante. */
   arrondissements?: ArrondissementResume[];
+}
+
+/**
+ * Rangs d'une commune dans ses trois groupes de comparaison. Calculés une
+ * fois par le pipeline (`score/classements.ts`) : l'application ne les
+ * recalcule pas, sans quoi le bloc « Classements », la prose et la FAQ d'une
+ * même fiche pourraient afficher des rangs différents.
+ */
+export interface Classements {
+  /** Rang parmi toutes les communes notées de France. */
+  national: number;
+  nationalTotal: number;
+  /** Rang dans son département. */
+  departement: number;
+  departementTotal: number;
+  /** Rang parmi les communes de population comparable (voir `strateIndex`). */
+  strate: number;
+  strateTotal: number;
+  /** Indice de la strate de population (0 = moins de 500 habitants). */
+  strateIndex: number;
 }
 
 export interface CommuneMereRef {
