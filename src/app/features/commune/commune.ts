@@ -213,6 +213,16 @@ export class Commune {
     const p = this.prix();
     return p ? dvfTrendPct(p.histo) : null;
   });
+  /**
+   * Variation en valeur absolue : la flèche ▲/▼ porte déjà le sens, afficher
+   * « ▼ -3,2 % » doublerait la négation. Le formatage français (virgule
+   * décimale) passe par le pipe `number` — l'interpolation brute d'un nombre
+   * ne localise pas, d'où le « 8.7 % » anglais affiché jusqu'ici.
+   */
+  protected readonly prixTrendAbs = computed(() => {
+    const t = this.prixTrend();
+    return t === null ? null : Math.abs(t);
+  });
   /** Libellé humain de la période DVF ("2025-S2" → "2ᵉ semestre 2025").
    *  Helper partagé avec la FAQ (commune-insights) : une seule formulation. */
   protected readonly prixPeriode = computed(() => {
@@ -229,6 +239,27 @@ export class Commune {
     );
     return parts.join(', ');
   });
+  /**
+   * Ventilation maison / appartement, quand le millésime DVF la publie. Un
+   * prix résidentiel unique mélange deux marchés qui n'évoluent pas de la
+   * même façon ; on n'affiche la ligne que si la source la distingue
+   * réellement (pas de répartition recopiée sur l'agrégat).
+   */
+  protected readonly prixParType = computed(() => {
+    const p = this.prix();
+    if (!p) return [];
+    const tendance = (histo: { p: string; v: number }[]) => {
+      const t = dvfTrendPct(histo);
+      return { tendance: t, tendanceAbs: t === null ? null : Math.abs(t) };
+    };
+    return [
+      ...(p.maison ? [{ label: 'Maisons', ...p.maison, ...tendance(p.maison.histo) }] : []),
+      ...(p.appartement
+        ? [{ label: 'Appartements', ...p.appartement, ...tendance(p.appartement.histo) }]
+        : []),
+    ];
+  });
+
   /** Sparkline SVG du prix m² (mêmes proportions que celle de la note). */
   protected readonly sparkPrix = computed(() => {
     const p = this.prix();

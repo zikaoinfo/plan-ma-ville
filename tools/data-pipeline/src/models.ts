@@ -167,6 +167,16 @@ export interface ArrondissementResume {
  * Couverture : France sauf Alsace, Moselle, Mayotte (livre foncier local) ;
  * médiane absente quand trop peu de ventes sur la période.
  */
+/** Série de prix d'une variante de bien (maisons ou appartements seuls). */
+export interface PrixVariante {
+  /** €/m² médian sur la dernière période disponible. */
+  m2: number;
+  /** Nombre de ventes de la période, si publié. */
+  nb?: number;
+  /** Historique chronologique (≤ 10 périodes). */
+  histo: { p: string; v: number }[];
+}
+
 export interface PrixM2 {
   /** €/m² médian (résidentiel) sur la dernière période disponible. */
   m2: number;
@@ -176,6 +186,14 @@ export interface PrixM2 {
   nb?: number;
   /** Historique chronologique (≤ 10 périodes) pour la sparkline. */
   histo: { p: string; v: number }[];
+  /**
+   * Prix des MAISONS seules, quand la source les distingue. Un prix
+   * résidentiel unique mélange deux marchés qui n'évoluent pas de la même
+   * façon ; absent si le millésime ne ventile pas par type de bien.
+   */
+  maison?: PrixVariante;
+  /** Prix des APPARTEMENTS seuls (même réserve). */
+  appartement?: PrixVariante;
 }
 
 export interface CommuneScore {
