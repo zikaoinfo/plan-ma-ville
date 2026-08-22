@@ -20,6 +20,7 @@ import { ScoreBadge } from '../../shared/score-badge/score-badge';
 import { CommuneAvisForm } from './commune-avis/commune-avis-form';
 import { CommuneAvisList } from './commune-avis/commune-avis-list';
 import {
+  communesSimilaires,
   dvfTrendPct,
   filtrerBassinVoisinage,
   libellePeriodeDvf,
@@ -159,6 +160,24 @@ export class Commune {
     const c = this.commune();
     const f = this.#commune.depFile();
     return c && f ? genereTexteCommune(c, f.communes, this.depNom()) : null;
+  });
+
+  /**
+   * Communes au profil de notes le plus proche (maillage interne, §3 du plan
+   * de croissance). Complète « Aux alentours », purement géographique : les
+   * voisines déjà affichées sont exclues pour que la section apporte de
+   * NOUVEAUX chemins de crawl, pas les mêmes liens une seconde fois.
+   */
+  protected readonly similaires = computed(() => {
+    const c = this.commune();
+    const f = this.#commune.depFile();
+    if (!c || !f) return [];
+    return communesSimilaires(
+      c,
+      f.communes,
+      this.voisins().map((v) => v.commune.slug),
+      5,
+    );
   });
 
   // FAQ générée depuis les mêmes données que la prose (commune-contexte.ts

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { CommuneDetail, Critere } from '../../core/models/data.models';
 import {
+  communesSimilaires,
+  distanceProfil,
   dvfTrendPct,
   filtrerBassinVoisinage,
   haversineKm,
@@ -145,5 +147,87 @@ describe('libellePeriodeDvf', () => {
     expect(libellePeriodeDvf('2025-T3')).toBe('2025-T3');
     expect(libellePeriodeDvf('2025-13')).toBe('2025-13');
     expect(libellePeriodeDvf('')).toBe('');
+  });
+});
+
+describe('distanceProfil / communesSimilaires', () => {
+  const avec = (slug: string, notes: Partial<Record<Critere, number>>): CommuneDetail => ({
+    slug,
+    nom: slug,
+    codeInsee: slug,
+    codesPostaux: [],
+    population: 5000,
+    score: {
+      source: 'computed',
+      global: 5,
+      criteres: {
+        securite: 5,
+        sante: 5,
+        commerces: 5,
+        enseignement: 5,
+        sports: 5,
+        culture: 5,
+        transports: 5,
+        niveauVie: 5,
+        ...notes,
+      } as Record<Critere, number>,
+    },
+  });
+
+  it('donne une distance nulle entre deux profils identiques', () => {
+    expect(distanceProfil(avec('a', {}), avec('b', {}))).toBe(0);
+  });
+
+  it('mesure la distance euclidienne sur les 8 critères', () => {
+    // Écart de 3 sur securite et 4 sur culture → hypoténuse = 5.
+    const d = distanceProfil(avec('a', {}), avec('b', { securite: 8, culture: 9 }));
+    expect(d).toBeCloseTo(5);
+  });
+
+  it('classe par profil, pas par note globale', () => {
+    const cible = avec('cible', { securite: 9, culture: 2 });
+    const jumelle = avec('jumelle', { securite: 9, culture: 2 });
+    const opposee = avec('opposee', { securite: 2, culture: 9 });
+    const resultat = communesSimilaires(cible, [cible, opposee, jumelle]);
+    expect(resultat.map((r) => r.commune.slug)).toEqual(['jumelle', 'opposee']);
+    expect(resultat[0].distance).toBe(0);
+  });
+
+  it('exclut la commune elle-même et les voisines déjà liées', () => {
+    const cible = avec('cible', {});
+    const pool = [cible, avec('voisine', {}), avec('autre', {})];
+    const r = communesSimilaires(cible, pool, ['voisine']);
+    expect(r.map((x) => x.commune.slug)).toEqual(['autre']);
+  });
+
+  it('respecte la limite demandée', () => {
+    const cible = avec('cible', {});
+    const pool = [cible, ...Array.from({ length: 12 }, (_, i) => avec(`c${i}`, {}))];
+    expect(communesSimilaires(cible, pool, [], 5)).toHaveLength(5);
+  });
+
+  it('départage les ex æquo par slug (rendu stable entre builds)', () => {
+    const cible = avec('cible', {});
+    const pool = [cible, avec('zeta', {}), avec('alpha', {}), avec('mu', {})];
+    const noms = communesSimilaires(cible, pool).map((r) => r.commune.slug);
+    expect(noms).toEqual(['alpha', 'mu', 'zeta']);
+    expect(communesSimilaires(cible, pool).map((r) => r.commune.slug)).toEqual(noms);
+  });
+
+  it("exclut la famille mère/arrondissements (déjà liée ailleurs sur la fiche)", () => {
+    const mere: CommuneDetail = {
+      ...avec('paris-75056', {}),
+      codeInsee: '75056',
+      arrondissements: [],
+    };
+    const arrondissement: CommuneDetail = {
+      ...avec('paris-8e-75108', {}),
+      codeInsee: '75108',
+      communeMere: { slug: 'paris-75056', nom: 'Paris', codeInsee: '75056' },
+    };
+    const autre = avec('autre', {});
+    expect(
+      communesSimilaires(mere, [mere, arrondissement, autre]).map((r) => r.commune.slug),
+    ).toEqual(['autre']);
   });
 });

@@ -1,4 +1,4 @@
-import type { CommuneDetail } from '../../core/models/data.models';
+import { CRITERES, type CommuneDetail } from '../../core/models/data.models';
 
 // ── Prix m² réel (DVF) ──
 
@@ -105,5 +105,58 @@ export function nearestCommunes(
       distanceKm: haversineKm(origin, { lat: c.lat as number, lon: c.lon as number }),
     }))
     .sort((a, b) => a.distanceKm - b.distanceKm)
+    .slice(0, limit);
+}
+
+// ── Similarité par profil de notes ──
+
+export interface CommuneSimilaire {
+  commune: CommuneDetail;
+  /** Distance euclidienne sur les 8 critères (0 = profil identique). */
+  distance: number;
+}
+
+/**
+ * Distance euclidienne entre deux communes sur les 8 critères. Les notes
+ * partagent la même échelle (0-10) : aucune normalisation n'est nécessaire,
+ * et en introduire une fausserait le sens (un écart de 2 points vaut autant
+ * en sécurité qu'en culture).
+ */
+export function distanceProfil(a: CommuneDetail, b: CommuneDetail): number {
+  let somme = 0;
+  for (const critere of CRITERES) {
+    const d = a.score.criteres[critere] - b.score.criteres[critere];
+    somme += d * d;
+  }
+  return Math.sqrt(somme);
+}
+
+/**
+ * Communes au profil de notes le plus proche de `current` (maillage interne,
+ * plan de croissance §3). Complète « Aux alentours », qui est purement
+ * géographique : deux communes voisines peuvent avoir des profils opposés, et
+ * inversement.
+ *
+ * `dejaLiees` (les voisines déjà affichées sur la fiche) est EXCLU : réafficher
+ * les mêmes communes n'ajouterait aucun chemin de crawl et ferait doublon à
+ * l'écran. Le bassin exclut aussi la commune elle-même et sa famille
+ * mère/arrondissements (cf. `filtrerBassinVoisinage`).
+ *
+ * Départage à distance égale par slug : le rendu doit être stable entre deux
+ * builds (SSG déterministe).
+ */
+export function communesSimilaires(
+  current: CommuneDetail,
+  pool: readonly CommuneDetail[],
+  dejaLiees: readonly string[] = [],
+  limit = 5,
+): CommuneSimilaire[] {
+  const exclus = new Set([current.slug, ...dejaLiees]);
+  return filtrerBassinVoisinage(current, pool)
+    .filter((c) => !exclus.has(c.slug))
+    .map((c) => ({ commune: c, distance: distanceProfil(current, c) }))
+    .sort((a, b) =>
+      a.distance - b.distance || (a.commune.slug < b.commune.slug ? -1 : 1),
+    )
     .slice(0, limit);
 }
