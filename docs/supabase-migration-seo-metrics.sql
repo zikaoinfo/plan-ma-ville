@@ -42,3 +42,21 @@ ALTER TABLE seo_metrics ENABLE ROW LEVEL SECURITY;
 
 COMMENT ON TABLE seo_metrics IS
   'Suivi SEO hebdomadaire (Search Console). Écrit par tools/seo-monitor en CI.';
+
+-- ── Baseline de citation IA (plan de croissance §6) ──
+-- Alimentée par `npm run seo:citation` (tools/seo-monitor/ai-citation.mjs),
+-- à lancer MENSUELLEMENT : chaque ville coûte une requête avec recherche web.
+CREATE TABLE IF NOT EXISTS ai_citations (
+  date DATE PRIMARY KEY,
+  domaine TEXT NOT NULL,
+  -- Un objet par moteur interrogé (claude, perplexity…) : taux de citation,
+  -- ventilation « nommé dans la réponse » vs « source consultée », et le
+  -- détail par ville. JSON car la liste des moteurs évoluera.
+  moteurs JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE ai_citations ENABLE ROW LEVEL SECURITY;
+
+COMMENT ON TABLE ai_citations IS
+  'Baseline de citation par les moteurs de réponse IA. Écrit par tools/seo-monitor/ai-citation.mjs.';
