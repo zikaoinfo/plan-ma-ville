@@ -47,8 +47,9 @@ Thumbs.db
 /public/data/*.json
 /public/data/dep/
 !/public/data/README.md
-# sitemap.xml généré par le pipeline (data:build)
+# sitemap.xml (index) et ses segments, générés par le pipeline (data:build)
 /public/sitemap.xml
+/public/sitemap-*.xml
 
 # Cache du pipeline de données
 /tools/data-pipeline/.cache/

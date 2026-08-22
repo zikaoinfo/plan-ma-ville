@@ -4,6 +4,7 @@ import {
   dvfTrendPct,
   filtrerBassinVoisinage,
   haversineKm,
+  libellePeriodeDvf,
   nearestCommunes,
 } from './commune-insights';
 
@@ -126,5 +127,23 @@ describe('filtrerBassinVoisinage', () => {
 
   it("ne filtre rien pour une commune ordinaire sans lien de parenté", () => {
     expect(filtrerBassinVoisinage(lyon, [villeurbanne, caluire])).toEqual([villeurbanne, caluire]);
+  });
+});
+
+describe('libellePeriodeDvf', () => {
+  it('rend les semestres en français', () => {
+    expect(libellePeriodeDvf('2025-S2')).toBe('2ᵉ semestre 2025');
+    expect(libellePeriodeDvf('2024-S1')).toBe('1ᵉʳ semestre 2024');
+  });
+
+  it('rend les périodes mensuelles', () => {
+    expect(libellePeriodeDvf('2025-12')).toBe('décembre 2025');
+    expect(libellePeriodeDvf('2025-01')).toBe('janvier 2025');
+  });
+
+  it("retourne la valeur brute sur un format inconnu (jamais d'invention)", () => {
+    expect(libellePeriodeDvf('2025-T3')).toBe('2025-T3');
+    expect(libellePeriodeDvf('2025-13')).toBe('2025-13');
+    expect(libellePeriodeDvf('')).toBe('');
   });
 });

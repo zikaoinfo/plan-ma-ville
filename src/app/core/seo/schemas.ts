@@ -4,10 +4,17 @@ import { avecSlashFinal } from '../url/slash-final';
 
 /**
  * Constructeurs PURS de schémas JSON-LD (schema.org). Périmètre volontairement
- * restreint (cf. docs/SEO-PLAN.md §P3) : BreadcrumbList (rich result actif),
- * Place+geo (compréhension d'entité), ItemList (classements), Dataset
- * (méthodologie). PAS de FAQPage (rich results retirés) ni d'AggregateRating
- * (types Place/City inéligibles aux étoiles).
+ * restreint : BreadcrumbList (rich result actif), Place+geo (compréhension
+ * d'entité), ItemList (classements), Dataset (méthodologie), FAQPage.
+ * PAS d'AggregateRating (types Place/City inéligibles aux étoiles).
+ *
+ * **Sur FAQPage** : Google n'affiche plus de rich result FAQ depuis août 2023
+ * (réservé aux sites gouvernementaux et de santé) — n'en attendre AUCUN gain
+ * de SERP. Le balisage est posé pour les moteurs de réponse et assistants, qui
+ * consomment le JSON-LD comme forme structurée du contenu. Condition non
+ * négociable : chaque Q/R du balisage DOIT être visible sur la page (c'est le
+ * cas — même source, `commune-faq.ts`, affichée dans l'accordéon). Du balisage
+ * FAQ sans contenu visible correspondant est du spam structuré.
  */
 
 /**
@@ -105,5 +112,23 @@ export function schemaDataset(): object {
     ],
     spatialCoverage: { '@type': 'Country', name: 'France' },
     inLanguage: 'fr',
+  };
+}
+
+/**
+ * FAQPage : questions/réponses de la fiche. `reponses` doit être EXACTEMENT ce
+ * qui est rendu à l'écran (cf. avertissement en tête de module).
+ * Retourne `null` s'il n'y a rien à baliser — un FAQPage vide est invalide.
+ */
+export function schemaFaq(qr: readonly { q: string; r: string }[]): object | null {
+  if (qr.length === 0) return null;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: qr.map((item) => ({
+      '@type': 'Question',
+      name: item.q,
+      acceptedAnswer: { '@type': 'Answer', text: item.r },
+    })),
   };
 }

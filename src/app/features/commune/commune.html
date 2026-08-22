@@ -214,6 +214,25 @@
           </section>
         }
 
+        <!-- FAQ générée depuis les données réelles (même source que la prose :
+             commune-contexte.ts). <details> natif : accessible au clavier sans
+             ARIA, sans JS, et le contenu reste dans le HTML prérendu donc
+             indexable. Le balisage JSON-LD FAQPage reprend EXACTEMENT ces
+             questions/réponses. -->
+        @if (faq().length) {
+          <section class="card card--faq" aria-labelledby="faq-titre">
+            <h2 class="card__title" id="faq-titre">Questions fréquentes sur {{ c.nom }}</h2>
+            <div class="faq__liste">
+              @for (item of faq(); track item.q; let first = $first) {
+                <details class="faq__item" [open]="first">
+                  <summary class="faq__q">{{ item.q }}</summary>
+                  <p class="faq__r">{{ item.r }}</p>
+                </details>
+              }
+            </div>
+          </section>
+        }
+
         <!-- Ses arrondissements (Paris/Lyon/Marseille uniquement) -->
         @if (arrondissements().length) {
           <section class="card card--arrondissements" aria-label="Arrondissements de {{ c.nom }}">

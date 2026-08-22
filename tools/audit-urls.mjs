@@ -47,15 +47,33 @@ function melangeDeterministe(liste, graine) {
   return out;
 }
 
+const locs = (xml) => [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1].trim());
+const estIndex = (xml) => /<sitemapindex/i.test(xml);
+
+/**
+ * URLs de PAGES du sitemap. Depuis la segmentation (plan de croissance §4),
+ * `sitemap.xml` est un `<sitemapindex>` dont les <loc> désignent des
+ * sous-sitemaps : sans déréférencement, l'audit ne testerait que 5 fichiers
+ * XML au lieu des pages du site. Un `<urlset>` simple reste géré tel quel.
+ */
 async function lireSitemap() {
   if (LOCAL) {
-    const xml = readFileSync(new URL('../public/sitemap.xml', import.meta.url), 'utf8');
-    return [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+    const racine = new URL('../public/', import.meta.url);
+    const xml = readFileSync(new URL('sitemap.xml', racine), 'utf8');
+    if (!estIndex(xml)) return locs(xml);
+    return locs(xml).flatMap((u) =>
+      locs(readFileSync(new URL(u.split('/').pop(), racine), 'utf8')),
+    );
   }
-  const res = await fetch(`${SITE}/sitemap.xml`, { signal: AbortSignal.timeout(TIMEOUT) });
-  if (!res.ok) throw new Error(`${SITE}/sitemap.xml → HTTP ${res.status}`);
-  const xml = await res.text();
-  return [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+  const charge = async (url) => {
+    const res = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT) });
+    if (!res.ok) throw new Error(`${url} → HTTP ${res.status}`);
+    return res.text();
+  };
+  const xml = await charge(`${SITE}/sitemap.xml`);
+  if (!estIndex(xml)) return locs(xml);
+  const sous = await Promise.all(locs(xml).map(charge));
+  return sous.flatMap(locs);
 }
 
 /**

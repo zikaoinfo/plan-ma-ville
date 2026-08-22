@@ -185,6 +185,7 @@
     'map    price'
     'map    histo'
     'texte  texte'
+    'faq    faq'
     'arr    arr'
     'near   near';
   gap: 1rem;
@@ -197,6 +198,7 @@
     'themes themes'
     'price  histo'
     'texte  texte'
+    'faq    faq'
     'arr    arr'
     'near   near';
 }
@@ -269,6 +271,38 @@
 
 .card--arrondissements {
   grid-area: arr;
+}
+
+.card--faq {
+  grid-area: faq;
+}
+
+.faq__liste {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.faq__item {
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--paper-soft);
+  padding: 0.65rem 0.85rem;
+}
+
+.faq__q {
+  cursor: pointer;
+  font-weight: 600;
+  line-height: 1.4;
+  /* Le marqueur natif du <summary> est conservé : il porte l'état
+     ouvert/fermé sans ARIA ni JS. */
+}
+
+.faq__r {
+  margin: 0.6rem 0 0;
+  line-height: 1.6;
+  color: var(--ink-soft);
 }
 
 .card--texte {
@@ -611,6 +645,7 @@
       'price'
       'histo'
       'texte'
+      'faq'
       'arr'
       'near';
   }
@@ -622,6 +657,7 @@
       'price'
       'histo'
       'texte'
+      'faq'
       'arr'
       'near';
   }

@@ -1,5 +1,5 @@
 import { execSync } from 'node:child_process';
-import { mkdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import type {
   ClassementEntry,
@@ -53,58 +53,187 @@ function parNn(a: { nn: string; i: string }, b: { nn: string; i: string }): numb
 export interface PagesSitemap {
   codes: string[];
   regionCodes: string[];
-  villeSlugs: string[];
+  /** Communes prérendues : slug + population (segmentation par taille). */
+  villes: { slug: string; population: number }[];
   autourSlugs: string[];
 }
 
+/** Une URL du sitemap, avec ses indications de priorité de crawl. */
+export interface UrlSitemap {
+  loc: string;
+  priority: string;
+  changefreq: 'weekly' | 'monthly';
+}
+
+/** Un fichier de sitemap : son nom et les URLs qu'il contient. */
+export interface SegmentSitemap {
+  fichier: string;
+  urls: UrlSitemap[];
+}
+
 /**
- * Les URLs absolues du sitemap, **toutes terminées par un slash**.
+ * Seuils de segmentation (population). Alignés sur le plan de croissance :
+ * les grandes villes concentrent le potentiel de recherche, les petites
+ * communes forment la longue traîne.
+ */
+const POP_GRANDE_VILLE = 20000;
+const POP_VILLE_MOYENNE = 2000;
+
+/**
+ * Plafond d'URLs par fichier. La limite du protocole est 50 000 ; on garde de
+ * la marge et on scinde automatiquement (`-2`, `-3`…) plutôt que d'émettre un
+ * fichier invalide le jour où un segment grossit.
+ */
+const MAX_URLS_PAR_FICHIER = 45000;
+
+const slash = (p: string): string => (p.endsWith('/') ? p : `${p}/`);
+
+/**
+ * Segmentation du sitemap (plan de croissance §4).
  *
- * SLASH FINAL OBLIGATOIRE : le prerender Angular écrit un dossier par route
+ * `sitemap.xml` reste le point d'entrée mais devient un **index** : c'est
+ * l'URL déjà déclarée dans `robots.txt` et déjà soumise en Search Console, la
+ * transformer en index évite d'invalider les deux. Il pointe vers des
+ * sous-sitemaps par nature de page et par taille de commune, ce qui permet de
+ * suivre le **taux d'indexation segment par segment** dans la Search Console
+ * (chaque sous-sitemap y est soumis séparément) — c'est le vrai bénéfice :
+ * savoir si ce sont les 28 000 petites communes qui ne s'indexent pas, ou tout
+ * le site indistinctement.
+ *
+ * `<priority>` et `<changefreq>` sont émis parce que le plan les demande et
+ * que Bing/Yandex les lisent encore, mais **Google les ignore explicitement** :
+ * n'en attendre aucun effet côté Google, le signal utile est la segmentation.
+ *
+ * SLASH FINAL sur toutes les URLs : le prerender écrit un dossier par route
  * (`ville/{slug}/index.html`) et GitHub Pages ne sert ce fichier en 200 qu'à
- * l'URL AVEC slash final — la forme sans slash répond **301**. Un sitemap
- * listant la forme sans slash envoyait donc Googlebot sur une redirection à
- * CHACUNE des ~35 000 URLs : d'où les milliers de pages « Page avec
- * redirection » en Search Console et le budget de crawl gaspillé au lieu
- * d'être dépensé à indexer. Doit rester aligné avec
- * `src/app/core/url/slash-final.ts` (canonique, og:url, JSON-LD, href des
- * routerLink) — sans quoi le site se contredit lui-même.
+ * l'URL avec slash — la forme sans slash répond 301 (cf.
+ * `src/app/core/url/slash-final.ts` et `docs/SEO-INDEXATION.md`).
  *
  * Fonction PURE (testée dans `test/sitemap.spec.ts`).
  */
-export function urlsSitemap(base: string, pages: PagesSitemap): string[] {
+export function segmentsSitemap(base: string, pages: PagesSitemap): SegmentSitemap[] {
   const root = base.replace(/\/$/, '');
-  const { codes, regionCodes, villeSlugs, autourSlugs } = pages;
-  return [
-    '/',
-    '/classement',
-    '/regions',
-    '/methodologie',
-    ...regionCodes.map((c) => `/region/${c}`),
-    ...codes.map((c) => `/departement/${c}`),
-    // Hubs longue traîne (mêmes pages que le prerender).
-    ...codes.map((c) => `/palmares/securite/${c}`),
-    ...codes.map((c) => `/palmares/prix/${c}`),
-    ...autourSlugs.map((s) => `/palmares/autour/${s}`),
-    // Communes prérendues (SSG) uniquement : mêmes pages que le prerender.
-    ...villeSlugs.map((s) => `/ville/${s}`),
-  ].map((p) => `${root}${p.endsWith('/') ? p : `${p}/`}`);
+  const { codes, regionCodes, villes, autourSlugs } = pages;
+  const url = (
+    chemin: string,
+    priority: string,
+    changefreq: 'weekly' | 'monthly',
+  ): UrlSitemap => ({ loc: `${root}${slash(chemin)}`, priority, changefreq });
+
+  // Pages éditoriales + niveaux géographiques : peu nombreuses, fortement
+  // liées, elles doivent être crawlées en priorité (elles distribuent le
+  // maillage vers tout le reste).
+  const pagesFixes: UrlSitemap[] = [
+    url('/', '1.0', 'weekly'),
+    url('/classement', '0.9', 'weekly'),
+    url('/regions', '0.8', 'weekly'),
+    url('/methodologie', '0.5', 'monthly'),
+    ...regionCodes.map((c) => url(`/region/${c}`, '0.8', 'weekly')),
+    ...codes.map((c) => url(`/departement/${c}`, '0.8', 'weekly')),
+  ];
+
+  const hubs: UrlSitemap[] = [
+    ...codes.map((c) => url(`/palmares/securite/${c}`, '0.7', 'monthly')),
+    ...codes.map((c) => url(`/palmares/prix/${c}`, '0.7', 'monthly')),
+    ...autourSlugs.map((s) => url(`/palmares/autour/${s}`, '0.7', 'monthly')),
+  ];
+
+  const villeUrl = (
+    v: { slug: string },
+    priority: string,
+    changefreq: 'weekly' | 'monthly',
+  ): UrlSitemap => url(`/ville/${v.slug}`, priority, changefreq);
+
+  const grandes = villes
+    .filter((v) => v.population >= POP_GRANDE_VILLE)
+    .map((v) => villeUrl(v, '0.9', 'weekly'));
+  const moyennes = villes
+    .filter((v) => v.population >= POP_VILLE_MOYENNE && v.population < POP_GRANDE_VILLE)
+    .map((v) => villeUrl(v, '0.6', 'monthly'));
+  const petites = villes
+    .filter((v) => v.population < POP_VILLE_MOYENNE)
+    .map((v) => villeUrl(v, '0.3', 'monthly'));
+
+  const bruts: { nom: string; urls: UrlSitemap[] }[] = [
+    { nom: 'sitemap-pages', urls: pagesFixes },
+    { nom: 'sitemap-grandes-villes', urls: grandes },
+    { nom: 'sitemap-villes-moyennes', urls: moyennes },
+    { nom: 'sitemap-communes', urls: petites },
+    { nom: 'sitemap-hubs', urls: hubs },
+  ];
+
+  // Scinde les segments trop gros ; ignore les segments vides (un sitemap sans
+  // URL est invalide).
+  const segments: SegmentSitemap[] = [];
+  for (const { nom, urls } of bruts) {
+    if (urls.length === 0) continue;
+    const nbFichiers = Math.ceil(urls.length / MAX_URLS_PAR_FICHIER);
+    for (let i = 0; i < nbFichiers; i++) {
+      segments.push({
+        fichier: nbFichiers === 1 ? `${nom}.xml` : `${nom}-${i + 1}.xml`,
+        urls: urls.slice(i * MAX_URLS_PAR_FICHIER, (i + 1) * MAX_URLS_PAR_FICHIER),
+      });
+    }
+  }
+  return segments;
 }
 
-async function emitSitemap(
-  file: string,
-  base: string,
-  codes: string[],
-  regionCodes: string[],
-  villeSlugs: string[],
-  autourSlugs: string[],
-  gen: string,
-): Promise<void> {
-  const urls = urlsSitemap(base, { codes, regionCodes, villeSlugs, autourSlugs })
-    .map((loc) => `  <url><loc>${loc}</loc><lastmod>${gen}</lastmod></url>`)
+/** Toutes les URLs de pages du sitemap, tous segments confondus. */
+export function urlsSitemap(base: string, pages: PagesSitemap): string[] {
+  return segmentsSitemap(base, pages).flatMap((s) => s.urls.map((u) => u.loc));
+}
+
+const echappe = (s: string): string => s.replace(/&/g, '&amp;');
+
+export function xmlUrlset(urls: readonly UrlSitemap[], gen: string): string {
+  const corps = urls
+    .map(
+      (u) =>
+        `  <url><loc>${echappe(u.loc)}</loc><lastmod>${gen}</lastmod>` +
+        `<changefreq>${u.changefreq}</changefreq><priority>${u.priority}</priority></url>`,
+    )
     .join('\n');
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
-  await writeFile(file, xml, 'utf8');
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${corps}\n</urlset>\n`;
+}
+
+export function xmlSitemapIndex(base: string, fichiers: readonly string[], gen: string): string {
+  const root = base.replace(/\/$/, '');
+  const corps = fichiers
+    .map((f) => `  <sitemap><loc>${root}/${f}</loc><lastmod>${gen}</lastmod></sitemap>`)
+    .join('\n');
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${corps}\n</sitemapindex>\n`;
+}
+
+/**
+ * Écrit `sitemap.xml` (index) et un fichier par segment, à la racine publique.
+ * Les anciens segments d'un run précédent sont supprimés : sans ça, un
+ * `sitemap-communes-2.xml` devenu inutile resterait servi et référencerait des
+ * URLs que l'index ne déclare plus.
+ */
+async function emitSitemap(
+  racinePublique: string,
+  base: string,
+  pages: PagesSitemap,
+  gen: string,
+): Promise<string[]> {
+  for (const f of await readdir(racinePublique)) {
+    if (/^sitemap-.*\.xml$/.test(f)) await rm(path.join(racinePublique, f), { force: true });
+  }
+
+  const segments = segmentsSitemap(base, pages);
+  for (const segment of segments) {
+    await writeFile(
+      path.join(racinePublique, segment.fichier),
+      xmlUrlset(segment.urls, gen),
+      'utf8',
+    );
+  }
+  await writeFile(
+    path.join(racinePublique, 'sitemap.xml'),
+    xmlSitemapIndex(base, segments.map((s) => s.fichier), gen),
+    'utf8',
+  );
+  return segments.map((s) => s.fichier);
 }
 
 export async function emitAll(
@@ -276,18 +405,22 @@ export async function emitAll(
   await writeFile(path.join(outDir, 'geo-light.json'), JSON.stringify(geoLight), 'utf8');
 
   // ── sitemap.xml (à la racine publique, pas dans data/) ──
-  // Pages statiques + régions + départements + hubs palmarès + 1 URL par
-  // commune prérendue (seuil `prerenderMinPopulation`, à 0 → toutes).
-  // Toutes les URLs portent un slash final (cf. emitSitemap).
-  await emitSitemap(
-    path.join(outDir, '..', 'sitemap.xml'),
+  // Index + sous-sitemaps segmentés par nature de page et taille de commune
+  // (cf. segmentsSitemap). Toutes les URLs portent un slash final.
+  const fichiersSitemap = await emitSitemap(
+    path.join(outDir, '..'),
     siteBaseUrl,
-    codes,
-    regionsFile.items.map((r) => r.code),
-    communes.filter((c) => c.population >= sitemapVillesMinPop).map((c) => c.slug),
-    communes.filter((c) => c.population >= hubAutourMinPop).map((c) => c.slug),
+    {
+      codes,
+      regionCodes: regionsFile.items.map((r) => r.code),
+      villes: communes
+        .filter((c) => c.population >= sitemapVillesMinPop)
+        .map((c) => ({ slug: c.slug, population: c.population })),
+      autourSlugs: communes.filter((c) => c.population >= hubAutourMinPop).map((c) => c.slug),
+    },
     gen,
   );
+  console.log(`  · sitemap : index + ${fichiersSitemap.length} segment(s) — ${fichiersSitemap.join(', ')}`);
 
   const indexGzipBytes = Number(
     execSync(`gzip -c ${JSON.stringify(indexPath)} | wc -c`).toString().trim(),

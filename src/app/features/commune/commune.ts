@@ -7,7 +7,7 @@ import { fmtDateFr } from '../../core/format';
 import { AnalyticsService } from '../../core/services/analytics.service';
 import { AuthService } from '../../core/services/auth.service';
 import { AvisService } from '../../core/services/avis.service';
-import { schemaBreadcrumb, schemaPlace, type Miette } from '../../core/seo/schemas';
+import { schemaBreadcrumb, schemaFaq, schemaPlace, type Miette } from '../../core/seo/schemas';
 import { CommuneDataService } from '../../core/services/commune-data.service';
 import { JsonLdService } from '../../core/services/json-ld.service';
 import { MetaService } from '../../core/services/meta.service';
@@ -19,7 +19,13 @@ import { ProfilPicker } from '../../shared/profil-picker/profil-picker';
 import { ScoreBadge } from '../../shared/score-badge/score-badge';
 import { CommuneAvisForm } from './commune-avis/commune-avis-form';
 import { CommuneAvisList } from './commune-avis/commune-avis-list';
-import { dvfTrendPct, filtrerBassinVoisinage, nearestCommunes } from './commune-insights';
+import {
+  dvfTrendPct,
+  filtrerBassinVoisinage,
+  libellePeriodeDvf,
+  nearestCommunes,
+} from './commune-insights';
+import { genereFaqCommune } from './commune-faq';
 import { genereTexteCommune } from './commune-texte';
 
 /** Seuil des pages « Où vivre autour de {ville} » — aligné sur
@@ -155,6 +161,16 @@ export class Commune {
     return c && f ? genereTexteCommune(c, f.communes, this.depNom()) : null;
   });
 
+  // FAQ générée depuis les mêmes données que la prose (commune-contexte.ts
+  // garantit qu'elles ne peuvent pas se contredire). Affichée dans un
+  // accordéon ET balisée en JSON-LD FAQPage : le balisage ne doit jamais
+  // décrire autre chose que ce qui est à l'écran.
+  protected readonly faq = computed(() => {
+    const c = this.commune();
+    const f = this.#commune.depFile();
+    return c && f ? genereFaqCommune(c, f.communes, this.depNom()) : [];
+  });
+
   /** Grande ville → lien vers son hub « Où vivre autour de {ville} ». */
   protected readonly aHubAutour = computed(
     () => (this.commune()?.population ?? 0) >= HUB_AUTOUR_MIN_POP,
@@ -166,13 +182,11 @@ export class Commune {
     const p = this.prix();
     return p ? dvfTrendPct(p.histo) : null;
   });
-  /** Libellé humain de la période DVF ("2025-S2" → "2ᵉ semestre 2025"). */
+  /** Libellé humain de la période DVF ("2025-S2" → "2ᵉ semestre 2025").
+   *  Helper partagé avec la FAQ (commune-insights) : une seule formulation. */
   protected readonly prixPeriode = computed(() => {
     const p = this.prix();
-    if (!p) return '';
-    const m = /^(\d{4})-S([12])$/.exec(p.periode);
-    if (m) return `${m[2]}${m[2] === '1' ? 'ᵉʳ' : 'ᵉ'} semestre ${m[1]}`;
-    return p.periode;
+    return p ? libellePeriodeDvf(p.periode) : '';
   });
   /** Détail entre parenthèses (« Médiane des ventes (…) ») : période et/ou
    *  nombre de ventes, sans virgule orpheline quand l'un des deux est absent. */
@@ -321,7 +335,12 @@ export class Commune {
           ...(mere ? [{ nom: mere.nom, path: `/ville/${mere.slug}` }] : []),
           { nom: s.nom },
         ];
-        this.#jsonLd.set([schemaBreadcrumb(miettes), schemaPlace(s, this.depNom())]);
+        const faq = schemaFaq(this.faq());
+        this.#jsonLd.set(
+          [schemaBreadcrumb(miettes), schemaPlace(s, this.depNom()), faq].filter(
+            (x): x is object => x !== null,
+          ),
+        );
       }
     });
   }

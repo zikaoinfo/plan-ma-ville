@@ -1,6 +1,20 @@
 import { fmtEntier, fmtNote } from '../../core/format';
-import { CRITERE_LABELS, type CommuneDetail, type Critere } from '../../core/models/data.models';
-import { dvfTrendPct, filtrerBassinVoisinage } from './commune-insights';
+import { CRITERE_LABELS, type CommuneDetail } from '../../core/models/data.models';
+import {
+  categorieTaille,
+  contexteDepartemental,
+  label,
+  pointFaible,
+  pointsForts,
+  qualificatif,
+  rangOrdinal,
+  variante,
+} from './commune-contexte';
+import { dvfTrendPct } from './commune-insights';
+
+// Réexportés : `commune-contexte.ts` est le module de référence, mais ces deux
+// helpers font partie de l'API historique de commune-texte (specs, usages).
+export { categorieTaille, qualificatif };
 
 /**
  * Génération du texte éditorial des fiches communes — 100 % dérivé des
@@ -16,96 +30,6 @@ export interface TexteCommune {
   /** Sections « Vivre à {ville} » (h2 + paragraphe). */
   sections: { titre: string; texte: string }[];
 }
-
-// ── Aléa déterministe ─────────────────────────
-/** Hash 32 bits stable (dérivé de cyrb53, suffisant pour choisir une variante). */
-function hash(str: string): number {
-  let h = 0x811c9dc5;
-  for (let i = 0; i < str.length; i++) {
-    h ^= str.charCodeAt(i);
-    h = Math.imul(h, 0x01000193);
-  }
-  return h >>> 0;
-}
-
-/** Variante déterministe : même (INSEE, slot) → toujours la même tournure. */
-function variante(insee: string, slot: string, options: readonly string[]): string {
-  return options[hash(`${insee}:${slot}`) % options.length];
-}
-
-/** Qualificatif d'une note /10 (registre neutre, factuel). */
-export function qualificatif(note: number): string {
-  if (note >= 8) return 'excellente';
-  if (note >= 6.5) return 'bonne';
-  if (note >= 5) return 'moyenne';
-  if (note >= 3.5) return 'en retrait';
-  return 'faible';
-}
-
-/** Catégorie de taille (pour adapter les formulations). */
-export function categorieTaille(pop: number): string {
-  if (pop < 2000) return 'village';
-  if (pop < 20000) return 'petite ville';
-  if (pop < 100000) return 'ville moyenne';
-  return 'grande ville';
-}
-
-// ── Dérivations départementales ───────────────
-interface Contexte {
-  rang: number;
-  total: number;
-  moyennesDep: Record<Critere, number>;
-  /** Médiane départementale du prix m² (communes couvertes par DVF). */
-  prixMedianDep: number | null;
-  /** Nombre de communes EXTERNES utilisées pour moyennesDep/prixMedianDep. */
-  nbExternes: number;
-}
-
-/**
- * Communes de comparaison EXTERNES à `commune` : jamais elle-même, ni sa
- * famille (commune mère / arrondissements — cf. Paris/Lyon/Marseille, dont le
- * département ne contient quasiment que la ville et ses propres
- * arrondissements). Sans cette exclusion, comparer Paris à « la moyenne du
- * département » revient à la comparer en grande partie à elle-même.
- */
-function contexteDepartemental(commune: CommuneDetail, deps: readonly CommuneDetail[]): Contexte {
-  const tri = [...deps].sort((a, b) => b.score.global - a.score.global);
-  const rang = tri.findIndex((c) => c.slug === commune.slug) + 1;
-
-  const externes = filtrerBassinVoisinage(commune, deps).filter((c) => c.slug !== commune.slug);
-
-  const moyennesDep = {} as Record<Critere, number>;
-  for (const critere of Object.keys(CRITERE_LABELS) as Critere[]) {
-    const somme = externes.reduce((acc, c) => acc + c.score.criteres[critere], 0);
-    moyennesDep[critere] = externes.length ? somme / externes.length : 0;
-  }
-
-  const prix = externes
-    .map((c) => c.prix?.m2)
-    .filter((v): v is number => v !== undefined)
-    .sort((a, b) => a - b);
-  const prixMedianDep = prix.length ? prix[Math.floor(prix.length / 2)] : null;
-
-  return { rang, total: deps.length, moyennesDep, prixMedianDep, nbExternes: externes.length };
-}
-
-/** Les 2 critères les mieux notés (ordre décroissant, départagés par label). */
-function pointsForts(commune: CommuneDetail): [Critere, Critere] {
-  const tri = (Object.keys(CRITERE_LABELS) as Critere[]).sort(
-    (a, b) =>
-      commune.score.criteres[b] - commune.score.criteres[a] ||
-      CRITERE_LABELS[a].localeCompare(CRITERE_LABELS[b]),
-  );
-  return [tri[0], tri[1]];
-}
-
-function pointFaible(commune: CommuneDetail): Critere {
-  return (Object.keys(CRITERE_LABELS) as Critere[]).reduce((min, c) =>
-    commune.score.criteres[c] < commune.score.criteres[min] ? c : min,
-  );
-}
-
-const label = (c: Critere): string => CRITERE_LABELS[c].toLowerCase();
 
 // ── Génération ────────────────────────────────
 export function genereTexteCommune(
@@ -124,7 +48,7 @@ export function genereTexteCommune(
   const verbe = variante(insee, 'verbe', ['obtient', 'affiche', 'décroche']);
   const rangTxt =
     ctx.rang > 0 && ctx.total > 1
-      ? ` et se classe ${ctx.rang === 1 ? '1ʳᵉ' : `${fmtEntier(ctx.rang)}ᵉ`} sur ${fmtEntier(ctx.total)} communes ${variante(insee, 'dep', ['du département', 'dans le département'])} (${depNom})`
+      ? ` et se classe ${rangOrdinal(ctx.rang, fmtEntier)} sur ${fmtEntier(ctx.total)} communes ${variante(insee, 'dep', ['du département', 'dans le département'])} (${depNom})`
       : '';
   const prixTxt = commune.prix
     ? ` Le prix médian y est de ${fmtEntier(commune.prix.m2)} €/m².`
