@@ -133,14 +133,18 @@ export interface CsvOptions {
  * sur le disque, puis renvoie le chemin local. Le parsing (streaming ou sync)
  * lit ensuite ce fichier — mémoire maîtrisée même pour les gros fichiers.
  */
-export async function ensureCsv(name: string, spec: SourceSpec, cacheDir: string): Promise<string> {
-  const csvPath = path.join(cacheDir, `${name}.csv`);
-
-  if (existsSync(csvPath)) {
-    const age = Date.now() - (await stat(csvPath)).mtimeMs;
-    if (age < MAX_CACHE_AGE_MS) return csvPath;
+/**
+ * Télécharge la source brute (avec reprise), en réutilisant le cache disque
+ * `.cache/{name}.bin` s'il a moins de 30 jours. Partagé par `ensureCsv` et
+ * `forEachJsonDoc` : deux sources ne doivent pas retélécharger la même
+ * archive.
+ */
+async function telecharge(name: string, spec: SourceSpec, cacheDir: string): Promise<Buffer> {
+  const brutPath = path.join(cacheDir, `${name}.bin`);
+  if (existsSync(brutPath)) {
+    const age = Date.now() - (await stat(brutPath)).mtimeMs;
+    if (age < MAX_CACHE_AGE_MS) return readFile(brutPath);
   }
-
   const url = await resolveUrl(name, spec);
   // fetch + lecture du corps DANS la reprise : les coupures serveur arrivent
   // aussi bien à la connexion qu'en plein téléchargement.
@@ -151,6 +155,20 @@ export async function ensureCsv(name: string, spec: SourceSpec, cacheDir: string
     }
     return Buffer.from(await response.arrayBuffer());
   });
+  await mkdir(cacheDir, { recursive: true });
+  await writeFile(brutPath, raw);
+  return raw;
+}
+
+export async function ensureCsv(name: string, spec: SourceSpec, cacheDir: string): Promise<string> {
+  const csvPath = path.join(cacheDir, `${name}.csv`);
+
+  if (existsSync(csvPath)) {
+    const age = Date.now() - (await stat(csvPath)).mtimeMs;
+    if (age < MAX_CACHE_AGE_MS) return csvPath;
+  }
+
+  const raw = await telecharge(name, spec, cacheDir);
   const csv = decompress(raw, spec, name);
 
   await mkdir(cacheDir, { recursive: true });
@@ -176,6 +194,54 @@ function decompress(raw: Buffer, spec: SourceSpec, name: string): Buffer {
     return entree.getData();
   }
   return raw;
+}
+
+/**
+ * Parcourt les documents JSON d'une source : chaque entrée `.json` d'une
+ * archive zip (motif `spec.entry`, `\.json$` par défaut), ou le fichier seul
+ * s'il n'est pas archivé.
+ *
+ * Les documents sont parsés et relâchés UN PAR UN : l'annuaire DILA pèse
+ * plusieurs centaines de Mo une fois décompressé, tout garder en mémoire
+ * ferait tomber le run CI. Le rappel doit donc extraire ce qui l'intéresse
+ * sans conserver de référence sur le document.
+ *
+ * Une entrée illisible (JSON tronqué) est signalée et ignorée plutôt que de
+ * faire échouer toute la source.
+ */
+export async function forEachJsonDoc(
+  name: string,
+  spec: SourceSpec,
+  cacheDir: string,
+  onDoc: (doc: unknown, entree: string) => void,
+): Promise<number> {
+  const raw = await telecharge(name, spec, cacheDir);
+  let lus = 0;
+
+  const parse = (buf: Buffer, entree: string) => {
+    try {
+      onDoc(JSON.parse(buf.toString('utf8')), entree);
+      lus++;
+    } catch (err) {
+      console.warn(`  ⚠ ${name} : entrée ${entree} illisible (${(err as Error).message})`);
+    }
+  };
+
+  if (raw.length >= 2 && raw[0] === 0x50 && raw[1] === 0x4b) {
+    const zip = new AdmZip(raw);
+    const motif = spec.entry ? new RegExp(spec.entry, 'i') : /\.json$/i;
+    const entrees = zip.getEntries().filter((e) => !e.isDirectory && motif.test(e.entryName));
+    if (entrees.length === 0) {
+      const dispo = zip.getEntries().slice(0, 20).map((e) => e.entryName).join(', ');
+      throw new Error(`Source "${name}" — aucune entrée /${motif.source}/ dans le zip (contient : ${dispo}…)`);
+    }
+    for (const e of entrees) parse(e.getData(), e.entryName);
+    return lus;
+  }
+
+  const brut = raw.length >= 2 && raw[0] === 0x1f && raw[1] === 0x8b ? gunzipSync(raw) : raw;
+  parse(brut, name);
+  return lus;
 }
 
 /**

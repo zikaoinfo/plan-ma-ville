@@ -310,6 +310,7 @@ export async function emitAll(
         ...(c.lat !== undefined && c.lon !== undefined ? { lat: c.lat, lon: c.lon } : {}),
         ...(c.prix ? { prix: c.prix } : {}),
         ...(c.demographie ? { demographie: c.demographie } : {}),
+        ...(c.mairie ? { mairie: c.mairie } : {}),
         ...(c.estArrondissement ? { estArrondissement: true } : {}),
         ...(c.communeMere ? { communeMere: c.communeMere } : {}),
         ...(c.arrondissements ? { arrondissements: c.arrondissements } : {}),

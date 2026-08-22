@@ -29,5 +29,12 @@
     "resource": "commune",
     "resourceExclude": "region|departement|epci|arrondissement-departemental",
     "_note": "Colonnes P{mil}_POP0014… / C{mil}_POP15P_CS1… — le millésime est détecté dans les en-têtes (cf. fetch/demographie.ts). À CONFIRMER par l'inventaire du job CI « Validate open data »."
+  },
+  "mairie": {
+    "dataset": "service-public-gouv-fr-annuaire-de-ladministration-base-de-donnees-locales",
+    "format": "json",
+    "resource": "local",
+    "entry": "\\.json$",
+    "_note": "Flux JSON DILA (imbriqué). Le parser est TOLÉRANT (reconnaissance par traits : code INSEE + marqueur « mairie ») car la structure exacte n'a pas pu être inspectée hors CI — cf. fetch/mairie.ts. À resserrer une fois l'inventaire du job CI observé."
   }
 }

@@ -13,6 +13,7 @@ import { fetchCommunes } from './fetch/geo.js';
 import { fetchBpe } from './fetch/bpe.js';
 import { fetchDvf } from './fetch/dvf.js';
 import { fetchDemographie } from './fetch/demographie.js';
+import { fetchMairies } from './fetch/mairie.js';
 import { fetchSecurite } from './fetch/securite.js';
 import { fetchFilosofi } from './fetch/filosofi.js';
 import { communeParent, estArrondissement } from './fetch/insee-code.js';
@@ -46,6 +47,7 @@ interface SourcesConfig {
   filosofi: SourceSpec;
   dvf: SourceSpec;
   demographie: SourceSpec;
+  mairie: SourceSpec;
 }
 
 /**
@@ -215,7 +217,7 @@ async function main(): Promise<void> {
   }
 
   console.log('▸ Téléchargement des sources open data (BPE, SSMSI, Filosofi, DVF, démographie)…');
-  const [bpe, securite, filosofi, dvf, demographie] = await Promise.all([
+  const [bpe, securite, filosofi, dvf, demographie, mairies] = await Promise.all([
     fetchOrWarn('BPE', () => fetchBpe(sources.bpe, cacheDir), new Map()),
     fetchOrWarn(
       'SSMSI',
@@ -227,6 +229,8 @@ async function main(): Promise<void> {
     // La démographie n'alimente AUCUNE note : elle est affichée telle quelle.
     // Son absence retire donc simplement un bloc de la fiche.
     fetchOrWarn('Démographie', () => fetchDemographie(sources.demographie, cacheDir), new Map()),
+    // Idem : purement informatif, aucune note n'en dépend.
+    fetchOrWarn('Mairies', () => fetchMairies(sources.mairie, cacheDir), new Map()),
   ]);
   const maps: DataMaps = { bpe, securite: securite.map, filosofi };
   const couverture = {
@@ -235,6 +239,7 @@ async function main(): Promise<void> {
     filosofi: retenues.filter((c) => filosofi.has(c.codeInsee)).length,
     dvf: retenues.filter((c) => dvf.has(c.codeInsee)).length,
     demographie: retenues.filter((c) => demographie.has(c.codeInsee)).length,
+    mairie: retenues.filter((c) => mairies.has(c.codeInsee)).length,
   };
 
   console.log(`▸ Scoring de ${retenues.length} communes (rang percentile national)…`);
@@ -247,6 +252,7 @@ async function main(): Promise<void> {
     const criteres = notesParCommune.get(c.codeInsee)!;
     const prix = dvf.get(c.codeInsee);
     const demo = demographie.get(c.codeInsee);
+    const mairie = mairies.get(c.codeInsee);
     return {
       slug: slugify(c.nom, c.codeInsee),
       nom: c.nom,
@@ -256,6 +262,7 @@ async function main(): Promise<void> {
       ...(c.lat !== undefined && c.lon !== undefined ? { lat: c.lat, lon: c.lon } : {}),
       ...(prix ? { prix } : {}),
       ...(demo ? { demographie: demo } : {}),
+      ...(mairie ? { mairie } : {}),
       codeDepartement: c.codeDepartement,
       score: {
         source: 'computed',
