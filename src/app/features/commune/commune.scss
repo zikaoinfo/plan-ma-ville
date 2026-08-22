@@ -188,6 +188,7 @@
     'faq    faq'
     'arr    arr'
     'near   near'
+    'mairie mairie'
     'demo   demo'
     'rangs  rangs'
     'simil  simil'
@@ -205,6 +206,7 @@
     'faq    faq'
     'arr    arr'
     'near   near'
+    'mairie mairie'
     'demo   demo'
     'rangs  rangs'
     'simil  simil'
@@ -317,6 +319,32 @@
   font-weight: 400;
   font-size: 0.8rem;
   color: var(--ink-soft);
+}
+
+.card--mairie {
+  grid-area: mairie;
+}
+
+.mairie__liste {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.35rem 1rem;
+  margin: 0.8rem 0 0;
+
+  dt {
+    color: var(--ink-soft);
+    font-size: 0.85rem;
+  }
+
+  dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  a {
+    color: var(--accent-text);
+    font-weight: 600;
+  }
 }
 
 .card--demo {
@@ -853,6 +881,7 @@
       'faq'
       'arr'
       'near'
+      'mairie'
       'demo'
       'rangs'
       'simil'
@@ -869,6 +898,7 @@
       'faq'
       'arr'
       'near'
+      'mairie'
       'demo'
       'rangs'
       'simil'

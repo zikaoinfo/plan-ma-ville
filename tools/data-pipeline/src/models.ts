@@ -113,6 +113,8 @@ export interface CommuneDetail {
   score: CommuneScore;
   /** Prix immobilier réel DVF (absent : pas de ventes / hors couverture). */
   prix?: PrixM2;
+  /** Coordonnées de la mairie (annuaire service-public.fr) — si publiées. */
+  mairie?: Mairie;
   /** Démographie INSEE (pyramide des âges, sexe, CSP) — absente si non publiée. */
   demographie?: Demographie;
   /** Rangs national / départemental / par strate (cf. `Classements`). */
@@ -169,6 +171,19 @@ export interface ArrondissementResume {
  * Couverture : France sauf Alsace, Moselle, Mayotte (livre foncier local) ;
  * médiane absente quand trop peu de ventes sur la période.
  */
+/**
+ * Coordonnées officielles de la mairie (annuaire DILA / service-public.fr).
+ * Tous les champs sont facultatifs : le flux ne renseigne pas toujours les
+ * trois, et on préfère afficher ce qui existe plutôt que rien.
+ */
+export interface Mairie {
+  nom?: string;
+  /** Adresse postale recomposée sur une ligne. */
+  adresse?: string;
+  /** URL du site officiel (http/https uniquement). */
+  url?: string;
+}
+
 /**
  * Démographie communale (INSEE, recensement). Effectifs, pas pourcentages :
  * l'affichage calcule les parts, ce qui évite de stocker deux fois la même

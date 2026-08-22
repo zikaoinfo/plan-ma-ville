@@ -238,6 +238,30 @@
           </section>
         }
 
+        <!-- Mairie : donnée factuelle unique par commune (annuaire DILA). -->
+        @if (mairie(); as m) {
+          <section class="card card--mairie" aria-labelledby="mairie-titre">
+            <h2 class="card__title" id="mairie-titre">Mairie de {{ c.nom }}</h2>
+            <dl class="mairie__liste">
+              @if (m.adresse) {
+                <dt>Adresse</dt>
+                <dd>{{ m.adresse }}</dd>
+              }
+              @if (m.url) {
+                <dt>Site officiel</dt>
+                <dd>
+                  <!-- Lien sortant vers un site tiers : rel=noopener pour ne
+                       pas exposer notre contexte de navigation. -->
+                  <a [href]="m.url" target="_blank" rel="noopener noreferrer external">
+                    {{ m.url }}
+                  </a>
+                </dd>
+              }
+            </dl>
+            <p class="estimate-note">Source : annuaire de l'administration (service-public.fr)</p>
+          </section>
+        }
+
         <!-- Population : effectifs INSEE (recensement). Les pourcentages sont
              calculés à l'affichage, jamais stockés en double. -->
         @if (demographie(); as d) {

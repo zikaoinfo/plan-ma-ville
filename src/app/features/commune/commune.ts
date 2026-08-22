@@ -164,6 +164,9 @@ export class Commune {
     return c && f ? genereTexteCommune(c, f.communes, this.depNom()) : null;
   });
 
+  /** Coordonnées officielles de la mairie (annuaire service-public.fr). */
+  protected readonly mairie = computed(() => this.commune()?.mairie ?? null);
+
   /**
    * Bloc « Population » : pyramide des âges, sexes, CSP (INSEE, recensement).
    * `null` quand la source ne couvre pas la commune — le bloc disparaît alors
