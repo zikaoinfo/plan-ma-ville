@@ -321,6 +321,18 @@
   color: var(--ink-soft);
 }
 
+/* Rappel de méthode sous la prose : signal de rigueur, présent sur chaque
+   fiche (cf. features/methodologie/methodologie-chiffres.ts). */
+.texte__methode {
+  margin: 1.2rem 0 0;
+  padding: 0.7rem 0.9rem;
+  border-left: 3px solid var(--accent);
+  background: var(--paper-soft);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
 .card--mairie {
   grid-area: mairie;
 }

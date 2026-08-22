@@ -5,6 +5,12 @@ import { POIDS_OFFICIELS } from '../../core/ponderation';
 import { schemaDataset } from '../../core/seo/schemas';
 import { JsonLdService } from '../../core/services/json-ld.service';
 import { MetaService } from '../../core/services/meta.service';
+import {
+  NB_CRITERES,
+  NB_SOURCES,
+  NB_SOURCES_NOTE,
+  SOURCES,
+} from './methodologie-chiffres';
 
 @Component({
   selector: 'app-methodologie',
@@ -20,6 +26,12 @@ export class Methodologie {
   protected readonly labels = CRITERE_LABELS;
   /** Source de vérité unique (core/ponderation) — plus de copie locale. */
   protected readonly ponderations = POIDS_OFFICIELS;
+
+  /** Chiffres et tableau des sources : dérivés, jamais recopiés en gabarit. */
+  protected readonly sources = SOURCES;
+  protected readonly nbCriteres = NB_CRITERES;
+  protected readonly nbSources = NB_SOURCES;
+  protected readonly nbSourcesNote = NB_SOURCES_NOTE;
 
   readonly #jsonLd = inject(JsonLdService);
 

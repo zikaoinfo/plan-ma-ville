@@ -28,6 +28,7 @@ import {
 } from './commune-insights';
 import { lignesClassement } from './commune-classements';
 import { blocDemographie } from './commune-demographie';
+import { RAPPEL_METHODE } from '../methodologie/methodologie-chiffres';
 import { genereFaqCommune } from './commune-faq';
 import { genereTexteCommune } from './commune-texte';
 
@@ -163,6 +164,9 @@ export class Commune {
     const f = this.#commune.depFile();
     return c && f ? genereTexteCommune(c, f.communes, this.depNom()) : null;
   });
+
+  /** Rappel de méthode, source unique partagée avec /methodologie. */
+  protected readonly rappelMethode = RAPPEL_METHODE;
 
   /** Coordonnées officielles de la mairie (annuaire service-public.fr). */
   protected readonly mairie = computed(() => this.commune()?.mairie ?? null);
