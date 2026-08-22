@@ -21,6 +21,28 @@ export function dvfTrendPct(histo: readonly { p: string; v: number }[]): number 
   return Math.round(((dernier.v - reference.v) / reference.v) * 1000) / 10;
 }
 
+/**
+ * Libellé humain d'une période DVF : « 2025-S2 » → « 2ᵉ semestre 2025 »,
+ * « 2025-12 » → « décembre 2025 ». Retourne la valeur brute si le format
+ * n'est pas reconnu (jamais d'invention). Partagé par la fiche et la FAQ :
+ * un code de période brut dans une phrase se lit mal.
+ */
+const MOIS_FR = [
+  'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+  'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
+];
+
+export function libellePeriodeDvf(periode: string): string {
+  const semestre = /^(\d{4})-S([12])$/.exec(periode);
+  if (semestre) return `${semestre[2]}${semestre[2] === '1' ? 'ᵉʳ' : 'ᵉ'} semestre ${semestre[1]}`;
+  const mois = /^(\d{4})-(\d{2})$/.exec(periode);
+  if (mois) {
+    const nom = MOIS_FR[Number(mois[2]) - 1];
+    if (nom) return `${nom} ${mois[1]}`;
+  }
+  return periode;
+}
+
 // ── Voisinage géographique ──
 const R_TERRE_KM = 6371;
 

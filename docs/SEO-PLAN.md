@@ -65,8 +65,16 @@
 - [x] `BreadcrumbList` (Accueil › Région › Département › Ville) — rich result
       encore actif. `Place` + geo sur les fiches. `ItemList` sur classements
       et hubs. `Dataset` sur la méthodologie.
-- [x] ❌ Pas de FAQPage ni d'AggregateRating (cf. contexte 2-3). AggregateRating
-      à reconsidérer si les avis Supabase décollent (note visible sur la page).
+- [x] `FAQPage` sur les fiches communes (ajouté en phase 2, août 2026).
+      **Révision assumée du « pas de FAQPage » ci-dessus** : la décision
+      initiale visait les rich results, effectivement morts — n'en attendre
+      AUCUN gain de SERP. Le balisage est posé pour les moteurs de réponse et
+      assistants, qui consomment le JSON-LD comme forme structurée du contenu.
+      Condition non négociable : les Q/R balisées sont EXACTEMENT celles
+      affichées dans l'accordéon (même source, `commune-faq.ts`) — du FAQPage
+      sans contenu visible correspondant est du spam structuré.
+- [x] ❌ Pas d'AggregateRating (cf. contexte 3) — à reconsidérer si les avis
+      Supabase décollent (note visible sur la page).
 
 ### P4 — Hubs longue traîne (M) — ✅ FAIT
 - [x] Pages prerendues à intention : « Villes les plus sûres du {dép} »,

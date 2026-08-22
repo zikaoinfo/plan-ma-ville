@@ -6,6 +6,33 @@ import { readdirSync, readFileSync } from 'node:fs';
 
 const SITE = 'https://planmaville.fr';
 
+/**
+ * Extrait les URLs de pages d'un sitemap, qu'il s'agisse d'un `<urlset>`
+ * (URLs directes) ou d'un `<sitemapindex>` (il faut alors télécharger chaque
+ * sous-sitemap). Un sous-sitemap injoignable est signalé sans faire échouer
+ * le run : IndexNow est best-effort.
+ */
+async function resoudreSitemap(xml) {
+  const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1].trim());
+  if (!/<sitemapindex/i.test(xml)) return locs;
+
+  const pages = [];
+  for (const sousSitemap of locs) {
+    try {
+      const res = await fetch(sousSitemap, { signal: AbortSignal.timeout(15000) });
+      if (!res.ok) {
+        console.warn(`::warning::IndexNow : ${sousSitemap} a répondu ${res.status}, segment ignoré.`);
+        continue;
+      }
+      const contenu = await res.text();
+      pages.push(...[...contenu.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1].trim()));
+    } catch (err) {
+      console.warn(`::warning::IndexNow : ${sousSitemap} injoignable (${err.message}), segment ignoré.`);
+    }
+  }
+  return pages;
+}
+
 const cle = readdirSync(new URL('../public/', import.meta.url))
   .find((f) => /^[0-9a-f]{32}\.txt$/.test(f))
   ?.replace(/\.txt$/, '');
@@ -30,7 +57,11 @@ if (!reponse.ok) {
   process.exit(0);
 }
 const xml = await reponse.text();
-const urls = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+// sitemap.xml est un INDEX depuis la segmentation (plan de croissance §4) :
+// ses <loc> pointent vers des sous-sitemaps, pas vers des pages. Sans ce
+// déréférencement, IndexNow se verrait soumettre 5 URLs de fichiers XML au
+// lieu des ~35 000 pages du site. Un urlset simple reste géré tel quel.
+const urls = await resoudreSitemap(xml);
 if (urls.length === 0) {
   console.warn('::warning::IndexNow ignoré : aucune URL dans le sitemap.');
   process.exit(0);
@@ -57,14 +88,23 @@ try {
   process.exit(0);
 }
 
-// L'API accepte jusqu'à 10 000 URLs par appel.
-const res = await fetch('https://api.indexnow.org/indexnow', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json; charset=utf-8' },
-  body: JSON.stringify({ host: 'planmaville.fr', key: cle, keyLocation, urlList: urls }),
-});
+// L'API plafonne à 10 000 URLs par appel : depuis que le sitemap couvre les
+// ~35 000 communes, un seul POST serait rejeté — on découpe en lots.
+const LOT = 10000;
+let res;
+for (let i = 0; i < urls.length; i += LOT) {
+  const lot = urls.slice(i, i + LOT);
+  res = await fetch('https://api.indexnow.org/indexnow', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json; charset=utf-8' },
+    body: JSON.stringify({ host: 'planmaville.fr', key: cle, keyLocation, urlList: lot }),
+  });
+  if (!(res.ok || res.status === 202)) break; // diagnostic ci-dessous
+}
 if (res.ok || res.status === 202) {
-  console.log(`✓ IndexNow : ${urls.length} URLs soumises → HTTP ${res.status}`);
+  console.log(
+    `✓ IndexNow : ${urls.length} URLs soumises en ${Math.ceil(urls.length / LOT)} lot(s) → HTTP ${res.status}`,
+  );
 } else {
   // Best-effort (Bing/Yandex uniquement — Google n'utilise pas IndexNow) :
   // un 403 sur domaine neuf est fréquent (clé pas encore validée côté moteur)
