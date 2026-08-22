@@ -309,6 +309,7 @@ export async function emitAll(
         population: c.population,
         ...(c.lat !== undefined && c.lon !== undefined ? { lat: c.lat, lon: c.lon } : {}),
         ...(c.prix ? { prix: c.prix } : {}),
+        ...(c.demographie ? { demographie: c.demographie } : {}),
         ...(c.estArrondissement ? { estArrondissement: true } : {}),
         ...(c.communeMere ? { communeMere: c.communeMere } : {}),
         ...(c.arrondissements ? { arrondissements: c.arrondissements } : {}),

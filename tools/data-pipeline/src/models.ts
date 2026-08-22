@@ -113,6 +113,8 @@ export interface CommuneDetail {
   score: CommuneScore;
   /** Prix immobilier réel DVF (absent : pas de ventes / hors couverture). */
   prix?: PrixM2;
+  /** Démographie INSEE (pyramide des âges, sexe, CSP) — absente si non publiée. */
+  demographie?: Demographie;
   /** Rangs national / départemental / par strate (cf. `Classements`). */
   classements?: Classements;
   /**
@@ -167,6 +169,24 @@ export interface ArrondissementResume {
  * Couverture : France sauf Alsace, Moselle, Mayotte (livre foncier local) ;
  * médiane absente quand trop peu de ventes sur la période.
  */
+/**
+ * Démographie communale (INSEE, recensement). Effectifs, pas pourcentages :
+ * l'affichage calcule les parts, ce qui évite de stocker deux fois la même
+ * information et de la voir diverger.
+ */
+export interface Demographie {
+  /** Millésime du recensement (ex. 2022). */
+  millesime: number;
+  /** Effectifs par tranche d'âge, 7 valeurs (0-14, 15-29, … 90+). */
+  ages: number[];
+  /** Population masculine (absente si non publiée). */
+  hommes?: number;
+  /** Population féminine. */
+  femmes?: number;
+  /** Effectifs par catégorie socioprofessionnelle, 8 valeurs (CS1 à CS8). */
+  csp?: number[];
+}
+
 /** Série de prix d'une variante de bien (maisons ou appartements seuls). */
 export interface PrixVariante {
   /** €/m² médian sur la dernière période disponible. */

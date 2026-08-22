@@ -27,6 +27,7 @@ import {
   nearestCommunes,
 } from './commune-insights';
 import { lignesClassement } from './commune-classements';
+import { blocDemographie } from './commune-demographie';
 import { genereFaqCommune } from './commune-faq';
 import { genereTexteCommune } from './commune-texte';
 
@@ -162,6 +163,13 @@ export class Commune {
     const f = this.#commune.depFile();
     return c && f ? genereTexteCommune(c, f.communes, this.depNom()) : null;
   });
+
+  /**
+   * Bloc « Population » : pyramide des âges, sexes, CSP (INSEE, recensement).
+   * `null` quand la source ne couvre pas la commune — le bloc disparaît alors
+   * plutôt que d'afficher une répartition vide.
+   */
+  protected readonly demographie = computed(() => blocDemographie(this.commune()?.demographie));
 
   /**
    * Classements national / départemental / par strate, lus dans les données
