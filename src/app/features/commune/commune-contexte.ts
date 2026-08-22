@@ -89,8 +89,17 @@ export function contexteDepartemental(
   commune: CommuneDetail,
   deps: readonly CommuneDetail[],
 ): Contexte {
-  const tri = [...deps].sort((a, b) => b.score.global - a.score.global);
-  const rang = tri.findIndex((c) => c.slug === commune.slug) + 1;
+  // Rang départemental : on lit celui calculé par le pipeline
+  // (`score/classements.ts`) plutôt que de le recalculer. C'est le même rang
+  // que celui affiché dans le bloc « Classements » — deux calculs parallèles
+  // finiraient par diverger (tri sans départage ici, avec là-bas) et la même
+  // fiche annoncerait deux rangs différents. Le repli couvre les données
+  // antérieures à ce champ et les fixtures de test.
+  const rang =
+    commune.classements?.departement ??
+    [...deps]
+      .sort((a, b) => b.score.global - a.score.global || (a.slug < b.slug ? -1 : 1))
+      .findIndex((c) => c.slug === commune.slug) + 1;
 
   const externes = filtrerBassinVoisinage(commune, deps).filter((c) => c.slug !== commune.slug);
 
@@ -106,7 +115,8 @@ export function contexteDepartemental(
     .sort((a, b) => a - b);
   const prixMedianDep = prix.length ? prix[Math.floor(prix.length / 2)] : null;
 
-  return { rang, total: deps.length, moyennesDep, prixMedianDep, nbExternes: externes.length };
+  const total = commune.classements?.departementTotal ?? deps.length;
+  return { rang, total, moyennesDep, prixMedianDep, nbExternes: externes.length };
 }
 
 // ── Points forts / faibles ────────────────────

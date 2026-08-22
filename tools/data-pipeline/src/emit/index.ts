@@ -14,6 +14,7 @@ import type {
 } from '../models.js';
 import { DEPARTEMENTS } from './departements.js';
 import { aggregateRegions, type DepAggregat } from './regions.js';
+import { calculeClassements } from '../score/classements.js';
 
 /** Commune scorée, prête à être émise. */
 export interface CommuneScoree extends CommuneDetail {
@@ -258,6 +259,12 @@ export async function emitAll(
   await rm(path.join(outDir, 'dep'), { recursive: true, force: true });
   await mkdir(path.join(outDir, 'dep'), { recursive: true });
 
+  // ── Classements national / département / strate ──
+  // Calculés UNE fois ici sur l'ensemble des communes, puis embarqués dans
+  // dep/{code}.json : l'application ne les recalcule pas (cf. le commentaire
+  // d'en-tête de score/classements.ts).
+  const classements = calculeClassements(communes);
+
   // ── index.json ────────────────────────────
   const items: SearchIndexItem[] = communes
     .map((c) => ({
@@ -305,6 +312,9 @@ export async function emitAll(
         ...(c.estArrondissement ? { estArrondissement: true } : {}),
         ...(c.communeMere ? { communeMere: c.communeMere } : {}),
         ...(c.arrondissements ? { arrondissements: c.arrondissements } : {}),
+        ...(classements.has(c.codeInsee)
+          ? { classements: classements.get(c.codeInsee) }
+          : {}),
         score: c.score,
       })),
     };

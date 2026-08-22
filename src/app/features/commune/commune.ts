@@ -26,6 +26,7 @@ import {
   libellePeriodeDvf,
   nearestCommunes,
 } from './commune-insights';
+import { lignesClassement } from './commune-classements';
 import { genereFaqCommune } from './commune-faq';
 import { genereTexteCommune } from './commune-texte';
 
@@ -160,6 +161,17 @@ export class Commune {
     const c = this.commune();
     const f = this.#commune.depFile();
     return c && f ? genereTexteCommune(c, f.communes, this.depNom()) : null;
+  });
+
+  /**
+   * Classements national / départemental / par strate, lus dans les données
+   * (le pipeline les calcule une fois pour tout le site). `null` tant que les
+   * données ne portent pas le champ : mieux vaut ne rien afficher qu'un rang
+   * recalculé côté client, qui contredirait la prose et la FAQ.
+   */
+  protected readonly classements = computed(() => {
+    const c = this.commune();
+    return c ? lignesClassement(c, this.depNom()) : null;
   });
 
   /**

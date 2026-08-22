@@ -188,6 +188,7 @@
     'faq    faq'
     'arr    arr'
     'near   near'
+    'rangs  rangs'
     'simil  simil'
     'hubs   hubs';
   gap: 1rem;
@@ -203,6 +204,7 @@
     'faq    faq'
     'arr    arr'
     'near   near'
+    'rangs  rangs'
     'simil  simil'
     'hubs   hubs';
 }
@@ -279,6 +281,70 @@
 
 .card--faq {
   grid-area: faq;
+}
+
+.card--rangs {
+  grid-area: rangs;
+}
+
+.rangs__liste {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.rangs__item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.15rem 1rem;
+  align-items: baseline;
+}
+
+.rangs__libelle {
+  color: var(--ink-soft);
+}
+
+.rangs__valeur {
+  white-space: nowrap;
+
+  strong {
+    font-size: 1.15rem;
+    color: var(--accent-text);
+  }
+}
+
+.rangs__total {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  margin-left: 0.3rem;
+}
+
+/* Jauge décorative : la valeur chiffrée est déjà lue au-dessus, et le
+   pourcentage est donné aux lecteurs d'écran par la mention .sr-only. */
+.rangs__jauge {
+  grid-column: 1 / -1;
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.rangs__jauge-barre {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+.rangs__note {
+  margin: 1rem 0 0;
+  font-size: 0.8rem;
+  font-style: italic;
+  color: var(--ink-soft);
 }
 
 .card--simil {
@@ -685,6 +751,7 @@
       'faq'
       'arr'
       'near'
+      'rangs'
       'simil'
       'hubs';
   }
@@ -699,6 +766,7 @@
       'faq'
       'arr'
       'near'
+      'rangs'
       'simil'
       'hubs';
   }

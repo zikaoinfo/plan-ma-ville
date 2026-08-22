@@ -20,20 +20,23 @@ export interface CommuneRef {
 const INVERSE: Partial<Record<Critere, boolean>> = { securite: true };
 
 /**
- * Seuils de population délimitant les strates de comparaison de la sécurité.
- * La délinquance est classée PAR strate : une ville est comparée aux communes de
- * taille voisine, pas noyée sous les dizaines de milliers de villages sans
+ * Strates de population : DÉFINITION UNIQUE, partagée avec le rang par strate
+ * affiché sur les fiches (`score/classements.ts`).
+ *
+ * La délinquance est classée PAR strate : une ville est comparée aux communes
+ * de taille voisine, pas noyée sous les dizaines de milliers de villages sans
  * délinquance enregistrée (qui, en classement national, écrasent toute commune
  * urbaine vers 0). Chaque strate utilise ainsi pleinement l'échelle 0–10.
+ *
+ * Les seuils sont passés de 6 à 8 (ajout de 10 000 et 200 000) en même temps
+ * que l'affichage du rang par strate : deux découpages différents auraient
+ * fini par se contredire sur la même page (« 34ᵉ des villes de 20-50k » à
+ * côté d'une note de sécurité calculée sur un autre groupe). Conséquence
+ * assumée : les notes de sécurité se recalculent sur des groupes plus fins —
+ * l'histogramme du run CI en donne l'effet réel.
  */
-const STRATES_POP = [500, 2000, 5000, 20000, 50000, 100000];
-
-/** Indice de la strate de population (0 = plus petite). */
-export function stratePopulation(pop: number): number {
-  let i = 0;
-  while (i < STRATES_POP.length && pop >= STRATES_POP[i]) i++;
-  return i;
-}
+export { STRATES_POP, stratePopulation } from './classements.js';
+import { stratePopulation } from './classements.js';
 
 /**
  * Métrique brute par critère pour une commune. `undefined` = donnée absente
