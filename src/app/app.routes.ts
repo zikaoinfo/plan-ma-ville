@@ -17,6 +17,12 @@ export const routes: Routes = [
     title: 'Régions — ma ville, notée',
   },
   {
+    path: 'departements',
+    loadComponent: () =>
+      import('./features/departements/departements').then((m) => m.Departements),
+    title: 'Tous les départements — ma ville, notée',
+  },
+  {
     path: 'region/:code',
     loadComponent: () => import('./features/region/region').then((m) => m.Region),
     title: 'Région — ma ville, notée',

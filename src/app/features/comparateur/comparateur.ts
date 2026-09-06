@@ -8,7 +8,7 @@ import { MetaService } from '../../core/services/meta.service';
 import { PonderationService } from '../../core/services/ponderation.service';
 import { SearchIndexService } from '../../core/services/search-index.service';
 import { ProfilPicker } from '../../shared/profil-picker/profil-picker';
-import { scoreTier, TIER_BG } from '../../shared/score-color';
+import { scoreTier, TIER_VAR } from '../../shared/score-color';
 
 const MAX_VILLES = 3;
 
@@ -127,7 +127,7 @@ export class Comparateur {
   });
 
   protected couleur(note: number): string {
-    return TIER_BG[scoreTier(note)];
+    return TIER_VAR[scoreTier(note)];
   }
 
   protected communeAt(index: number): CommuneDetail | null {

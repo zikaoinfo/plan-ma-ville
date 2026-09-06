@@ -27,33 +27,25 @@
           </div>
         </header>
 
-        <div class="table-wrap">
-          <table class="table">
-            <caption class="sr-only">Départements de la région classés par note moyenne sur 10.</caption>
-            <thead>
-              <tr>
-                <th scope="col" class="th th--rang">#</th>
-                <th scope="col" class="th th--code">Dép.</th>
-                <th scope="col" class="th">Département</th>
-                <th scope="col" class="th th--num">Communes</th>
-                <th scope="col" class="th th--num">Note</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (d of r.departements; track d.code; let i = $index) {
-                <tr>
-                  <td class="td td--rang">{{ i + 1 }}</td>
-                  <td class="td td--code">{{ d.code }}</td>
-                  <td class="td td--nom">
-                    <a [routerLink]="['/departement', d.code]">{{ d.nom }}</a>
-                  </td>
-                  <td class="td td--num">{{ d.nbCommunes | number: '1.0-0' }}</td>
-                  <td class="td td--num"><app-score-badge [score]="d.noteMoyenne" /></td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
+        <h2 class="region__soustitre">Départements de la région</h2>
+        <!-- Même carte que l'accueil et /regions : un département se présente
+             partout de la même façon. <ol> car la liste est classée par note. -->
+        <ol class="territoire-grid">
+          @for (d of r.departements; track d.code; let i = $index) {
+            <li>
+              <app-territoire-card
+                [rang]="i + 1"
+                [code]="d.code"
+                [nom]="d.nom"
+                [lien]="['/departement', d.code]"
+                [nbCommunes]="d.nbCommunes"
+                [note]="d.noteMoyenne"
+              />
+            </li>
+          } @empty {
+            <li class="territoire-grid__empty">Aucun département noté dans cette région.</li>
+          }
+        </ol>
       } @else {
         <div class="notfound">
           <h1>Région introuvable</h1>

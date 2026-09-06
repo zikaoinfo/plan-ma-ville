@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, model } from '@angular/core';
-import { scoreTier, TIER_BG, TIER_FG } from '../score-color';
+import { ON_TIER_VAR, scoreTier, TIER_VAR } from '../score-color';
 
 /** Curseur 1–10 pour un critère, avec valeur colorée. Two-way via [(value)]. */
 @Component({
@@ -59,6 +59,6 @@ export class CritereSlider {
   /** id unique pour lier le label au range. */
   readonly id = input<string>('cs');
 
-  protected readonly bg = computed(() => TIER_BG[scoreTier(this.value())]);
-  protected readonly fg = computed(() => TIER_FG[scoreTier(this.value())]);
+  protected readonly bg = computed(() => TIER_VAR[scoreTier(this.value())]);
+  protected readonly fg = computed(() => ON_TIER_VAR[scoreTier(this.value())]);
 }

@@ -27,6 +27,7 @@ import {
   nearestCommunes,
 } from './commune-insights';
 import { lignesClassement } from './commune-classements';
+import { contexteDepartemental, pointFaible, pointsForts } from './commune-contexte';
 import { blocDemographie } from './commune-demographie';
 import { RAPPEL_METHODE } from '../methodologie/methodologie-chiffres';
 import { genereFaqCommune } from './commune-faq';
@@ -60,7 +61,13 @@ const ICONS: Record<Critere, string> = {
     ProfilPicker,
   ],
   templateUrl: './commune.html',
-  styleUrl: './commune.scss',
+  styleUrls: [
+    './commune.scss',
+    './commune-hero.scss',
+    './commune-dash.scss',
+    './commune-cartes.scss',
+    './commune-blocs.scss',
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Commune {
@@ -187,6 +194,39 @@ export class Commune {
   protected readonly classements = computed(() => {
     const c = this.commune();
     return c ? lignesClassement(c, this.depNom()) : null;
+  });
+
+  /**
+   * Moyennes départementales par critère, posées en repère sur chaque barre.
+   * `null` quand aucune commune de comparaison EXTERNE n'existe (Paris, Lyon
+   * et Marseille, dont le département ne contient guère que la ville et ses
+   * arrondissements) : mieux vaut une barre absolue qu'un repère qui
+   * comparerait la commune à elle-même.
+   */
+  protected readonly moyennesDep = computed(() => {
+    const c = this.commune();
+    const f = this.#commune.depFile();
+    if (!c || !f) return null;
+    const ctx = contexteDepartemental(c, f.communes);
+    return ctx.nbExternes ? ctx.moyennesDep : null;
+  });
+
+  /**
+   * Trois repères du bandeau héros : les 2 critères les mieux notés et le
+   * moins bien noté. Dérivés de `commune-contexte.ts`, le socle partagé avec
+   * la prose et la FAQ — un calcul parallèle finirait par désigner un « point
+   * fort » que le texte de la page contredit.
+   */
+  protected readonly atouts = computed(() => {
+    const c = this.commune();
+    if (!c) return null;
+    const ligne = (critere: Critere) => ({
+      critere,
+      label: CRITERE_LABELS[critere],
+      note: c.score.criteres[critere],
+    });
+    const [premier, second] = pointsForts(c);
+    return { forts: [ligne(premier), ligne(second)], faible: ligne(pointFaible(c)) };
   });
 
   /**

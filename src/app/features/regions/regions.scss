@@ -25,66 +25,15 @@
   color: var(--ink-soft);
 }
 
-.region-grid {
-  list-style: none;
-  margin: 1.6rem 0 0;
-  padding: 0;
-  display: grid;
-  gap: 0.8rem;
-  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+/* La grille et la carte sont partagées (`.territoire-grid` de styles.scss +
+   app-territoire-card) : cet écran ne redéfinit plus sa propre variante. */
+.territoire-grid {
+  margin-top: var(--sp-5);
 }
 
-.region-grid__empty {
+.territoire-grid__empty {
   color: var(--ink-soft);
   font-style: italic;
-}
-
-.region {
-  display: flex;
-  align-items: center;
-  gap: 0.9rem;
-  padding: 0.9rem 1rem;
-  border: 1.5px solid var(--line);
-  border-radius: 16px;
-  background: var(--paper);
-  text-decoration: none;
-  color: inherit;
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.2s ease;
-}
-
-.region:hover {
-  border-color: var(--ink);
-  box-shadow: var(--shadow);
-  transform: translateY(-2px);
-}
-
-.region__rang {
-  flex: 0 0 auto;
-  min-width: 1.8rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: var(--ink-soft);
-  text-align: center;
-}
-
-.region__body {
-  flex: 1 1 auto;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-
-.region__nom {
-  font-weight: 700;
-}
-
-.region__meta {
-  font-size: 0.82rem;
-  color: var(--ink-soft);
 }
 
 /* ── États ────────────────────────────────── */
@@ -115,8 +64,5 @@
 @media (prefers-reduced-motion: reduce) {
   .spinner {
     animation-duration: 2s;
-  }
-  .region:hover {
-    transform: none;
   }
 }

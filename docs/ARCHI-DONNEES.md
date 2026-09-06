@@ -82,6 +82,11 @@ Détail extrait de `CLAUDE.md` (chargé à la demande). À lire avant toute modi
   `departements.json`, `regions.json` (classement régional → départements imbriqués,
   `emit/regions.ts`), `dep/{code}.json`, `classement.json`, `geo-light.json`
   (carte, communes ≥500 hab avec lat/lng) + `public/sitemap.xml`.
+- `DepartementSummary` porte `population` (somme des communes réelles,
+  arrondissements exclus — même base que la pondération de `noteMoyenne`). Sert à
+  ordonner les départements **hors note** : l'accueil met en avant les 12 plus
+  peuplés (`features/home/departements-vedette.ts`) plutôt que d'afficher les 101
+  ou de faire passer un tri par note pour un palmarès.
 - **Régions** (`emit/regions.ts`) : table statique `DEPARTEMENT_REGION` (101 dépts →
   code région INSEE) + `REGIONS` (code → nom). `aggregateRegions()` regroupe les
   départements, note région = moyenne des communes **pondérée population**
@@ -93,6 +98,7 @@ Détail extrait de `CLAUDE.md` (chargé à la demande). À lire avant toute modi
 - Validation URLs en CI : `data-validate.yml` tourne **sur la PR** (si le pipeline
   change) et lance `npm run data:validate` = `data:build --strict` (échoue si une
   source a 0 % de couverture). Ne déploie pas. `deploy.yml` reste gracieux.
-- URL des données runtime = `new URL('data/x.json', document.baseURI)` (relatif,
-  correct en dev comme en prod — jamais coder `/plan-ma-ville/` en dur).
+- URL des données runtime = **`dataUrl()` de `src/app/core/data-url.ts`** (jamais
+  `document.baseURI`, qui n'existe pas dans le DOM serveur du prerender ; jamais de
+  préfixe codé en dur). Détail : `docs/ARCHI-BUILD-SSG.md`.
 

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import { scoreTier, TIER_BG, TIER_FG } from '../score-color';
+import { ON_TIER_VAR, scoreTier, TIER_VAR } from '../score-color';
 
 /** Pastille colorée affichant une note /10 (couleur selon le palier). */
 @Component({
@@ -46,6 +46,6 @@ import { scoreTier, TIER_BG, TIER_FG } from '../score-color';
 export class ScoreBadge {
   readonly score = input.required<number>();
 
-  protected readonly bg = computed(() => TIER_BG[scoreTier(this.score())]);
-  protected readonly fg = computed(() => TIER_FG[scoreTier(this.score())]);
+  protected readonly bg = computed(() => TIER_VAR[scoreTier(this.score())]);
+  protected readonly fg = computed(() => ON_TIER_VAR[scoreTier(this.score())]);
 }

@@ -1,0 +1,228 @@
+/* Bandeau héros de la fiche commune — extrait de commune.scss.
+   Le fichier unique dépassait le budget de style par composant (8 kB) ;
+   il est découpé par zone, chaque morceau reste sous le seuil. */
+
+/* ── Bandeau héros ────────────────────────────
+   Surface surélevée + filet franc (pas d'ombre) : le ton « publication
+   statistique ». C'est le seul bloc de la page qui a ce traitement — il
+   porte l'information que la fiche est censée délivrer.
+   Zones : identité en bandeau, puis la note en très grand adossée aux
+   rangs, les points forts/faible, et un pied (fraîcheur + avis). */
+.hero {
+  display: grid;
+  grid-template-columns: minmax(10rem, auto) minmax(0, 1fr);
+  grid-template-areas:
+    'id     id'
+    'note   rangs'
+    'atouts rangs'
+    'pied   pied';
+  gap: var(--sp-5) var(--sp-7);
+  margin-bottom: var(--sp-5);
+  padding: var(--sp-5) var(--sp-6);
+  background: var(--paper-raised);
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius);
+}
+
+.hero__id {
+  grid-area: id;
+}
+
+.hero__id h1 {
+  font-size: var(--fs-xxl);
+  margin: 0;
+}
+
+.hero__meta {
+  margin: var(--sp-2) 0 0;
+  color: var(--ink-soft);
+}
+
+.hero__dep,
+.hero__mere {
+  color: var(--accent-text); /* 5.28:1 sur --paper-raised (accent orange) */
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.hero__dep:hover,
+.hero__mere:hover {
+  text-decoration: underline;
+}
+
+/* ── La note, en objet graphique ── */
+.hero__note {
+  grid-area: note;
+  align-self: start;
+}
+
+.hero__note-val {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  margin: 0;
+}
+
+/* Le chiffre reste à l'encre : coloré au palier, il tomberait sous le
+   contraste requis pour les paliers jaune et orange. La couleur du palier
+   est portée par les barres de critères, où elle est redondante avec la
+   valeur affichée. */
+.hero__note-val .chiffre {
+  font-size: var(--fs-display);
+  color: var(--ink);
+}
+
+.hero__note-den {
+  font-size: var(--fs-l);
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.hero__note-label {
+  margin: var(--sp-1) 0 0;
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-soft);
+}
+
+.hero__note-perso {
+  margin: var(--sp-2) 0 0;
+  font-size: var(--fs-s);
+  font-weight: 600;
+  color: var(--accent-text);
+}
+
+/* ── Rangs ── */
+.hero__rangs {
+  grid-area: rangs;
+  align-self: start;
+  min-width: 0;
+}
+
+.hero__note,
+.hero__atouts {
+  max-width: 22rem;
+}
+
+.hero__rangs-titre {
+  margin: 0;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-soft);
+}
+
+/* ── Points forts / faible ── */
+/* Empilés sous la note (colonne étroite) : le lecteur lit le chiffre, puis
+   ce qui le fabrique. En une rangée, ils laissaient un vide sous la note. */
+.hero__atouts {
+  grid-area: atouts;
+  align-self: start;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  margin: 0;
+  padding: 0;
+}
+
+.atout {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  font-size: var(--fs-s);
+}
+
+.atout__signe {
+  font-weight: 700;
+}
+
+.atout__note {
+  font-variant-numeric: tabular-nums;
+  font-weight: 660;
+  letter-spacing: var(--num-tracking);
+}
+
+/* Le signe + / − n'est PAS le seul porteur : le libellé « point fort » /
+   « point faible » est lu par les lecteurs d'écran (.sr-only). */
+.atout--fort .atout__signe,
+.atout--fort .atout__note {
+  color: var(--good-text); /* 6.06:1 clair · 5.88:1 sombre */
+}
+
+.atout--faible .atout__signe,
+.atout--faible .atout__note {
+  color: var(--bad); /* 5.09:1 clair · 4.67:1 sombre */
+}
+
+/* ── Pied : fraîcheur + accès aux avis ── */
+.hero__pied {
+  grid-area: pied;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--line);
+}
+
+.hero__maj {
+  margin: 0;
+  font-size: var(--fs-s);
+  color: var(--ink-soft);
+}
+
+.hero__maj a {
+  color: var(--accent-text);
+}
+
+.hero__avis {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font: inherit;
+  font-size: var(--fs-s);
+  color: var(--ink-soft);
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: var(--sp-2) var(--sp-3);
+  cursor: pointer;
+}
+
+.hero__avis:hover,
+.hero__avis:focus-visible {
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+.hero__avis-nb {
+  font-weight: 600;
+}
+
+@media (max-width: 720px) {
+  .hero {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'id'
+      'note'
+      'atouts'
+      'rangs'
+      'pied';
+    padding: var(--sp-5) var(--sp-4);
+  }
+
+  .hero__atouts {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}
+

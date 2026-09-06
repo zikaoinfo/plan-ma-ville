@@ -150,7 +150,7 @@ describe('Commune', () => {
     expect(el.querySelector('h1')?.textContent).toContain('Lyon');
     expect(el.querySelector('.card--map iframe')).toBeTruthy();
     expect(el.querySelector('.card--price .price')).toBeTruthy();
-    expect(el.querySelector('.card--histo .maj__date')?.textContent).toContain('13 juin 2026');
+    expect(el.querySelector('.hero__maj')?.textContent).toContain('13 juin 2026');
     expect(el.querySelectorAll('.card--themes app-note-bar').length).toBe(8);
 
     const noms = [...el.querySelectorAll('.near__name')].map((n) => n.textContent?.trim());
@@ -159,8 +159,8 @@ describe('Commune', () => {
     expect(noms).not.toContain('Lyon');
 
     // Sans avis (Supabase non configuré) : une seule note dans l'en-tête.
-    expect(el.querySelectorAll('.head__scores .head__score').length).toBe(1);
-    expect(el.querySelector('.head__score--avis')).toBeNull();
+    expect(el.querySelector('.hero__note-val .chiffre')?.textContent?.trim()).toBe('6.2');
+    expect(el.querySelector('.hero__avis')).toBeNull();
     expect(el.querySelector('.tab__count')).toBeNull();
   });
 
@@ -186,7 +186,7 @@ describe('Commune', () => {
     fixture.detectChanges();
 
     const el = fixture.nativeElement as HTMLElement;
-    const btn = el.querySelector<HTMLButtonElement>('.head__score--avis');
+    const btn = el.querySelector<HTMLButtonElement>('.hero__avis');
     expect(btn).toBeTruthy();
     expect(btn?.textContent).toContain('7.4');
     expect(btn?.textContent).toContain('12 avis');

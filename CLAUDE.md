@@ -22,6 +22,9 @@ appliquer à toute création/modif d'UI ; socle focus/skip-link/live déjà en p
 | stratégie SEO / monitoring                      | `docs/SEO-PLAN.md`, `docs/SEO-MONITORING.md` |
 | reste à faire                                   | `docs/TODO.md`                 |
 
+Toute création/modif d'UI passe d'abord par la skill **`impeccable`**
+(`.claude/skills/`) : tokens, atomes maison, états vides/erreur, DoD a11y.
+
 ## Stack & conventions (NON négociables)
 
 - **Angular 22**, standalone (aucun `NgModule`), **zoneless** (pas de zone.js,
@@ -63,6 +66,10 @@ appliquer à toute création/modif d'UI ; socle focus/skip-link/live déjà en p
 - `npm run seo:monitor` — mesure Search Console hebdomadaire → Supabase
   (`docs/SEO-MONITORING.md`). `npm run seo:citation` — baseline de citation
   IA (**coûteux**, mensuel). `npm run test:seo` — logique pure des deux.
+- `npm run test:ui` — **tests de rendu Playwright** (`e2e/`) : contrastes des
+  tokens calculés dans la page (2 thèmes × 4 accents), axe-core, anneau de
+  focus, débordement horizontal à 360/920/1280. Exige `npm run data:sample`
+  une fois (les pages testées lisent `public/data`).
 - `npx eslint .` — lint.
 
 ## Arborescence
@@ -81,13 +88,15 @@ src/app/
 │       ├── supabase.service.ts      client optionnel (enabled/null)
 │       ├── auth.service.ts          Google + magic-link, user() signal
 │       └── avis.service.ts          stats/liste/upsert (dégrade en []/null)
-├── features/{home,commune,departement,classement,carte,comparateur,methodologie}/
+├── features/{home,commune,departement,departements,regions,region,
+│              classement,carte,comparateur,methodologie,palmares}/
 │   └── commune/commune-avis/{commune-avis-list,commune-avis-form}
 └── shared/{note-bar,score-badge,score-color,error-message,
-            critere-slider,auth-gate}
+            critere-slider,auth-gate,territoire-card}
 tools/data-pipeline/                 tsx (pas de build), fixture .cache/geo.json
 tools/seo-monitor/                   workspace : monitoring GSC + citation IA
 tools/audit-urls.mjs                 audit 0 redirection / 0 noindex du sitemap
+e2e/                                 tests de rendu Playwright (DOM, pas capture)
 docs/supabase-schema.sql             SQL Supabase (+ migration-fix-profiles.sql)
 ```
 

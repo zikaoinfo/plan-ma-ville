@@ -4,12 +4,19 @@ import { Router, RouterLink } from '@angular/router';
 import { AnalyticsService } from '../../core/services/analytics.service';
 import { MetaService } from '../../core/services/meta.service';
 import { SearchIndexService } from '../../core/services/search-index.service';
+import {
+  NB_CRITERES,
+  NB_SOURCES,
+  NB_SOURCES_NOTE,
+} from '../methodologie/methodologie-chiffres';
 import { ErrorMessage } from '../../shared/error-message/error-message';
 import { ScoreBadge } from '../../shared/score-badge/score-badge';
+import { TerritoireCard } from '../../shared/territoire-card/territoire-card';
+import { departementsVedette } from './departements-vedette';
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, ScoreBadge, ErrorMessage, DecimalPipe],
+  imports: [RouterLink, ScoreBadge, ErrorMessage, DecimalPipe, TerritoireCard],
   templateUrl: './home.html',
   styleUrl: './home.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,6 +35,40 @@ export class Home {
 
   protected readonly results = computed(() => this.#search.search(this.query()));
   protected readonly departements = computed(() => this.#search.getDepartements());
+
+  /** Sélection mise en avant sur l'accueil (critère assumé dans le gabarit). */
+  protected readonly vedettes = computed(() => departementsVedette(this.departements()));
+
+  /**
+   * true quand la grille montre TOUS les départements disponibles — cas des
+   * jeux de données partiels (`data:sample`) et des premiers déploiements.
+   * On n'annonce alors pas « les N plus peuplés » : la sélection n'en est pas
+   * une, et une légende qui décrit autre chose que ce qui est à l'écran est
+   * un chiffre inventé de plus.
+   */
+  protected readonly vedettesExhaustives = computed(
+    () => this.vedettes().length === this.departements().length,
+  );
+
+  /** Les 18 régions tiennent en une section : l'accueil les liste toutes. */
+  protected readonly regions = computed(() => this.#search.getRegions());
+  protected readonly regionsStatus = this.#search.regionsStatus;
+  protected readonly reloadRegions = () => this.#search.reloadRegions();
+
+  /* Chiffres de preuve : lus dans la source unique de /methodologie
+     (`methodologie-chiffres.ts`) plutôt qu'écrits dans le gabarit — une
+     source ajoutée sans mettre à jour la home ferait mentir la page
+     d'accueil sur la méthode du site. */
+  protected readonly nbCriteres = NB_CRITERES;
+  protected readonly nbSources = NB_SOURCES;
+  protected readonly nbSourcesNote = NB_SOURCES_NOTE;
+
+  /** Nombre de communes couvertes, SOMMÉ sur les départements chargés :
+      `null` tant que la liste n'est pas là — pas de nombre rond décoratif. */
+  protected readonly nbCommunes = computed(() => {
+    const deps = this.departements();
+    return deps.length ? deps.reduce((n, d) => n + d.nbCommunes, 0) : null;
+  });
 
   /** true dès qu'une recherche exploitable a été tapée mais ne renvoie rien. */
   protected readonly noResult = computed(

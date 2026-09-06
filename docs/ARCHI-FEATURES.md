@@ -5,6 +5,54 @@ page existante ou d’en ajouter une.
 
 ## Features livrées
 
+- **Design system « rapport statistique »** (refonte d'août 2026) : l'identité
+  assume la publication officielle modernisée — filets francs plutôt qu'ombres,
+  chiffres traités en objets graphiques, hiérarchie portée par la SURFACE.
+  **Palette « encre & papier »** : une rampe de neutres unique (teinte ~250,
+  chroma très basse) dans les deux thèmes, pour que l'accent soit la seule
+  couleur saturée. Remplace la porcelaine bleutée (`--paper` #f8f8fc) et la
+  nuit violette (#12102a), toutes deux assez teintées pour concurrencer
+  l'accent choisi par l'utilisateur. Les 4 accents et les paliers de note ont
+  été retendus sur ces fonds ; chaque token porte son ratio mesuré. Trois
+  fichiers doivent rester alignés sur `--paper` : `theme.service.ts`
+  (`<meta name="theme-color">`), le script anti-flash d'`index.html`, et
+  `score-color.ts` (`TIER_BG`, peint hors CSS par les markers Leaflet).
+  Tokens dans `styles.scss` : échelle typo (`--fs-*`), espacement (`--sp-1..8`),
+  deux largeurs (`--container` prose / `--container-wide` dashboard),
+  `--paper-raised` + `--line-strong` pour le niveau primaire, paliers de note
+  (`--tier-*`/`--on-tier-*`) redéfinis en thème sombre. **Trois niveaux de
+  carte** : primaire (surface surélevée), secondaire (`.card`, sans ombre),
+  tertiaire (`.card--liens`, filet supérieur) pour le maillage interne — avant,
+  treize cartes de poids identique ne donnaient aucun point d'entrée.
+  `TIER_VAR`/`ON_TIER_VAR` (`score-color.ts`) remplacent `TIER_BG`/`TIER_FG`
+  dans le DOM : les hex figés gardaient les paliers du thème clair sur le fond
+  sombre, désaccordés du reste de la page. `TIER_BG` ne sert plus qu'aux markers Leaflet (canvas, pas
+  d'accès aux variables CSS). Le style de la fiche commune est découpé en
+  partials (`commune-hero/-dash/-cartes/-blocs.scss`) : le fichier unique
+  dépassait le budget de 8 kB par composant.
+- **`shared/territoire-card` + `.territoire-grid`** (globale, `styles.scss`) :
+  UN composant pour les trois écrans qui listent des territoires — accueil,
+  `/regions`, `/region/:code`. Le même triplet code · nom · communes · note s'y
+  affichait sous trois formes (ligne nue, carte bordée, tableau), ce qui donnait
+  l'impression de trois objets pour une seule donnée. La carte accepte un `rang`
+  et un `detail` facultatifs, et affiche « Non notée » quand la note est `null`
+  **ou 0** (le pipeline émet 0 faute de population pour pondérer : c'est une
+  absence, pas un zéro de qualité). Grille en `repeat(auto-fill, minmax(280px,
+  1fr))` : à 2 items elle en rend 2, jamais « 2 pleines + 1 colonne fantôme ».
+  L'accueil porte deux sections d'exploration (classes `.hub*`) : « Explorer par
+  département » — les 12 plus peuplés, critère écrit sous la grille, lien « Voir
+  tous les départements → » — puis « Toutes les régions », qui liste les 18 (pas
+  de « voir tout » : la section EST la liste complète). Le mot **classement**
+  reste réservé à `/classement/`.
+- **Hub `/departements`** (`features/departements`) : les 101 départements par
+  numéro, symétrique de `/regions`. C'est la cible du « voir tout » de
+  l'accueil, et le seul endroit où les 101 sont listés. Trois points à garder
+  alignés pour toute nouvelle page fixe : `app.routes.ts`, `routeFixe()` dans
+  `app.routes.server.ts` (sans quoi elle n'est pas prérendue) et `pagesFixes`
+  de `segmentsSitemap()` côté pipeline (sans quoi elle n'est pas dans le
+  sitemap). L'ordre des codes passe par `core/departement-ordre.ts` :
+  `localeCompare({numeric:true})` plaçait 2A/2B entre 02 et 03, alors que la
+  Corse occupe la place de l'ancien 20 (entre 19 et 21).
 - **Home** : recherche (nom ou CP, dispatch), grille départements.
 - **Commune `/ville/:slug`** : **dashboard** en grille à zones nommées
   (`grid-template-areas`) — notes par thématique D'ABORD (pleine largeur), puis

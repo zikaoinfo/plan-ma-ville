@@ -43,8 +43,6 @@
   font-family: var(--font-display);
   font-size: 1.05rem;
   font-weight: 700;
-  box-shadow: var(--shadow);
-  transform: rotate(-6deg);
   transition: transform 0.25s ease;
 }
 
@@ -443,22 +441,71 @@
 }
 
 .footer {
-  border-top: 1.5px solid var(--line);
-  margin-top: 4rem;
+  border-top: 1.5px solid var(--line-strong);
+  margin-top: var(--sp-8);
 }
 
 .footer__inner {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: 0.5rem;
-  padding-block: 1.2rem;
-  font-size: 0.85rem;
+  align-items: flex-start;
+  gap: var(--sp-6);
+  padding-block: var(--sp-6);
+  font-size: var(--fs-s);
   color: var(--ink-soft);
 
   p {
     margin: 0;
   }
+
+  /* Sans `min-width: 0`, un item flex refuse de descendre sous la taille
+     min-content de son contenu : la grille de sources imposait alors ~690px
+     et TOUTE page scrollait horizontalement sous 400px. */
+  > * {
+    min-width: 0;
+  }
+}
+
+.footer__titre {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.footer__liste {
+  list-style: none;
+  margin: var(--sp-3) 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(17rem, 100%), 1fr));
+  gap: var(--sp-1) var(--sp-5);
+  max-width: 46rem;
+}
+
+.footer__source {
+  font-size: var(--fs-xs);
+}
+
+/* Le millésime fait partie de l'argument : il est lisible, pas en note de
+   bas de page. */
+.footer__mill {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.footer__lien {
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+.footer__legal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  font-size: var(--fs-xs);
 }
 
 .footer__note {

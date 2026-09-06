@@ -1,5 +1,15 @@
 <section class="hero container">
-  <span class="tag-chantier">35&nbsp;000 communes · 8 critères</span>
+  <!-- L'éphémère « tag-chantier » (label placeholder de la phase 0) servait
+       d'accroche : remplacé par un chiffre dérivé des données chargées, qui
+       disparaît tant qu'elles ne sont pas là plutôt que d'annoncer un rond. -->
+  <p class="hero__eyebrow">
+    @if (nbCommunes(); as n) {
+      {{ n | number: '1.0-0' }} communes
+    } @else {
+      Toutes les communes de France
+    }
+    · {{ nbCriteres }} critères · {{ nbSources }} sources officielles
+  </p>
   <h1>Quelle note mérite <em class="ville">votre ville</em>&nbsp;?</h1>
   <p class="sous-titre">
     Tapez le nom d'une commune ou un code postal&nbsp;: on vous sort sa note sur 10,
@@ -90,30 +100,61 @@
       />
     }
   </div>
+
+  <!-- Preuve au-dessus de la ligne de flottaison : ce qui distingue le site
+       d'un forum d'avis se lit AVANT d'avoir cherché quoi que ce soit. -->
+  <ul class="preuves">
+    <li class="preuve">
+      <span class="preuve__val chiffre">{{ nbSources }}</span>
+      <span class="preuve__txt">
+        sources publiques nommées, dont {{ nbSourcesNote }} entrent dans la note
+      </span>
+    </li>
+    <li class="preuve">
+      <span class="preuve__val chiffre">{{ nbCriteres }}</span>
+      <span class="preuve__txt">critères notés, méthode publiée et reproductible</span>
+    </li>
+    <li class="preuve">
+      <span class="preuve__val chiffre">0</span>
+      <span class="preuve__txt">
+        estimation : une donnée non publiée n'est pas inventée
+      </span>
+    </li>
+  </ul>
+  <p class="preuves__lien">
+    <a routerLink="/methodologie">Comment la note est calculée →</a>
+  </p>
 </section>
 
-<section class="departements container">
-  <div class="departements__head">
+<section class="hub container">
+  <div class="hub__head">
     <h2>Explorer par département</h2>
-    <a routerLink="/regions" class="departements__lien">Classement par région →</a>
+    <a routerLink="/departements" class="hub__lien">Voir tous les départements →</a>
   </div>
-  @if (departements().length) {
-    <ul class="dep-grid">
-      @for (dep of departements(); track dep.code) {
+  @if (vedettes().length) {
+    <ul class="territoire-grid">
+      @for (dep of vedettes(); track dep.code) {
         <li>
-          <a class="dep" [routerLink]="['/departement', dep.code]">
-            <span class="dep__code">{{ dep.code }}</span>
-            <span class="dep__body">
-              <span class="dep__nom">{{ dep.nom }}</span>
-              <span class="dep__nb">
-                {{ dep.nbCommunes | number: '1.0-0' }} commune{{ dep.nbCommunes > 1 ? 's' : '' }}
-              </span>
-            </span>
-            <app-score-badge [score]="dep.noteMoyenne" />
-          </a>
+          <app-territoire-card
+            [code]="dep.code"
+            [nom]="dep.nom"
+            [lien]="['/departement', dep.code]"
+            [nbCommunes]="dep.nbCommunes"
+            [note]="dep.noteMoyenne"
+          />
         </li>
       }
     </ul>
+    <p class="hub__critere">
+      @if (vedettesExhaustives()) {
+        {{ vedettes().length }} département{{ vedettes().length > 1 ? 's' : '' }} couvert{{
+          vedettes().length > 1 ? 's' : ''
+        }}
+        à ce jour.
+      } @else {
+        Les {{ vedettes().length }} départements les plus peuplés.
+      }
+    </p>
   } @else if (departementsStatus() === 'error') {
     <app-error-message
       message="Impossible de charger la liste des départements."
@@ -121,5 +162,33 @@
     />
   } @else {
     <p class="state state--flow" role="status">Chargement des départements…</p>
+  }
+</section>
+
+<!-- Les 18 régions tiennent sur l'accueil : pas de « voir tout » ici, la
+     section EST la liste complète. /regions garde le classement (rangs). -->
+<section class="hub container">
+  <div class="hub__head">
+    <h2>Toutes les régions</h2>
+  </div>
+  @if (regions().length) {
+    <ul class="territoire-grid">
+      @for (r of regions(); track r.code) {
+        <li>
+          <app-territoire-card
+            [code]="r.code"
+            [nom]="r.nom"
+            [lien]="['/region', r.code]"
+            [detail]="r.nbDepartements + (r.nbDepartements > 1 ? ' départements' : ' département')"
+            [nbCommunes]="r.nbCommunes"
+            [note]="r.noteMoyenne"
+          />
+        </li>
+      }
+    </ul>
+  } @else if (regionsStatus() === 'error') {
+    <app-error-message message="Impossible de charger la liste des régions." [retry]="reloadRegions" />
+  } @else {
+    <p class="state state--flow" role="status">Chargement des régions…</p>
   }
 </section>
