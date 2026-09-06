@@ -1,0 +1,165 @@
+/* Onglets + grille du dashboard (zones nommées) — extrait de commune.scss. */
+
+/* ── Onglets ──────────────────────────────── */
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 1.2rem;
+  padding: 0.25rem;
+  background: var(--paper-soft);
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  width: fit-content;
+}
+
+.tab {
+  border: none;
+  background: transparent;
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.tab--active {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.tab__count {
+  margin-left: 0.35rem;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  font-size: 0.78em;
+  font-variant-numeric: tabular-nums;
+}
+
+.tab--active .tab__count {
+  background: color-mix(in srgb, var(--paper) 25%, transparent);
+}
+
+.avis-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
+
+.avis-soon {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--ink-soft);
+  font-style: italic;
+  border: 1.5px dashed var(--line);
+  border-radius: 16px;
+}
+
+.avis-login {
+  align-self: center;
+  width: 100%;
+  max-width: 460px;
+}
+
+.avis-login summary {
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+.avis-login summary:hover {
+  color: var(--ink);
+}
+
+.avis-login[open] summary {
+  margin-bottom: 0.8rem;
+}
+
+/* ── Grille dashboard ─────────────────────── */
+/* Zones nommées : notes d'abord (pleine largeur), puis la carte adossée à
+   la pile prix + historique (la carte occupe leurs deux rangées → hauteurs
+   équilibrées, aucun trou), puis les alentours en pleine largeur. */
+.dash {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  grid-template-areas:
+    'picker picker'
+    'themes themes'
+    'map    price'
+    'demo   demo'
+    'texte  texte'
+    'mairie mairie'
+    'faq    faq'
+    'arr    arr'
+    'near   near'
+    'simil  simil'
+    'hubs   hubs';
+  gap: 1rem;
+}
+
+/* Sans coordonnées (pas de carte) : prix et historique côte à côte. */
+.dash--nomap {
+  grid-template-areas:
+    'picker picker'
+    'themes themes'
+    'price  price'
+    'demo   demo'
+    'texte  texte'
+    'mairie mairie'
+    'faq    faq'
+    'arr    arr'
+    'near   near'
+    'simil  simil'
+    'hubs   hubs';
+}
+
+.dash__picker {
+  grid-area: picker;
+  min-width: 0;
+}
+
+.card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.pour-vous {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.9rem;
+}
+
+.pour-vous__label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-text);
+}
+
+.card {
+  /* Empêche le contenu intrinsèque (grille imbriquée .themes/.near, tableau…)
+     de forcer la voie 1fr de `.dash` plus large que son conteneur (défaut
+     grid `min-width: auto` = plus grand min-content des enfants — "grid
+     blowout" classique, cause du scroll horizontal sur mobile). */
+  min-width: 0;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--sp-5);
+}
+
+.card__title {
+  font-size: var(--fs-m);
+  margin: 0 0 var(--sp-3);
+}
+

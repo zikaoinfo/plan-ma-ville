@@ -114,6 +114,7 @@ describe('urlsSitemap', () => {
   it('couvre chaque type de page et ne produit aucun doublon', () => {
     expect(urls).toContain(`${BASE}/classement/`);
     expect(urls).toContain(`${BASE}/regions/`);
+    expect(urls).toContain(`${BASE}/departements/`);
     expect(urls).toContain(`${BASE}/methodologie/`);
     expect(urls).toContain(`${BASE}/region/84/`);
     expect(urls).toContain(`${BASE}/departement/2A/`);

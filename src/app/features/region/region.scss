@@ -55,82 +55,17 @@
 }
 
 /* ── Tableau ──────────────────────────────── */
-.table-wrap {
-  overflow-x: auto;
-  border: 1.5px solid var(--line);
-  border-radius: 16px;
-  background: var(--paper);
+/* Le tableau des départements a laissé place à la grille partagée
+   (`.territoire-grid` + app-territoire-card) : même objet, même présentation
+   que sur l'accueil et /regions. */
+.region__soustitre {
+  margin: var(--sp-6) 0 var(--sp-3);
+  font-size: var(--fs-l);
 }
 
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  font-variant-numeric: tabular-nums;
-}
-
-.th {
-  background: var(--paper-soft);
-  padding: 0.7rem 0.9rem;
-  text-align: left;
-  font-size: 0.82rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+.territoire-grid__empty {
   color: var(--ink-soft);
-  white-space: nowrap;
-  border-bottom: 1.5px solid var(--line);
-}
-
-.th--num {
-  text-align: right;
-}
-
-.th--rang {
-  width: 3rem;
-  text-align: center;
-}
-
-.th--code {
-  width: 3.5rem;
-}
-
-.td {
-  padding: 0.55rem 0.9rem;
-  border-bottom: 1px solid var(--line);
-}
-
-.table tbody tr:last-child .td {
-  border-bottom: none;
-}
-
-.table tbody tr:hover {
-  background: var(--paper-soft);
-}
-
-.td--num {
-  text-align: right;
-}
-
-.td--rang {
-  text-align: center;
-  font-weight: 700;
-  color: var(--ink-soft);
-}
-
-.td--code {
-  color: var(--ink-soft);
-  font-weight: 600;
-}
-
-.td--nom a {
-  font-weight: 600;
-  color: var(--ink);
-  text-decoration: none;
-}
-
-.td--nom a:hover {
-  color: var(--accent-text);
-  text-decoration: underline;
+  font-style: italic;
 }
 
 /* ── États ────────────────────────────────── */

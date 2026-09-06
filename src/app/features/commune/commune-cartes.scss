@@ -1,0 +1,320 @@
+/* Cartes du dashboard : niveaux, démographie, mairie, FAQ, liens — extrait de commune.scss. */
+
+/* ── Trois niveaux de carte ───────────────────
+   Toutes les cartes avaient le même fond, le même filet et la MÊME ombre
+   portée : treize blocs de poids identique, donc aucun point d'entrée dans
+   la page. La hiérarchie est désormais portée par la surface.
+   1. Primaire — les notes par critère, la data-viz que la page existe pour
+      montrer : surface surélevée et filet franc, comme le héros. */
+.card--themes {
+  background: var(--paper-raised);
+  border-color: var(--line-strong);
+}
+
+/* 2. Secondaire — prix, carte, démographie, mairie, prose : la carte simple
+      ci-dessus, sans ombre (l'élévation ne signifiait rien, tout flottait).
+   3. Tertiaire — maillage interne (alentours, similaires, hubs, FAQ,
+      arrondissements) : utile au lecteur ET au crawl, mais ce n'est pas de
+      la donnée sur la commune. Simple filet supérieur, pas de boîte. */
+.card--liens {
+  background: none;
+  border: none;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  padding: var(--sp-5) 0 0;
+}
+
+.card--liens .card__title {
+  font-size: var(--fs-s);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-soft);
+}
+
+.card--themes {
+  grid-area: themes;
+}
+
+.card--map {
+  grid-area: map;
+}
+
+.card--price {
+  grid-area: price;
+}
+
+.card--near {
+  grid-area: near;
+}
+
+.card--arrondissements {
+  grid-area: arr;
+}
+
+.card--faq {
+  grid-area: faq;
+}
+
+.price__types {
+  list-style: none;
+  margin: 0.9rem 0 0;
+  padding: 0.7rem 0 0;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.price__type {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+}
+
+.price__type-label {
+  color: var(--ink-soft);
+  min-width: 6.5rem;
+}
+
+.price__type-valeur {
+  font-weight: 600;
+}
+
+.price__type-nb,
+.price__type-trend {
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+/* Rappel de méthode sous la prose : signal de rigueur, présent sur chaque
+   fiche (cf. features/methodologie/methodologie-chiffres.ts). */
+.texte__methode {
+  margin: 1.2rem 0 0;
+  padding: 0.7rem 0.9rem;
+  border-left: 3px solid var(--accent);
+  background: var(--paper-soft);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.card--mairie {
+  grid-area: mairie;
+}
+
+.mairie__liste {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.35rem 1rem;
+  margin: 0.8rem 0 0;
+
+  dt {
+    color: var(--ink-soft);
+    font-size: 0.85rem;
+  }
+
+  dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  a {
+    color: var(--accent-text);
+    font-weight: 600;
+  }
+}
+
+.card--demo {
+  grid-area: demo;
+}
+
+.demo__source {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.demo__sexes {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0.9rem 0 0;
+  font-weight: 600;
+}
+
+.demo__soustitre {
+  font-size: 0.95rem;
+  margin: 1.1rem 0 0.5rem;
+}
+
+.demo__liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.demo__ligne {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.15rem 0.8rem;
+  align-items: baseline;
+  font-size: 0.9rem;
+}
+
+.demo__label {
+  color: var(--ink-soft);
+}
+
+.demo__part {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Barre décorative : le pourcentage chiffré est déjà lu juste à côté, et
+   l'effectif exact est donné aux lecteurs d'écran (.sr-only). */
+.demo__barre {
+  grid-column: 1 / -1;
+  display: block;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.demo__barre-remplie {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+.rangs__liste {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.rangs__item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.15rem 1rem;
+  align-items: baseline;
+}
+
+.rangs__libelle {
+  color: var(--ink-soft);
+}
+
+.rangs__valeur {
+  white-space: nowrap;
+
+  strong {
+    font-size: 1.15rem;
+    color: var(--accent-text);
+  }
+}
+
+.rangs__total {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  margin-left: 0.3rem;
+}
+
+/* Jauge décorative : la valeur chiffrée est déjà lue au-dessus, et le
+   pourcentage est donné aux lecteurs d'écran par la mention .sr-only. */
+.rangs__jauge {
+  grid-column: 1 / -1;
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.rangs__jauge-barre {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+.rangs__note {
+  margin: 1rem 0 0;
+  font-size: 0.8rem;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.card--simil {
+  grid-area: simil;
+}
+
+.simil__note {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.card--hubs {
+  grid-area: hubs;
+}
+
+.hubs__liste {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  a {
+    color: var(--accent-text);
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.faq__liste {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.faq__item {
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--paper-soft);
+  padding: 0.65rem 0.85rem;
+}
+
+.faq__q {
+  cursor: pointer;
+  font-weight: 600;
+  line-height: 1.4;
+  /* Le marqueur natif du <summary> est conservé : il porte l'état
+     ouvert/fermé sans ARIA ni JS. */
+}
+
+.faq__r {
+  margin: 0.6rem 0 0;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.card--texte {
+  grid-area: texte;
+}
+

@@ -1,4 +1,4 @@
-<article class="fiche container">
+<article class="fiche container container--wide">
   <a routerLink="/" class="back">← Retour à la recherche</a>
 
   @switch (status()) {
@@ -25,13 +25,17 @@
     @default {
       @let c = commune()!;
 
-      <header class="head">
-        <div class="head__id">
+      <!-- Bandeau héros : la note, son rang et ce qui la fabrique, AVANT
+           toute carte. Les rangs vivaient auparavant dans une carte en 11e
+           position, à égalité visuelle avec « Aux alentours » — alors que
+           c'est l'information que la page est censée délivrer. -->
+      <header class="hero">
+        <div class="hero__id">
           <h1>{{ c.nom }}</h1>
-          <p class="head__meta">
-            <a [routerLink]="['/departement', depCode()]" class="head__dep">{{ depNom() }}</a>
+          <p class="hero__meta">
+            <a [routerLink]="['/departement', depCode()]" class="hero__dep">{{ depNom() }}</a>
             @if (communeMere(); as mere) {
-              · <a [routerLink]="['/ville', mere.slug]" class="head__mere">{{ mere.nom }}</a>
+              · <a [routerLink]="['/ville', mere.slug]" class="hero__mere">{{ mere.nom }}</a>
             }
             · {{ c.population | number: '1.0-0' }} habitants
             @if (c.codesPostaux.length) {
@@ -39,22 +43,83 @@
             }
           </p>
         </div>
-        <div class="head__scores">
-          <div class="head__score">
-            <span class="head__score-label">Note globale</span>
-            <app-score-badge [score]="c.score.global" />
-            <span class="head__score-sub">données officielles</span>
+
+        <div class="hero__note">
+          <p class="hero__note-val">
+            <span class="chiffre">{{ c.score.global | number: '1.1-1' }}</span>
+            <span class="hero__note-den">/&#8202;10</span>
+          </p>
+          <p class="hero__note-label">Note globale · données officielles</p>
+          @if (ponderation.actif()) {
+            @if (notePerso(); as perso) {
+              <p class="hero__note-perso">
+                {{ perso | number: '1.1-1' }}/10 selon votre profil
+              </p>
+            }
+          }
+        </div>
+
+        @if (classements(); as rangs) {
+          <div class="hero__rangs">
+            <h2 class="hero__rangs-titre">Classements de {{ c.nom }}</h2>
+            <ul class="rangs__liste">
+              @for (r of rangs; track r.libelle) {
+                <li class="rangs__item">
+                  <span class="rangs__libelle">{{ r.libelle }}</span>
+                  <span class="rangs__valeur">
+                    <strong>{{ r.rangTexte }}</strong>
+                    <span class="rangs__total">sur {{ r.total | number: '1.0-0' }}</span>
+                  </span>
+                  <span class="rangs__jauge" aria-hidden="true">
+                    <span class="rangs__jauge-barre" [style.width.%]="r.percentile"></span>
+                  </span>
+                  <span class="sr-only">
+                    Mieux classée que {{ r.percentile }} % des communes de ce groupe.
+                  </span>
+                </li>
+              }
+            </ul>
+            <p class="rangs__note">
+              Classement établi sur la note globale. La comparaison par taille de
+              commune est la plus pertinente : les équipements et les prix ne se
+              comparent pas d'un village à une métropole.
+            </p>
           </div>
+        }
+
+        @if (atouts(); as a) {
+          <ul class="hero__atouts">
+            @for (f of a.forts; track f.critere) {
+              <li class="atout atout--fort">
+                <span class="atout__signe" aria-hidden="true">+</span>
+                <span class="atout__label">{{ f.label }}</span>
+                <span class="atout__note">{{ f.note | number: '1.1-1' }}</span>
+                <span class="sr-only">point fort</span>
+              </li>
+            }
+            <li class="atout atout--faible">
+              <span class="atout__signe" aria-hidden="true">−</span>
+              <span class="atout__label">{{ a.faible.label }}</span>
+              <span class="atout__note">{{ a.faible.note | number: '1.1-1' }}</span>
+              <span class="sr-only">point faible</span>
+            </li>
+          </ul>
+        }
+
+        <div class="hero__pied">
+          @if (derniereMiseAJour(); as maj) {
+            <p class="hero__maj">
+              Données officielles du {{ maj }} —
+              <a routerLink="/methodologie">méthodologie</a>
+            </p>
+          } @else {
+            <p class="hero__maj">Date de mise à jour indisponible.</p>
+          }
           @if (noteHabitants(); as h) {
-            <button
-              type="button"
-              class="head__score head__score--avis"
-              (click)="openOnglet('avis')"
-              title="Note moyenne des avis publiés — indépendante de la note globale"
-            >
-              <span class="head__score-label">Avis habitants</span>
+            <button type="button" class="hero__avis" (click)="openOnglet('avis')">
+              <span class="hero__avis-label">Avis habitants</span>
               <app-score-badge [score]="h.note" />
-              <span class="head__score-sub">{{ h.nb }} avis →</span>
+              <span class="hero__avis-nb">{{ h.nb }} avis →</span>
             </button>
           }
         </div>
@@ -117,10 +182,20 @@
             @for (critere of criteres; track critere) {
               <div class="theme">
                 <span class="theme__icon" aria-hidden="true">{{ icons[critere] }}</span>
-                <app-note-bar [label]="labels[critere]" [score]="c.score.criteres[critere]" />
+                <app-note-bar
+                  [label]="labels[critere]"
+                  [score]="c.score.criteres[critere]"
+                  [moyenne]="moyennesDep()?.[critere] ?? null"
+                />
               </div>
             }
           </div>
+          @if (moyennesDep()) {
+            <p class="themes__legende">
+              <span class="themes__repere" aria-hidden="true"></span>
+              Repère : moyenne des autres communes du {{ depNom() }}.
+            </p>
+          }
           @if (noteHabitants()) {
             <p class="estimate-note">
               La note « Avis habitants » de l'en-tête est la moyenne des avis publiés —
@@ -200,22 +275,6 @@
               Pas assez de ventes enregistrées pour une médiane fiable
               <span class="price__none-detail">(source DVF — non couvert en Alsace, Moselle et Mayotte)</span>
             </p>
-          }
-        </section>
-
-        <!-- Fraîcheur des données : pas de trajectoire de note inventée
-             (une seule mesure par build, aucune série temporelle réelle
-             disponible) — cf. /methodologie. -->
-        <section class="card card--histo" aria-label="Fraîcheur des données">
-          <h2 class="card__title">Fraîcheur des données</h2>
-          @if (derniereMiseAJour(); as maj) {
-            <p class="maj__date">{{ maj }}</p>
-            <p class="estimate-note">
-              Date des données officielles utilisées pour cette fiche (INSEE, SSMSI, DGFiP) —
-              voir la <a routerLink="/methodologie">méthodologie</a>.
-            </p>
-          } @else {
-            <p class="price__none">Date de mise à jour indisponible.</p>
           }
         </section>
 
@@ -317,42 +376,11 @@
           </section>
         }
 
-        <!-- Classements : national, département, strate de population.
-             Le rang par strate est le plus informatif — comparer une commune
-             de 3 000 habitants à toute la France n'a guère de sens. -->
-        @if (classements(); as rangs) {
-          <section class="card card--rangs" aria-labelledby="rangs-titre">
-            <h2 class="card__title" id="rangs-titre">Classements de {{ c.nom }}</h2>
-            <ul class="rangs__liste">
-              @for (r of rangs; track r.libelle) {
-                <li class="rangs__item">
-                  <span class="rangs__libelle">{{ r.libelle }}</span>
-                  <span class="rangs__valeur">
-                    <strong>{{ r.rangTexte }}</strong>
-                    <span class="rangs__total">sur {{ r.total | number: '1.0-0' }}</span>
-                  </span>
-                  <span class="rangs__jauge" aria-hidden="true">
-                    <span class="rangs__jauge-barre" [style.width.%]="r.percentile"></span>
-                  </span>
-                  <span class="sr-only">
-                    Mieux classée que {{ r.percentile }} % des communes de ce groupe.
-                  </span>
-                </li>
-              }
-            </ul>
-            <p class="rangs__note">
-              Classement établi sur la note globale. La comparaison par taille de
-              commune est la plus pertinente : les équipements et les prix ne se
-              comparent pas d'un village à une métropole.
-            </p>
-          </section>
-        }
-
         <!-- Villes similaires : profil de notes proche, pas proximité
              géographique (celle-ci est traitée par « Aux alentours », dont les
              communes sont exclues ici pour ne pas doublonner les liens). -->
         @if (similaires().length) {
-          <section class="card card--simil" aria-labelledby="simil-titre">
+          <section class="card card--liens card--simil" aria-labelledby="simil-titre">
             <div class="card__head">
               <h2 class="card__title" id="simil-titre">Villes au profil similaire</h2>
               <p class="simil__note">Notes proches sur les 8 critères</p>
@@ -373,7 +401,7 @@
         <!-- Palmarès du département : présents sur CHAQUE fiche (et plus
              seulement sur la page département), pour que ces hubs soient
              atteignables depuis n'importe quelle commune. -->
-        <section class="card card--hubs" aria-labelledby="hubs-titre">
+        <section class="card card--liens card--hubs" aria-labelledby="hubs-titre">
           <h2 class="card__title" id="hubs-titre">Explorer le {{ depNom() }}</h2>
           <ul class="hubs__liste">
             <li>
@@ -403,7 +431,7 @@
              indexable. Le balisage JSON-LD FAQPage reprend EXACTEMENT ces
              questions/réponses. -->
         @if (faq().length) {
-          <section class="card card--faq" aria-labelledby="faq-titre">
+          <section class="card card--liens card--faq" aria-labelledby="faq-titre">
             <h2 class="card__title" id="faq-titre">Questions fréquentes sur {{ c.nom }}</h2>
             <div class="faq__liste">
               @for (item of faq(); track item.q; let first = $first) {
@@ -418,7 +446,7 @@
 
         <!-- Ses arrondissements (Paris/Lyon/Marseille uniquement) -->
         @if (arrondissements().length) {
-          <section class="card card--arrondissements" aria-label="Arrondissements de {{ c.nom }}">
+          <section class="card card--liens card--arrondissements" aria-label="Arrondissements de {{ c.nom }}">
             <h2 class="card__title">Ses arrondissements</h2>
             <ul class="near">
               @for (a of arrondissements(); track a.slug) {
@@ -436,7 +464,7 @@
 
         <!-- Villes aux alentours -->
         @if (voisins().length) {
-          <section class="card card--near" aria-label="Communes aux alentours">
+          <section class="card card--liens card--near" aria-label="Communes aux alentours">
             <div class="card__head">
               <h2 class="card__title">Aux alentours</h2>
               @if (aHubAutour()) {

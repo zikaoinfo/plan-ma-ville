@@ -1,0 +1,38 @@
+<a class="terr" [routerLink]="lien()">
+  @if (rang(); as r) {
+    <span class="terr__rang chiffre"><span class="sr-only">Rang </span>{{ r }}</span>
+  }
+
+  <span class="terr__corps">
+    <span class="terr__titre">
+      <span class="terr__code chiffre">{{ code() }}</span>
+      <span class="terr__nom">{{ nom() }}</span>
+    </span>
+
+    <span class="terr__meta">
+      @if (detail(); as d) {
+        <span>{{ d }}</span>
+        <span aria-hidden="true"> · </span>
+      }
+      @if (couvertureConnue()) {
+        <span
+          >{{ nbNotees() | number: '1.0-0' }} sur {{ nbCommunes() | number: '1.0-0' }} commune{{
+            nbCommunes() > 1 ? 's' : ''
+          }}
+          notée{{ (nbNotees() ?? 0) > 1 ? 's' : '' }}</span
+        >
+      } @else {
+        <span
+          >{{ nbCommunes() | number: '1.0-0' }} commune{{ nbCommunes() > 1 ? 's' : '' }}</span
+        >
+      }
+    </span>
+  </span>
+
+  @if (noteAffichable(); as n) {
+    <app-score-badge [score]="n" />
+  } @else {
+    <!-- Pas de 0 trompeur : l'absence de note est dite, pas simulée. -->
+    <span class="terr__sans-note">Non notée</span>
+  }
+</a>

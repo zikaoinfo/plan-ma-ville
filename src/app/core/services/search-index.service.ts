@@ -9,6 +9,7 @@ import type {
   SearchIndexFile,
   SearchIndexItem,
 } from '../models/data.models';
+import { comparerDepartements } from '../departement-ordre';
 import { dataUrl } from '../data-url';
 import { normaliseNom } from '../normalise';
 
@@ -110,7 +111,7 @@ export class SearchIndexService {
   getDepartements(): DepartementSummary[] {
     const items = this.#departements.value()?.items;
     if (!items) return [];
-    return [...items].sort((a, b) => a.code.localeCompare(b.code, undefined, { numeric: true }));
+    return [...items].sort((a, b) => comparerDepartements(a.code, b.code));
   }
 
   /** État brut de la ressource régions (idle | loading | resolved | error). */

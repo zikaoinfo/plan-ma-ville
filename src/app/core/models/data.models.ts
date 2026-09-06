@@ -67,6 +67,10 @@ export interface DepartementSummary {
   code: string; // "69"
   nom: string; // "Rhône"
   nbCommunes: number;
+  /** Population cumulée des communes réelles (arrondissements exclus). Sert à
+   *  ordonner les départements ailleurs que par note (accueil : les plus
+   *  peuplés) sans inventer de critère. */
+  population: number;
   noteMoyenne: number; // moyenne pondérée population, 1 décimale
 }
 

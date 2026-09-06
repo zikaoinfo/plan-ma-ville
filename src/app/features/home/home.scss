@@ -1,11 +1,63 @@
 .hero {
-  padding-block: clamp(2.5rem, 7vw, 5rem) 1rem;
+  padding-block: clamp(2.5rem, 7vw, 5rem) var(--sp-4);
   text-align: center;
 }
 
+/* Sur-titre : petites capitales à l'encre douce, pas une pastille. */
+.hero__eyebrow {
+  margin: 0;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink-soft);
+}
+
 .hero h1 {
-  font-size: clamp(2.2rem, 6vw, 3.6rem);
-  margin-top: 0.9rem;
+  font-size: var(--fs-xxl);
+  margin-top: var(--sp-3);
+}
+
+/* ── Bande de preuve ──────────────────────────
+   Trois chiffres vérifiables sous la recherche. Le contenu vient de
+   `methodologie-chiffres.ts` : c'est la promesse du site, elle ne doit pas
+   pouvoir diverger de la page qui la détaille. */
+.preuves {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr));
+  gap: var(--sp-5);
+  max-width: 52rem;
+  margin: var(--sp-7) auto 0;
+  padding: var(--sp-5) 0 0;
+  border-top: 1px solid var(--line-strong);
+  text-align: left;
+}
+
+.preuve {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+}
+
+.preuve__val {
+  font-size: var(--fs-xl);
+  color: var(--ink);
+}
+
+.preuve__txt {
+  font-size: var(--fs-s);
+  color: var(--ink-soft);
+}
+
+.preuves__lien {
+  margin: var(--sp-4) 0 0;
+  font-size: var(--fs-s);
+  font-weight: 600;
+}
+
+.preuves__lien a {
+  color: var(--accent-text);
 }
 
 .ville {
@@ -125,11 +177,17 @@
   transition: background 0.15s ease;
 }
 
-.result:hover,
-.result:focus-visible,
-.result--active {
+.result:hover {
   background: var(--paper-soft);
-  outline: none;
+}
+
+/* Option active du combobox (focus « roving » par aria-activedescendant :
+   les options portent tabindex=-1, l'anneau de focus reste sur l'input).
+   Un simple fond --paper-soft ne se distinguait presque pas de la piste :
+   le liseré d'accent porte l'état, à la couleur déjà validée pour le focus. */
+.result--active {
+  background: var(--accent-soft);
+  box-shadow: inset 3px 0 0 var(--accent);
 }
 
 .result__main {
@@ -197,100 +255,41 @@
   }
 }
 
-/* ── Départements ─────────────────────────── */
-.departements {
-  margin-top: 3.5rem;
+/* ── Sections d'exploration (départements, régions) ──
+   Deux listes du même objet : un seul jeu de classes, sinon elles
+   divergeront. La grille elle-même est globale (`.territoire-grid`). */
+.hub {
+  margin-top: var(--sp-8);
 }
 
-.departements__head {
+.hub__head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 1rem;
+  gap: var(--sp-4);
   flex-wrap: wrap;
-  margin-bottom: 1.2rem;
+  margin-bottom: var(--sp-4);
 }
 
-.departements h2 {
-  font-size: 1.6rem;
+.hub h2 {
+  font-size: var(--fs-xl);
   margin: 0;
 }
 
-.departements__lien {
+.hub__lien {
   font-weight: 600;
   color: var(--accent-text);
   text-decoration: none;
   white-space: nowrap;
 }
 
-.departements__lien:hover {
+.hub__lien:hover {
   text-decoration: underline;
 }
 
-.dep-grid {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
-  gap: 0.75rem;
-}
-
-.dep {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  height: 100%;
-  padding: 0.85rem 1rem;
-  background: var(--paper);
-  border: 1.5px solid var(--line);
-  border-radius: 14px;
-  text-decoration: none;
-  color: inherit;
-  transition:
-    transform 0.15s ease,
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
-}
-
-.dep:hover,
-.dep:focus-visible {
-  transform: translateY(-2px);
-  border-color: var(--ink);
-  box-shadow: var(--shadow);
-  outline: none;
-}
-
-.dep__code {
-  display: grid;
-  place-items: center;
-  width: 2.6rem;
-  height: 2.6rem;
-  flex: none;
-  border-radius: 10px;
-  background: var(--ink);
-  color: var(--paper);
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 0.95rem;
-}
-
-.dep__body {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-width: 0;
-}
-
-.dep__nom {
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.dep__nb {
-  font-size: 0.8rem;
+.hub__critere {
+  margin-top: var(--sp-3);
+  font-size: var(--fs-xs);
   color: var(--ink-soft);
 }
 

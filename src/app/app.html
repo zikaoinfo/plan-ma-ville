@@ -182,10 +182,24 @@
 
 <footer class="footer">
   <div class="container footer__inner">
-    <p>
-      © {{ annee }} ma ville, notée — données open data
-      (<a href="https://geo.api.gouv.fr" rel="noopener" target="_blank">geo.api.gouv.fr</a>).
-    </p>
-    <p class="footer__note">Notes indicatives, calculées automatiquement.</p>
+    <div class="footer__sources">
+      <!-- Intitulé en <p> et non en <h2> : ce bloc est présent sur les
+           ~35 000 pages, il n'a pas à entrer dans leur plan de titres. -->
+      <p class="footer__titre">Sources officielles</p>
+      <ul class="footer__liste">
+        @for (s of sources; track s.source) {
+          <li class="footer__source">
+            {{ s.source }}
+            <span class="footer__mill">{{ s.millesime }}</span>
+          </li>
+        }
+      </ul>
+      <p><a routerLink="/methodologie" class="footer__lien">Méthodologie complète →</a></p>
+    </div>
+
+    <div class="footer__legal">
+      <p>© {{ annee }} ma ville, notée</p>
+      <p class="footer__note">Notes indicatives, calculées automatiquement.</p>
+    </div>
   </div>
 </footer>

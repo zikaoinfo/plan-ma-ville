@@ -89,6 +89,7 @@ function routeParametree(
 export const serverRoutes: ServerRoute[] = [
   routeFixe(''),
   routeFixe('regions'),
+  routeFixe('departements'),
   routeFixe('classement'),
   routeFixe('comparer'),
   routeFixe('methodologie'),

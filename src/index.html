@@ -10,7 +10,7 @@
        déploiement le remplacent par une balise noindex pour les
        préversions. Détails : docs/SEO-INDEXATION.md -->
   <!-- SEO_ROBOTS -->
-  <meta name="theme-color" content="#f8f8fc">
+  <meta name="theme-color" content="#fafbfc">
   <!-- Anti-flash : pose data-theme, data-accent ET la theme-color AVANT le
        chargement d'Angular. Doit rester aligné avec ThemeService (clé
        mvn-theme, défaut system, couleurs META_THEME_COLOR) et AccentService
@@ -29,7 +29,7 @@
       document.documentElement.dataset.theme = theme;
       document.documentElement.dataset.accent = accent;
       var meta = document.querySelector('meta[name="theme-color"]');
-      if (meta) meta.setAttribute('content', theme === 'dark' ? '#12102a' : '#f8f8fc');
+      if (meta) meta.setAttribute('content', theme === 'dark' ? '#0f1116' : '#fafbfc');
     })();
   </script>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">

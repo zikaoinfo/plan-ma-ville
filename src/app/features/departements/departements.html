@@ -1,0 +1,37 @@
+<section class="departements container">
+  <a routerLink="/" class="back">← Retour à la recherche</a>
+
+  <header class="departements__head">
+    <h1>Tous les départements</h1>
+    <p class="departements__note">
+      Les départements français par numéro, avec leur note moyenne (pondérée par la
+      population). Ouvrez-en un pour voir ses communes, ou passez
+      <a routerLink="/regions">par région</a>.
+    </p>
+  </header>
+
+  @if (departements().length) {
+    <ul class="territoire-grid">
+      @for (dep of departements(); track dep.code) {
+        <li>
+          <app-territoire-card
+            [code]="dep.code"
+            [nom]="dep.nom"
+            [lien]="['/departement', dep.code]"
+            [nbCommunes]="dep.nbCommunes"
+            [note]="dep.noteMoyenne"
+          />
+        </li>
+      }
+    </ul>
+  } @else if (status() === 'error') {
+    <app-error-message
+      message="Impossible de charger la liste des départements."
+      [retry]="reload"
+    />
+  } @else {
+    <div class="loading" role="status">
+      <span class="spinner" aria-hidden="true"></span> Chargement des départements…
+    </div>
+  }
+</section>

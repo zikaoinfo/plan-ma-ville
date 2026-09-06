@@ -13,20 +13,20 @@ export function scoreTier(score: number): ScoreTier {
 }
 
 /**
- * Source de vérité UNIQUE des couleurs de note : badges, barres, sliders,
- * comparateur ET markers de la carte (marker-style.ts). Alignée sur les
- * tokens --bad / --warn / --good de styles.scss.
+ * Couleurs de note en HEX — réservées au rendu HORS CSS : les markers
+ * Leaflet sont peints dans un canvas, sans accès aux variables du thème
+ * (`marker-style.ts`). Tout ce qui vit dans le DOM passe par TIER_VAR,
+ * qui suit le thème clair/sombre. Valeurs = paliers du THÈME CLAIR.
  *
- * `good` légèrement assombri (#1d8a63 → #1a7c59) : le vert d'origine ne
- * franchissait pas 4.5:1 en texte blanc (4.31:1, échec WCAG AA relevé par
- * l'audit Lighthouse) ; #1a7c59 atteint 5.16:1 tout en restant visuellement
- * le même vert de marque.
+ * Valeurs alignées sur --tier-* du thème clair (styles.scss) : une couleur
+ * qui dérive ici ferait des markers de carte d'une autre palette que les
+ * badges de la même note. Chaque palier porte son texte à ≥ 5.3:1.
  */
 export const TIER_BG: Record<ScoreTier, string> = {
-  bad: '#c93a2e',
-  mid: '#e67e22',
-  warn: '#d9a514',
-  good: '#1a7c59',
+  bad: '#c02c26',
+  mid: '#d97706',
+  warn: '#b8890b',
+  good: '#0f7a4f',
 };
 
 /**
@@ -37,6 +37,27 @@ export const TIER_BG: Record<ScoreTier, string> = {
 export const TIER_FG: Record<ScoreTier, string> = {
   bad: '#ffffff',
   mid: '#1a1a1a',
-  warn: '#1b1b1b',
+  warn: '#1a1a1a',
   good: '#ffffff',
+};
+
+/**
+ * Paliers en variables CSS — à utiliser partout dans le DOM (badges, barres,
+ * sliders, comparateur). Le thème sombre redéfinit --tier-* dans styles.scss :
+ * une couleur figée en TS resterait au vert profond du thème clair sur la nuit
+ * violette, désaccordée du reste de la page.
+ */
+export const TIER_VAR: Record<ScoreTier, string> = {
+  bad: 'var(--tier-bad)',
+  mid: 'var(--tier-mid)',
+  warn: 'var(--tier-warn)',
+  good: 'var(--tier-good)',
+};
+
+/** Texte posé sur TIER_VAR — contrastes vérifiés dans les deux thèmes. */
+export const ON_TIER_VAR: Record<ScoreTier, string> = {
+  bad: 'var(--on-tier-bad)',
+  mid: 'var(--on-tier-mid)',
+  warn: 'var(--on-tier-warn)',
+  good: 'var(--on-tier-good)',
 };

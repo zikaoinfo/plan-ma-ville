@@ -7,10 +7,11 @@ import { MetaService } from '../../core/services/meta.service';
 import { SearchIndexService } from '../../core/services/search-index.service';
 import { ErrorMessage } from '../../shared/error-message/error-message';
 import { ScoreBadge } from '../../shared/score-badge/score-badge';
+import { TerritoireCard } from '../../shared/territoire-card/territoire-card';
 
 @Component({
   selector: 'app-region',
-  imports: [RouterLink, ScoreBadge, ErrorMessage, DecimalPipe],
+  imports: [RouterLink, ScoreBadge, ErrorMessage, DecimalPipe, TerritoireCard],
   templateUrl: './region.html',
   styleUrl: './region.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

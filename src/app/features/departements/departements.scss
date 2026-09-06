@@ -1,0 +1,62 @@
+.departements {
+  padding-block: var(--sp-6) var(--sp-8);
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: var(--sp-4);
+  font-size: var(--fs-s);
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+
+.back:hover {
+  color: var(--accent-text);
+}
+
+.departements__head h1 {
+  margin: 0 0 var(--sp-2);
+}
+
+.departements__note {
+  margin: 0;
+  max-width: 46rem;
+  color: var(--ink-soft);
+}
+
+/* Grille et carte partagées : `.territoire-grid` (styles.scss) +
+   app-territoire-card, comme l'accueil, /regions et /region/:code. */
+.territoire-grid {
+  margin-top: var(--sp-5);
+}
+
+/* ── États ────────────────────────────────── */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  padding: var(--sp-7);
+  color: var(--ink-soft);
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid var(--line);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2s;
+  }
+}

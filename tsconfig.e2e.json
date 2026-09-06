@@ -1,0 +1,10 @@
+/* Typage des tests de rendu Playwright — hors build applicatif et hors `ng test`. */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/e2e",
+    "types": ["node"],
+    "moduleResolution": "bundler"
+  },
+  "include": ["e2e/**/*.ts", "playwright.config.ts"]
+}

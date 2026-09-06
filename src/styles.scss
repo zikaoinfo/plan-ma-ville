@@ -1,15 +1,14 @@
 /* ════════════════════════════════════════════════════════════
    ma-ville-notes — design system
-   Palette « porcelaine & encre » : fond porcelaine froid, encre
-   indigo, halo aurore (accent + sarcelle) en fond. L'ACCENT est
-   un thème choisi par l'utilisateur — orange (défaut), jaune,
-   vert ou bleu — via data-accent sur <html> (AccentService +
-   script anti-flash d'index.html) ; chaque variante redéfinit
-   --accent/-soft/-text/--on-accent, contrastes vérifiés dans les
-   deux thèmes. Les couleurs de NOTE (vert/ambre/rouge) restent
-   sémantiques et inchangées. Typo : Instrument Sans (une seule
-   famille sans-serif, hiérarchie par graisse et interlettrage
-   négatif).
+   Palette « encre & papier » : une seule rampe de neutres (teinte
+   ~250, chroma très basse) en clair comme en sombre, pour que
+   l'ACCENT soit la seule couleur saturée de l'écran. L'accent est
+   choisi par l'utilisateur — orange (défaut), jaune, vert ou bleu —
+   via data-accent sur <html> (AccentService + script anti-flash
+   d'index.html) ; chaque variante redéfinit --accent/-soft/-text/
+   --on-accent. TOUT token de couleur porte son ratio mesuré en
+   commentaire, dans les deux thèmes. Typo : Instrument Sans (une
+   seule famille, hiérarchie par taille, graisse et interlettrage).
    ════════════════════════════════════════════════════════════ */
 
 /* Police auto-hébergée (fini fonts.gstatic.com — CLS causé par le swap
@@ -40,46 +39,70 @@
 }
 
 :root {
-  /* Couleurs */
-  --paper: #f8f8fc;
-  --paper-soft: #eef0f9;
-  --ink: #1a1733;
-  --ink-soft: #50506e;
-  /* Accent par défaut : ORANGE. Tous les contrastes annotés ci-dessous
-     valent pour lui ; les variantes jaune/vert/bleu (blocs data-accent
-     plus bas) respectent les mêmes seuils, vérifiés au même script. */
-  --accent: #cf4500;
-  --accent-soft: #ffe1d1;
-  --good: #1a7c59; /* aligné TIER_BG.good (score-color.ts) — 5.16:1 en blanc */
-  --good-soft: #d2efe3;
-  --warn: #d9a514;
-  --bad: #c93a2e;
-  --line: #dcdcec;
-  --topbar-bg: rgb(248 248 252 / 0.85);
-  /* Texte posé sur --accent : chaque accent clair est assez profond pour
-     du blanc (orange 4.66:1) ; en sombre les accents s'éclaircissent, les
-     blocs sombres repassent à l'encre nuit. */
-  --on-accent: #ffffff;
-  /* Texte posé sur --bad : blanc en clair (5.09:1), encre sombre en sombre
-     (--bad s'éclaircit à #e5675b, le blanc y tombe à 3.27:1). */
-  --on-bad: #ffffff;
-  --scrim: rgb(0 0 0 / 0.25); /* voile derrière les panneaux/menus */
+  /* ── Neutres ────────────────────────────────────────────────
+     Rampe unique (teinte ~250, chroma TRÈS basse) : le fond ne
+     sature rien, l'accent reste la seule couleur vive de la page —
+     c'est la règle « accent = ponctuation » appliquée au socle.
+     L'ancienne rampe (--paper #f8f8fc, --paper-soft #eef0f9) portait
+     un bleu-lavande marqué qui teintait chaque surface et entrait en
+     concurrence avec l'accent choisi par l'utilisateur. */
+  --paper: #fafbfc;
+  --paper-soft: #eff1f5;
+  /* Surface au-dessus de --paper (bandeau héros, bloc primaire).
+     Encre dessus 16.57:1, encre douce 6.57:1. */
+  --paper-raised: #ffffff;
+  --line: #e1e4ec;
+  /* Filet franc : sépare sans ombre, ton « publication statistique ».
+     3.51:1 sur --paper, 3.21:1 sur --paper-soft (seuil UI 3:1). */
+  --line-strong: #808698;
+  --ink: #1b1e2b; /* 16.00:1 sur --paper, 14.66:1 sur --paper-soft */
+  --ink-soft: #565d70; /* 6.34:1 sur --paper, 5.81:1 sur --paper-soft */
+  --scrim: rgb(11 13 18 / 0.28); /* voile derrière les panneaux/menus */
+  --topbar-bg: rgb(250 251 252 / 0.85);
 
-  /* Variantes « texte-safe » (RGAA §1.5, contraste ≥ 4.5:1 sur --paper /
-     --paper-soft) : --accent-text, un cran plus sombre que l'accent, sert
-     de `color` aux liens et petits corps (orange 4.99:1 / 4.65:1) ;
-     --good reste une couleur de remplissage (—4.0:1 en texte), d'où
-     --good-text (5.72:1 / 5.33:1). */
-  --accent-text: #c04000;
-  --good-text: #157050;
+  /* ── Accent ─────────────────────────────────────────────────
+     Orange par défaut ; jaune/vert/bleu dans les blocs data-accent
+     plus bas, tous vérifiés aux mêmes seuils. Les quatre teintes ont
+     été assombries d'un cran par rapport à la version précédente :
+     sur un fond devenu presque neutre, un accent vif « bavait ». */
+  --accent: #c2410c; /* anneau focus 5.00:1 sur --paper */
+  --accent-soft: #ffe8d9; /* fond de sélection — encre dessus 14.04:1 */
+  --accent-text: #b03a09; /* 5.87 · 5.37 · 6.08:1 (paper · soft · raised) */
+  --on-accent: #ffffff; /* 5.18:1 sur --accent */
+
+  /* ── Sémantique ─────────────────────────────────────────────
+     --good/--bad servent AUSSI de couleur de texte (points forts et
+     faibles du héros) : leurs ratios sont donc vérifiés sur les trois
+     surfaces, pas seulement en remplissage. */
+  --good: #0f7a4f;
+  --good-soft: #d7f0e3; /* encre dessus 13.78:1 */
+  --good-text: #0c6a45; /* 6.41:1 sur --paper, 6.64:1 sur --paper-raised */
+  --warn: #b45309;
+  --bad: #c02c26; /* 5.58:1 sur --paper, 5.79:1 sur --paper-raised */
+  --on-bad: #ffffff; /* 5.79:1 */
+
+  /* ── Paliers de note (badges, barres, sliders) ──────────────
+     Le remplissage n'est JAMAIS le seul porteur de l'information : la
+     note chiffrée est toujours affichée à côté (crit. 3.1). Ce qui est
+     vérifié ici, c'est le TEXTE posé dessus (--on-tier-*, ≥ 4.5:1).
+     Source de vérité partagée avec score-color.ts (TIER_VAR). */
+  --tier-bad: #c02c26;
+  --tier-mid: #d97706;
+  --tier-warn: #b8890b;
+  --tier-good: #0f7a4f;
+  --on-tier-bad: #ffffff; /* 5.79:1 */
+  --on-tier-mid: #1a1a1a; /* 5.46:1 */
+  --on-tier-warn: #1a1a1a; /* 5.49:1 */
+  --on-tier-good: #ffffff; /* 5.36:1 */
 
   /* Pastilles du sélecteur d'accent (menu thème) : la couleur de CHAQUE
      option doit rester visible quel que soit l'accent actif — seuls hex
-     autorisés hors tokens d'accent, éclaircis dans le bloc sombre. */
-  --swatch-orange: #cf4500;
-  --swatch-jaune: #946b00;
-  --swatch-vert: #0e7a48;
-  --swatch-bleu: #2257e0;
+     autorisés hors tokens d'accent, éclaircis dans le bloc sombre.
+     4.35:1 à 5.00:1 sur --paper / --paper-soft. */
+  --swatch-orange: #c2410c;
+  --swatch-jaune: #a16207;
+  --swatch-vert: #15803d;
+  --swatch-bleu: #2563eb;
 
   /* Typo — même famille pour display et body : la hiérarchie passe par
      la taille, la graisse et le tracking (pas par un changement de police). */
@@ -89,9 +112,40 @@
   /* Rythme — élévation douce et diffuse (fini l'ombre dure décalée) */
   --radius: 14px;
   --radius-sm: 8px;
-  --shadow: 0 1px 2px rgb(26 23 51 / 0.06), 0 8px 24px rgb(26 23 51 / 0.09);
-  --shadow-lift: 0 14px 36px rgb(26 23 51 / 0.16);
+  --shadow: 0 1px 2px rgb(27 30 43 / 0.05), 0 8px 24px rgb(27 30 43 / 0.08);
+  --shadow-lift: 0 14px 36px rgb(27 30 43 / 0.14);
+
+  /* Deux largeurs de lecture : --container pour la prose (mesure confortable),
+     --container-wide pour les tableaux et les dashboards. L'alternance des
+     deux EST le rythme de la page — ne pas inventer de max-width locale. */
   --container: 1080px;
+  --container-wide: 1280px;
+
+  /* ── Échelle typographique ──────────────────────────────────
+     Progression ~1.25. --fs-display est réservé aux CHIFFRES mis en
+     scène (note globale, prix médian) : le produit EST des chiffres,
+     ils méritent un traitement d'objet graphique, pas de paragraphe. */
+  --fs-display: clamp(3.4rem, 9vw, 5.5rem);
+  --fs-xxl: clamp(2.1rem, 5vw, 3.2rem);
+  --fs-xl: 1.75rem;
+  --fs-l: 1.35rem;
+  --fs-m: 1.05rem;
+  --fs-s: 0.92rem;
+  --fs-xs: 0.8rem;
+  /* Réglage commun des nombres : chasse fixe (les colonnes de notes
+     s'alignent d'une ligne à l'autre) + tracking resserré. */
+  --num-tracking: -0.03em;
+
+  /* ── Échelle d'espacement ───────────────────────────────────
+     Multiples de 0.25rem. Tout écart vertical passe par un pas. */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.5rem;
+  --sp-6: 2rem;
+  --sp-7: 3rem;
+  --sp-8: 4rem;
 
   color-scheme: light;
 }
@@ -99,80 +153,95 @@
 /* ── Accents alternatifs (thème CLAIR) ────────
    data-accent posé sur <html> par AccentService (+ anti-flash index.html).
    Pas de bloc [data-accent='orange'] : l'orange EST la base ci-dessus.
-   Ratios (script WCAG) : on/accent ≥ 4.5 · text/paper(+soft) ≥ 4.5 ·
-   accent/paper ≥ 3 (focus). */
+   Ratios : on/accent ≥ 4.5 · text/paper(+soft+raised) ≥ 4.5 ·
+   accent/paper ≥ 3 (anneau de focus). */
 :root[data-accent='jaune'] {
-  --accent: #946b00; /* or foncé — blanc 4.81:1, focus 4.54:1 */
-  --accent-soft: #ffedc2;
-  --accent-text: #7d5b00; /* 5.89:1 / 5.48:1 */
+  --accent: #a16207; /* focus 4.75:1 · blanc dessus 4.92:1 */
+  --accent-soft: #fdf0cc; /* encre dessus 14.61:1 */
+  --accent-text: #854d0e; /* 6.61 · 6.06 · 6.85:1 */
 }
 
 :root[data-accent='vert'] {
-  --accent: #0e7a48; /* blanc 5.39:1, focus 5.09:1 */
-  --accent-soft: #d1f2e0;
-  --accent-text: #0d6b40; /* 6.21:1 / 5.78:1 */
+  --accent: #15803d; /* focus 4.84:1 · blanc dessus 5.02:1 */
+  --accent-soft: #d6f2e0; /* encre dessus 13.92:1 */
+  --accent-text: #166534; /* 6.88 · 6.31 · 7.13:1 */
 }
 
 :root[data-accent='bleu'] {
-  --accent: #2257e0; /* blanc 5.99:1, focus 5.65:1 */
-  --accent-soft: #dbe9ff;
-  --accent-text: #1d4fd7; /* 6.29:1 / 5.86:1 */
+  --accent: #2563eb; /* focus 4.99:1 · blanc dessus 5.17:1 */
+  --accent-soft: #dce9fe; /* encre dessus 13.52:1 */
+  --accent-text: #1d4ed8; /* 6.47 · 5.93 · 6.70:1 */
 }
 
 /* ── Thème sombre ─────────────────────────────
    Appliqué via data-theme sur <html> (ThemeService + script inline
-   anti-flash dans index.html). Même identité, inversée : nuit violette,
-   encre porcelaine, accent violet éclairci pour le contraste. */
+   anti-flash dans index.html). Même axe de teinte que le clair, chroma
+   encore plus basse : l'ancienne nuit violette (#12102a) était très
+   saturée et « mangeait » l'accent. Les trois surfaces montent en
+   clarté sans dériver en teinte — l'élévation se lit. */
 :root[data-theme='dark'] {
-  --paper: #12102a;
-  --paper-soft: #1c1a3e;
-  --ink: #eae9f6;
-  --ink-soft: #a9a8cc;
-  --accent: #ff9d6b; /* orange éclairci — texte 9.08:1 sur nuit */
-  --accent-soft: #4d2410;
-  --good: #3cb488;
-  --good-soft: #17402f;
-  --warn: #e3b62f;
-  --bad: #e5675b;
-  --line: #31315a;
-  --topbar-bg: rgb(18 16 42 / 0.85);
-  --on-accent: #1a1733; /* 8.47:1 sur l'accent orange éclairci */
-  --on-bad: #181022; /* --bad s'éclaircit en sombre (#e5675b) : encre, 5.65:1 */
-  --scrim: rgb(0 0 0 / 0.5);
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.45), 0 10px 28px rgb(0 0 0 / 0.4);
-  --shadow-lift: 0 16px 40px rgb(0 0 0 / 0.55);
+  --paper: #0f1116;
+  --paper-soft: #171a21;
+  --paper-raised: #1d212a; /* encre 13.27:1, encre douce 6.22:1 */
+  --line: #272b36;
+  --line-strong: #656d80; /* 3.64:1 sur --paper, 3.36:1 sur --paper-soft */
+  --ink: #e7e9ef; /* 15.56:1 sur --paper */
+  --ink-soft: #9aa1b1; /* 7.29:1 sur --paper, 6.72:1 sur --paper-soft */
+  --scrim: rgb(0 0 0 / 0.55);
+  --topbar-bg: rgb(15 17 22 / 0.85);
+
+  --accent: #fb923c; /* texte 8.34 · 7.69 · 7.12:1 */
+  --accent-soft: #3a1d0c; /* encre dessus 12.71:1 */
+  --good: #34d399;
+  --good-soft: #0f3b2c; /* encre dessus 10.28:1 */
+  --warn: #fbbf24;
+  --bad: #f87171; /* texte 6.83:1 sur --paper, 5.83:1 sur --paper-raised */
+  --on-accent: #0f1116; /* 8.34:1 sur l'accent éclairci */
+  --on-bad: #0f1116; /* 6.83:1 */
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.5), 0 10px 28px rgb(0 0 0 / 0.45);
+  --shadow-lift: 0 16px 40px rgb(0 0 0 / 0.6);
 
   /* En sombre, --accent/--good sont déjà assez clairs pour servir de texte
      sur le fond nuit (--paper) — pas besoin de les assombrir davantage. */
   --accent-text: var(--accent);
   --good-text: var(--good);
 
-  /* Pastilles éclaircies pour rester lisibles sur nuit. */
-  --swatch-orange: #ff9d6b;
-  --swatch-jaune: #f5bd3d;
-  --swatch-vert: #45c58b;
-  --swatch-bleu: #7aaaff;
+  /* Paliers de note éclaircis : les hex clairs (verts/rouges profonds)
+     s'éteignaient sur le fond nuit. Tous prennent l'encre nuit en texte
+     (6.83:1 à 11.31:1) et ressortent à ≥ 5:1 sur --paper/-soft. */
+  --tier-bad: #f87171;
+  --tier-mid: #fb923c;
+  --tier-warn: #fbbf24;
+  --tier-good: #34d399;
+  --on-tier-bad: #0f1116; /* 6.83:1 */
+  --on-tier-mid: #0f1116; /* 8.34:1 */
+  --on-tier-warn: #0f1116; /* 11.31:1 */
+  --on-tier-good: #0f1116; /* 9.82:1 */
+
+  /* Pastilles éclaircies pour rester lisibles sur la nuit (8.34 à 11.31:1). */
+  --swatch-orange: #fb923c;
+  --swatch-jaune: #fbbf24;
+  --swatch-vert: #34d399;
+  --swatch-bleu: #8ab4f8;
 
   color-scheme: dark;
 }
 
 /* ── Accents alternatifs (thème SOMBRE) ───────
-   Ratios : accent en texte sur nuit(+soft) ≥ 4.5 · encre sur accent ≥ 4.5. */
+   Ratios : accent en texte sur nuit(+soft+raised) ≥ 4.5 · encre dessus ≥ 4.5. */
 :root[data-theme='dark'][data-accent='jaune'] {
-  --accent: #f5bd3d; /* texte 10.79:1 / 9.65:1 ; encre dessus 10.07:1 */
-  --accent-soft: #4d3c0e;
+  --accent: #fbbf24; /* texte 11.31 · 10.43 · 9.65:1 ; encre dessus 11.31:1 */
+  --accent-soft: #3b2e0a; /* encre dessus 10.94:1 */
 }
 
 :root[data-theme='dark'][data-accent='vert'] {
-  --accent: #45c58b; /* texte 8.48:1 / 7.59:1 ; --on-accent hérite (8.48:1) */
-  --accent-soft: #123f2a;
-  --on-accent: #12102a;
+  --accent: #34d399; /* texte 9.82 · 9.06 · 8.38:1 ; encre dessus 9.82:1 */
+  --accent-soft: #0f3b2c; /* encre dessus 10.28:1 */
 }
 
 :root[data-theme='dark'][data-accent='bleu'] {
-  --accent: #7aaaff; /* texte 7.96:1 / 7.12:1 */
-  --accent-soft: #172b52;
-  --on-accent: #12102a;
+  --accent: #8ab4f8; /* texte 8.96 · 8.26 · 7.65:1 ; encre dessus 8.96:1 */
+  --accent-soft: #18264a; /* encre dessus 12.23:1 */
 }
 
 *,
@@ -188,15 +257,20 @@ html {
 body {
   margin: 0;
   min-height: 100dvh;
-  /* Halo aurore : le premier suit l'accent choisi (color-mix), le second
-     reste sarcelle quelle que soit la variante. */
+  /* Halo : la première nappe suit l'accent choisi, la seconde suit l'encre
+     (donc sombre en thème clair, claire en thème sombre — l'ancien sarcelle
+     figé était hors palette et invisible sur la nuit). */
   background:
     radial-gradient(
       1200px 500px at 85% -10%,
-      color-mix(in srgb, var(--accent) 7%, transparent),
+      color-mix(in srgb, var(--accent) 11%, transparent),
       transparent 60%
     ),
-    radial-gradient(900px 500px at -10% 0%, rgb(23 162 184 / 0.06), transparent 55%),
+    radial-gradient(
+      900px 500px at -10% 0%,
+      color-mix(in srgb, var(--ink) 5%, transparent),
+      transparent 55%
+    ),
     var(--paper);
   color: var(--ink);
   font-family: var(--font-body);
@@ -279,6 +353,36 @@ a {
 .container {
   width: min(var(--container), 100% - 2.5rem);
   margin-inline: auto;
+}
+
+/* Largeur « dashboard » : tableaux, grilles de cartes, bandeau héros.
+   La prose reste en --container (mesure de lecture). */
+.container--wide {
+  width: min(var(--container-wide), 100% - 2.5rem);
+}
+
+/* Grille des listes de territoires (accueil, /regions, /region/:code).
+   `auto-fill` + `minmax` plutôt qu'un nombre de colonnes fixe : à 2 items la
+   grille en rend 2 et non « 2 pleines + 1 fantôme », et elle se densifie seule
+   quand la liste grossit. Globale et non locale : trois écrans partagent
+   exactement la même liste, la dupliquer les ferait diverger. */
+.territoire-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  gap: var(--sp-3);
+}
+
+/* Chiffre mis en scène (note globale, prix médian, effectif). Chasse fixe :
+   deux nombres empilés s'alignent au chiffre près. */
+.chiffre {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  font-weight: 660;
+  letter-spacing: var(--num-tracking);
+  line-height: 1;
 }
 
 /* Étiquette « en chantier » réutilisée par les pages placeholder */

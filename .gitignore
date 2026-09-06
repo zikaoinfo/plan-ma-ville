@@ -53,3 +53,13 @@ Thumbs.db
 
 # Cache du pipeline de données
 /tools/data-pipeline/.cache/
+
+# Playwright (tests de rendu)
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# Réglages Claude Code propres à la machine (la skill `impeccable`, elle, est
+# versionnée : CLAUDE.md l'impose à toute modif d'UI).
+/.claude/settings.local.json
